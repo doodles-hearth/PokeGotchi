@@ -1,6 +1,8 @@
 #include "global.h"
 #include "pokegotchi_house.h"
+#include "pokegotchi_feed.h"
 #include "pokegotchi_intro.h"
+#include "pokegotchi_status.h"
 #include "strings.h"
 #include "bg.h"
 #include "data.h"
@@ -63,9 +65,10 @@ enum WindowIds
 //==========EWRAM==========//
 static EWRAM_DATA struct MenuResources *sMenuDataPtr = NULL;
 static EWRAM_DATA u8 *sBg1TilemapBuffer = NULL;
+static EWRAM_DATA MainCallback sHouseMenuExitCallback = NULL;
 
 //==========STATIC=DEFINES==========//
-void Menu_Init(MainCallback callback);
+static void Menu_Init(MainCallback callback);
 static void Menu_RunSetup(void);
 static bool8 Menu_DoGfxSetup(void);
 static bool8 Menu_InitBgs(void);
@@ -77,6 +80,9 @@ static void Menu_LoadPetSprite(void);
 static void Menu_SetSelectedTopIcon(u8 selectedIcon);
 static void Task_MenuWaitFadeIn(u8 taskId);
 static void Task_MenuMain(u8 taskId);
+static void CB2_ReturnToPokegotchiHouseMenu(void);
+static void CB2_OpenPokegotchiFeedMenuFromHouse(void);
+static void CB2_OpenPokegotchiStatusMenuFromHouse(void);
 
 //==========CONST=DATA==========//
 static const struct BgTemplate sMenuBgTemplates[] =
@@ -256,14 +262,19 @@ static const struct SpriteTemplate sMenuIconsSprites[MENU_ICONS] =
 };
 
 //==========FUNCTIONS==========//
+void OpenPokegotchiHouseMenu(MainCallback callback)
+{
+    Menu_Init(callback);
+}
+
 // UI loader template
 void MainCB2_InitPokegotchiHouseMenu(void)
 {
-    Menu_Init(CB2_InitPokegotchiBootup);
+    OpenPokegotchiHouseMenu(CB2_InitPokegotchiBootup);
 }
 
 // This is our main initialization function if you want to call the menu from elsewhere
-void Menu_Init(MainCallback callback)
+static void Menu_Init(MainCallback callback)
 {
     u8 i;
 
@@ -547,6 +558,21 @@ static void Task_MenuWaitFadeIn(u8 taskId)
     }
 }
 
+static void CB2_ReturnToPokegotchiHouseMenu(void)
+{
+    OpenPokegotchiHouseMenu(sHouseMenuExitCallback);
+}
+
+static void CB2_OpenPokegotchiFeedMenuFromHouse(void)
+{
+    OpenPokegotchiFeedMenu(CB2_ReturnToPokegotchiHouseMenu);
+}
+
+static void CB2_OpenPokegotchiStatusMenuFromHouse(void)
+{
+    OpenPokegotchiStatusMenu(CB2_ReturnToPokegotchiHouseMenu);
+}
+
 static UNUSED void Task_MenuLeave(u8 taskId)
 {
     if (!gPaletteFade.active)
@@ -573,6 +599,33 @@ static void Task_MenuMain(u8 taskId)
         gTasks[taskId].data[0] = newSelection;
         Menu_SetSelectedTopIcon(newSelection);
         PlaySE(SE_SELECT);
+    }
+
+    if (JOY_NEW(A_BUTTON))
+    {
+        switch (gTasks[taskId].data[0])
+        {
+        case STATUS_ICON:
+            sHouseMenuExitCallback = sMenuDataPtr->savedCallback;
+            sMenuDataPtr->savedCallback = CB2_OpenPokegotchiStatusMenuFromHouse;
+            PlaySE(SE_SELECT);
+            Menu_FadeAndBail();
+            DestroyTask(taskId);
+            return;
+        case FOOD_ICON:
+            sHouseMenuExitCallback = sMenuDataPtr->savedCallback;
+            sMenuDataPtr->savedCallback = CB2_OpenPokegotchiFeedMenuFromHouse;
+            PlaySE(SE_SELECT);
+            Menu_FadeAndBail();
+            DestroyTask(taskId);
+            return;
+        case CLEAN_ICON:
+        case TOWN_ICON:
+        default:
+            if (!IsSEPlaying())
+                PlaySE(SE_FAILURE);
+            break;
+        }
     }
 
     if (JOY_NEW(B_BUTTON) && !IsSEPlaying())
