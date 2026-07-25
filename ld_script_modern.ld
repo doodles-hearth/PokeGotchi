@@ -2,7 +2,7 @@ ENTRY(Start)
 
 gNumMusicPlayers = 4;
 gMaxLines = 0;
-gInitialMainCB2 = CB2_InitCopyrightScreenAfterBootup;
+gInitialMainCB2 = CB2_InitPokegotchiBootup;
 
 MEMORY
 {
