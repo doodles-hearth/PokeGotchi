@@ -40,6 +40,8 @@
 #include "constants/field_weather.h"
 #include "constants/songs.h"
 #include "constants/rgb.h"
+#include "constants/songs.h"
+#include "m4a.h"
 
 /*
  * 
@@ -365,6 +367,7 @@ static bool8 Menu_DoGfxSetup(void)
         gMain.state++;
         break;
     case 5:
+        m4aSongNumStart(MUS_FORTREE);
         Menu_LoadTopIcons();
         Menu_LoadPetSprite();
         CreateTask(Task_MenuWaitFadeIn, 0);
@@ -619,11 +622,23 @@ static void Task_MenuMain(u8 taskId)
             Menu_FadeAndBail();
             DestroyTask(taskId);
             return;
-        case CLEAN_ICON:
         case TOWN_ICON:
+            // IS SHIT AND DOESNT WORK
+            sHouseMenuExitCallback = sMenuDataPtr->savedCallback;
+            SetMainCallback1(CB1_Overworld);
+            SetMainCallback2(CB2_Overworld);
+            PlaySE(SE_SELECT);
+            Menu_FadeAndBail();
+            DestroyTask(taskId);
+
+            SetWarpDestinationToMapWarp(MAP_GROUP(MAP_TAMATOWN), MAP_NUM(MAP_TAMATOWN), 0);
+            WarpIntoMap();
+
+            return;
+        case CLEAN_ICON:
         default:
-            if (!IsSEPlaying())
-                PlaySE(SE_FAILURE);
+        if (!IsSEPlaying())
+        PlaySE(SE_FAILURE);
             break;
         }
     }
