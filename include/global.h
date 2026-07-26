@@ -251,11 +251,20 @@ struct NPCFollower
     u8 battlePartner; // If you have more than 255 total battle partners defined, change this to a u16
 };
 
+struct PokegotchiFood
+{
+    // meals
+    u8 leaf;
+    // snacks
+    u8 pecha;
+};
+
 #include "constants/items.h"
 #define ITEM_FLAGS_COUNT ((ITEMS_COUNT / 8) + ((ITEMS_COUNT % 8) ? 1 : 0))
 
 struct SaveBlock3
 {
+    struct PokegotchiFood PokegotchiFood;
 #if OW_USE_FAKE_RTC
     struct SiiRtcInfo fakeRTC;
 #endif

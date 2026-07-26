@@ -24,6 +24,7 @@ struct MenuResources
     MainCallback savedCallback;
     u8 gfxLoadState;
     u8 petSpriteId;
+    u8 foodSpriteIds[FEED_FOOD_SLOT_COUNT];
 };
 
 enum WindowIds
@@ -47,6 +48,11 @@ static bool8 Menu_InitBgs(void);
 static bool8 Menu_LoadGraphics(void);
 static void Menu_InitWindows(void);
 static void Menu_LoadPetSprite(void);
+static void Menu_LoadFoodSprites(void);
+static u8 Menu_GetFoodCount(u8 inventoryKey);
+static bool8 Menu_LoadFoodSpriteSheet(const struct PokegotchiFeedFoodItem *foodItem);
+static bool8 Menu_LoadFoodSpritePalette(const struct PokegotchiFeedFoodItem *foodItem);
+static void Menu_DestroyFoodSprites(void);
 static void Task_MenuWaitFadeIn(u8 taskId);
 static void Task_MenuMain(u8 taskId);
 
@@ -91,6 +97,111 @@ static const u32 sMenuTiles[] = INCBIN_U32("graphics/pokegotchi_feed_ui/room_til
 static const u32 sMenuTilemap[] = INCBIN_U32("graphics/pokegotchi_feed_ui/room_tilemap.bin.lz");
 static const u16 sMenuPalette[] = INCGFX_U16("graphics/pokegotchi_feed_ui/room_tiles.png", ".gbapal");
 
+const u8 gPokegotchiFeedFoodLeafSpriteGfx[] = INCGFX_U8("graphics/pokegotchi_feed_ui/food/meals/leaf.png", ".4bpp");
+const u16 gPokegotchiFeedFoodLeafPalette[] = INCGFX_U16("graphics/pokegotchi_feed_ui/food/meals/leaf.png", ".gbapal");
+const u8 gPokegotchiFeedFoodPechaSpriteGfx[] = INCGFX_U8("graphics/pokegotchi_feed_ui/food/snacks/pecha.png", ".4bpp");
+const u16 gPokegotchiFeedFoodPechaPalette[] = INCGFX_U16("graphics/pokegotchi_feed_ui/food/snacks/pecha.png", ".gbapal");
+
+const struct PokegotchiFeedFoodItem gPokegotchiFeedFoodItems[FEED_FOOD_SLOT_COUNT] =
+{
+    {
+        .category = FEED_FOOD_CATEGORY_MEAL,
+        .slot = 0,
+        .inventoryKey = FEED_FOOD_KEY_LEAF,
+        .tileTag = FEED_FOOD_TILE_TAG_LEAF,
+        .paletteTag = FEED_FOOD_PAL_TAG_LEAF,
+        .spriteTiles = gPokegotchiFeedFoodLeafSpriteGfx,
+        .palette = gPokegotchiFeedFoodLeafPalette,
+    },
+    {
+        .category = FEED_FOOD_CATEGORY_MEAL,
+        .slot = 1,
+        .inventoryKey = FEED_FOOD_KEY_NONE,
+    },
+    {
+        .category = FEED_FOOD_CATEGORY_MEAL,
+        .slot = 2,
+        .inventoryKey = FEED_FOOD_KEY_NONE,
+    },
+    {
+        .category = FEED_FOOD_CATEGORY_MEAL,
+        .slot = 3,
+        .inventoryKey = FEED_FOOD_KEY_NONE,
+    },
+    {
+        .category = FEED_FOOD_CATEGORY_SNACK,
+        .slot = 0,
+        .inventoryKey = FEED_FOOD_KEY_PECHA,
+        .tileTag = FEED_FOOD_TILE_TAG_PECHA,
+        .paletteTag = FEED_FOOD_PAL_TAG_PECHA,
+        .spriteTiles = gPokegotchiFeedFoodPechaSpriteGfx,
+        .palette = gPokegotchiFeedFoodPechaPalette,
+    },
+    {
+        .category = FEED_FOOD_CATEGORY_SNACK,
+        .slot = 1,
+        .inventoryKey = FEED_FOOD_KEY_NONE,
+    },
+    {
+        .category = FEED_FOOD_CATEGORY_SNACK,
+        .slot = 2,
+        .inventoryKey = FEED_FOOD_KEY_NONE,
+    },
+    {
+        .category = FEED_FOOD_CATEGORY_SNACK,
+        .slot = 3,
+        .inventoryKey = FEED_FOOD_KEY_NONE,
+    },
+};
+
+static const s16 sFoodSlotCoords[FEED_FOOD_CATEGORY_COUNT][FEED_FOOD_SLOTS_PER_CATEGORY][2] =
+{
+    [FEED_FOOD_CATEGORY_MEAL] =
+    {
+        {52, 92},
+        {92, 92},
+        {52, 132},
+        {92, 132},
+    },
+    [FEED_FOOD_CATEGORY_SNACK] =
+    {
+        {148, 92},
+        {188, 92},
+        {148, 132},
+        {188, 132},
+    },
+};
+
+static const union AnimCmd sAnim_FoodFrame0[] =
+{
+    ANIMCMD_FRAME(0, 0),
+    ANIMCMD_END,
+};
+
+static const union AnimCmd *const sFoodSpriteAnims[] =
+{
+    sAnim_FoodFrame0,
+};
+
+static const struct OamData sFoodSpriteOamData =
+{
+    .shape = SPRITE_SHAPE(16x16),
+    .size = SPRITE_SIZE(16x16),
+    .priority = 0,
+    .bpp = ST_OAM_4BPP,
+};
+
+static const struct SpriteTemplate sFoodSpriteTemplate =
+{
+    .tileTag = TAG_NONE,
+    .paletteTag = TAG_NONE,
+    .oam = &sFoodSpriteOamData,
+    .anims = sFoodSpriteAnims,
+    .images = NULL,
+    .affineAnims = gDummySpriteAffineAnimTable,
+    .callback = SpriteCallbackDummy,
+};
+
 enum Colors
 {
     FONT_BLACK,
@@ -114,15 +225,23 @@ void OpenPokegotchiFeedMenu(MainCallback exitCallback)
 
 static void Menu_Init(MainCallback callback)
 {
+    u32 i;
+
     if ((sMenuDataPtr = AllocZeroed(sizeof(struct MenuResources))) == NULL)
     {
         SetMainCallback2(callback);
         return;
     }
 
+    // Temporarily set so they appear for debugging
+    gSaveBlock3Ptr->PokegotchiFood.leaf = 200;
+    gSaveBlock3Ptr->PokegotchiFood.pecha = 200;
+
     sMenuDataPtr->gfxLoadState = 0;
     sMenuDataPtr->savedCallback = callback;
     sMenuDataPtr->petSpriteId = SPRITE_NONE;
+    for (i = 0; i < ARRAY_COUNT(sMenuDataPtr->foodSpriteIds); i++)
+        sMenuDataPtr->foodSpriteIds[i] = SPRITE_NONE;
 
     SetMainCallback2(Menu_RunSetup);
 }
@@ -197,6 +316,7 @@ static bool8 Menu_DoGfxSetup(void)
         break;
     case 5:
         Menu_LoadPetSprite();
+        Menu_LoadFoodSprites();
         CreateTask(Task_MenuWaitFadeIn, 0);
         gMain.state++;
         break;
@@ -221,6 +341,8 @@ static bool8 Menu_DoGfxSetup(void)
 
 static void Menu_FreeResources(void)
 {
+    Menu_DestroyFoodSprites();
+
     if (sMenuDataPtr != NULL && sMenuDataPtr->petSpriteId != SPRITE_NONE)
     {
         DestroyPokegotchiSprite(sMenuDataPtr->petSpriteId);
@@ -324,6 +446,111 @@ static void Menu_LoadPetSprite(void)
         return;
 
     sMenuDataPtr->petSpriteId = CreatePokegotchiSprite(species, POKEGOTCHI_EMOTION_IDLE, 120, 88, 0);
+}
+
+static u8 Menu_GetFoodCount(u8 inventoryKey)
+{
+    switch (inventoryKey)
+    {
+    case FEED_FOOD_KEY_LEAF:
+        return gSaveBlock3Ptr->PokegotchiFood.leaf;
+    case FEED_FOOD_KEY_PECHA:
+        return gSaveBlock3Ptr->PokegotchiFood.pecha;
+    case FEED_FOOD_KEY_NONE:
+    default:
+        return 0;
+    }
+}
+
+static bool8 Menu_LoadFoodSpriteSheet(const struct PokegotchiFeedFoodItem *foodItem)
+{
+    struct SpriteSheet spriteSheet;
+
+    if (foodItem->spriteTiles == NULL || GetSpriteTileStartByTag(foodItem->tileTag) != 0xFFFF)
+        return TRUE;
+
+    spriteSheet.data = foodItem->spriteTiles;
+    spriteSheet.size = FEED_FOOD_SPRITESHEET_SIZE;
+    spriteSheet.tag = foodItem->tileTag;
+
+    LoadSpriteSheet(&spriteSheet);
+    return GetSpriteTileStartByTag(foodItem->tileTag) != 0xFFFF;
+}
+
+static bool8 Menu_LoadFoodSpritePalette(const struct PokegotchiFeedFoodItem *foodItem)
+{
+    struct SpritePalette spritePalette;
+
+    if (foodItem->palette == NULL || IndexOfSpritePaletteTag(foodItem->paletteTag) != 0xFF)
+        return TRUE;
+
+    spritePalette.data = foodItem->palette;
+    spritePalette.tag = foodItem->paletteTag;
+
+    return LoadSpritePalette(&spritePalette) != 0xFF;
+}
+
+static void Menu_LoadFoodSprites(void)
+{
+    u32 i;
+
+    for (i = 0; i < ARRAY_COUNT(gPokegotchiFeedFoodItems); i++)
+    {
+        const struct PokegotchiFeedFoodItem *foodItem = &gPokegotchiFeedFoodItems[i];
+        struct SpriteTemplate spriteTemplate;
+        u8 spriteId;
+
+        if (foodItem->spriteTiles == NULL || Menu_GetFoodCount(foodItem->inventoryKey) == 0)
+            continue;
+
+        if (!Menu_LoadFoodSpriteSheet(foodItem) || !Menu_LoadFoodSpritePalette(foodItem))
+            continue;
+
+        spriteTemplate = sFoodSpriteTemplate;
+        spriteTemplate.tileTag = foodItem->tileTag;
+        spriteTemplate.paletteTag = foodItem->paletteTag;
+
+        spriteId = CreateSprite(&spriteTemplate,
+                                sFoodSlotCoords[foodItem->category][foodItem->slot][0],
+                                sFoodSlotCoords[foodItem->category][foodItem->slot][1],
+                                0);
+        if (spriteId == MAX_SPRITES)
+            continue;
+
+        sMenuDataPtr->foodSpriteIds[i] = spriteId;
+    }
+}
+
+static void Menu_DestroyFoodSprites(void)
+{
+    u32 i;
+
+    if (sMenuDataPtr != NULL)
+    {
+        for (i = 0; i < ARRAY_COUNT(sMenuDataPtr->foodSpriteIds); i++)
+        {
+            u8 spriteId = sMenuDataPtr->foodSpriteIds[i];
+
+            if (spriteId != SPRITE_NONE && spriteId < MAX_SPRITES && gSprites[spriteId].inUse)
+                DestroySprite(&gSprites[spriteId]);
+
+            sMenuDataPtr->foodSpriteIds[i] = SPRITE_NONE;
+        }
+    }
+
+    for (i = 0; i < ARRAY_COUNT(gPokegotchiFeedFoodItems); i++)
+    {
+        const struct PokegotchiFeedFoodItem *foodItem = &gPokegotchiFeedFoodItems[i];
+
+        if (foodItem->spriteTiles == NULL)
+            continue;
+
+        if (GetSpriteTileStartByTag(foodItem->tileTag) != 0xFFFF)
+            FreeSpriteTilesByTag(foodItem->tileTag);
+
+        if (IndexOfSpritePaletteTag(foodItem->paletteTag) != 0xFF)
+            FreeSpritePaletteByTag(foodItem->paletteTag);
+    }
 }
 
 static void Task_MenuWaitFadeIn(u8 taskId)
