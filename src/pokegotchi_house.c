@@ -34,10 +34,12 @@
 #include "task.h"
 #include "text_window.h"
 #include "overworld.h"
+#include "field_screen_effect.h"
 #include "field_specials.h"
 #include "event_data.h"
 #include "constants/items.h"
 #include "constants/field_weather.h"
+#include "constants/maps.h"
 #include "constants/songs.h"
 #include "constants/rgb.h"
 
@@ -83,6 +85,7 @@ static void Task_MenuMain(u8 taskId);
 static void CB2_ReturnToPokegotchiHouseMenu(void);
 static void CB2_OpenPokegotchiFeedMenuFromHouse(void);
 static void CB2_OpenPokegotchiStatusMenuFromHouse(void);
+static void CB2_ExitToTamatownFromHouse(void);
 
 //==========CONST=DATA==========//
 static const struct BgTemplate sMenuBgTemplates[] =
@@ -573,6 +576,15 @@ static void CB2_OpenPokegotchiStatusMenuFromHouse(void)
     OpenPokegotchiStatusMenu(CB2_ReturnToPokegotchiHouseMenu);
 }
 
+static void CB2_ExitToTamatownFromHouse(void)
+{
+    SetWarpDestination(MAP_GROUP(MAP_TAMATOWN), MAP_NUM(MAP_TAMATOWN), WARP_ID_NONE, 30, 17);
+    gFieldCallback = FieldCB_DefaultWarpExit;
+    WarpIntoMap();
+    ResetInitialPlayerAvatarState();
+    SetMainCallback2(CB2_LoadMap);
+}
+
 static UNUSED void Task_MenuLeave(u8 taskId)
 {
     if (!gPaletteFade.active)
@@ -620,7 +632,15 @@ static void Task_MenuMain(u8 taskId)
             DestroyTask(taskId);
             return;
         case CLEAN_ICON:
+            if (!IsSEPlaying())
+                PlaySE(SE_FAILURE);
+            break;
         case TOWN_ICON:
+            sMenuDataPtr->savedCallback = CB2_ExitToTamatownFromHouse;
+            PlaySE(SE_SELECT);
+            Menu_FadeAndBail();
+            DestroyTask(taskId);
+            return;
         default:
             if (!IsSEPlaying())
                 PlaySE(SE_FAILURE);
