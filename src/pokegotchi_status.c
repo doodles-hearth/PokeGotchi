@@ -1,5 +1,6 @@
 #include "global.h"
 #include "pokegotchi_status.h"
+#include "pokegotchi.h"
 #include "bg.h"
 #include "data.h"
 #include "decompress.h"
@@ -119,6 +120,8 @@ static void Menu_Init(MainCallback callback)
         SetMainCallback2(callback);
         return;
     }
+
+    Pokegotchi_SyncAndSave();
 
     sMenuDataPtr->gfxLoadState = 0;
     sMenuDataPtr->savedCallback = callback;

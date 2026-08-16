@@ -12,7 +12,6 @@
 #include "play_time.h"
 #include "random.h"
 #include "dma3.h"
-#include "gba/flash_internal.h"
 #include "load_save.h"
 #include "gpu_regs.h"
 #include "agb_flash.h"
@@ -34,13 +33,14 @@ static void IntrDummy(void);
 
 // Defined in the linker script so that the test build can override it.
 extern void gInitialMainCB2(void);
-extern void CB2_FlashNotDetectedScreen(void);
-
 const enum GameVersion gGameVersion = GAME_VERSION;
 
 const enum Language gGameLanguage = GAME_LANGUAGE; // English
 
-const char BuildDateTime[] = "2005 02 21 11:10";
+const char BuildDateTime[] = "2026 08 21 12:50";
+
+__attribute__((used))
+static const char sSaveTypeId[] __attribute__((aligned(4))) = "SRAM_V130"; // Some emulators and flash carts will look for magic strings to determain save type
 
 const IntrFunc gIntrTableTemplate[] =
 {
@@ -102,7 +102,6 @@ void AgbMain(void)
     EnableVCountIntrAtLine150();
     InitRFU();
     RtcInit();
-    CheckForFlashMemory();
     InitMainCallbacks();
     InitMapMusic();
 #ifdef BUGFIX
@@ -114,9 +113,6 @@ void AgbMain(void)
     InitHeap(gHeap, HEAP_SIZE);
 
     gSoftResetDisabled = FALSE;
-
-    if (gFlashMemoryPresent != TRUE)
-        SetMainCallback2(CB2_FlashNotDetectedScreen);
 
     gLinkTransferringData = FALSE;
 

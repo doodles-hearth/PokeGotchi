@@ -28,6 +28,7 @@
 #include "constants/field_weather.h"
 #include "constants/rgb.h"
 #include "pokemon.h"
+#include "pokegotchi.h"
 #include "pokegotchi_house.h"
 
 static void MainCB2_PokeGotchiIntro(void);
@@ -47,11 +48,11 @@ void CB2_InitPokegotchiBootup(void)
     SetSaveBlocksPointers(GetSaveBlocksPointersBaseOffset());
     ResetMenuAndMonGlobals();
     Save_ResetSaveCounters();
-    LoadGameSave(SAVE_NORMAL);
-    if (gSaveFileStatus == SAVE_STATUS_EMPTY || gSaveFileStatus == SAVE_STATUS_CORRUPT)
-        Sav2_ClearSetDefault();
-    SetPokemonCryStereo(gSaveBlock2Ptr->optionsSound);
+    PokegotchiSave_InitOrLoad();
+    Pokegotchi_EnsureInitialized();
+    SetPokemonCryStereo(PokegotchiSave_GetRuntime()->optionsSound);
     InitHeap(gHeap, HEAP_SIZE);
+    Pokegotchi_BeginSession();
 }
 
 static void MainCB2_PokeGotchiIntro(void)

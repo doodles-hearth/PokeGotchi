@@ -1,5 +1,6 @@
 #include "global.h"
 #include "pokegotchi_house.h"
+#include "pokegotchi.h"
 #include "pokegotchi_feed.h"
 #include "pokegotchi_intro.h"
 #include "pokegotchi_status.h"
@@ -56,6 +57,7 @@ struct MenuResources
     u8 gfxLoadState;
     u8 menuIconIds[MENU_ICONS];
     u8 petSpriteId;
+    u8 syncTaskId;
 };
 
 enum WindowIds
@@ -82,6 +84,7 @@ static void Menu_LoadPetSprite(void);
 static void Menu_SetSelectedTopIcon(u8 selectedIcon);
 static void Task_MenuWaitFadeIn(u8 taskId);
 static void Task_MenuMain(u8 taskId);
+static void Task_MenuSyncPokegotchi(u8 taskId);
 static void CB2_ReturnToPokegotchiHouseMenu(void);
 static void CB2_OpenPokegotchiFeedMenuFromHouse(void);
 static void CB2_OpenPokegotchiStatusMenuFromHouse(void);
@@ -157,6 +160,7 @@ static const u8 sMenuWindowFontColors[][3] =
 #define FOOD_ICON 1
 #define CLEAN_ICON 2
 #define TOWN_ICON 3
+#define HOUSE_SYNC_INTERVAL_FRAMES (3 * 60 * 60) // Update stats every 3 minutes
 
 static const u8 sMenuIconStatusSpriteGfx[] = INCGFX_U8("graphics/pokegotchi_house_ui/menu_status.png", ".4bpp");
 static const u8 sMenuIconFoodSpriteGfx[] = INCGFX_U8("graphics/pokegotchi_house_ui/menu_food.png", ".4bpp");
@@ -287,12 +291,15 @@ static void Menu_Init(MainCallback callback)
         return;
     }
 
+    Pokegotchi_SyncAndSave();
+
     // initialize stuff
     sMenuDataPtr->gfxLoadState = 0;
     sMenuDataPtr->savedCallback = callback;
     for (i = 0; i < MENU_ICONS; i++)
         sMenuDataPtr->menuIconIds[i] = MAX_SPRITES;
     sMenuDataPtr->petSpriteId = SPRITE_NONE;
+    sMenuDataPtr->syncTaskId = TASK_NONE;
 
     SetMainCallback2(Menu_RunSetup);
 }
@@ -410,6 +417,12 @@ static void Menu_FreeResources(void)
         {
             DestroyPokegotchiSprite(sMenuDataPtr->petSpriteId);
             sMenuDataPtr->petSpriteId = SPRITE_NONE;
+        }
+
+        if (sMenuDataPtr->syncTaskId != TASK_NONE && FuncIsActiveTask(Task_MenuSyncPokegotchi))
+        {
+            DestroyTask(sMenuDataPtr->syncTaskId);
+            sMenuDataPtr->syncTaskId = TASK_NONE;
         }
     }
 
@@ -557,7 +570,17 @@ static void Task_MenuWaitFadeIn(u8 taskId)
     if (!gPaletteFade.active)
     {
         gTasks[taskId].data[0] = STATUS_ICON;
+        sMenuDataPtr->syncTaskId = CreateTask(Task_MenuSyncPokegotchi, 1);
         gTasks[taskId].func = Task_MenuMain;
+    }
+}
+
+static void Task_MenuSyncPokegotchi(u8 taskId)
+{
+    if (++gTasks[taskId].data[0] >= HOUSE_SYNC_INTERVAL_FRAMES)
+    {
+        gTasks[taskId].data[0] = 0;
+        Pokegotchi_SyncAndSave();
     }
 }
 
@@ -578,6 +601,7 @@ static void CB2_OpenPokegotchiStatusMenuFromHouse(void)
 
 static void CB2_ExitToTamatownFromHouse(void)
 {
+    Pokegotchi_SyncAndSave();
     SetWarpDestination(MAP_GROUP(MAP_TAMATOWN), MAP_NUM(MAP_TAMATOWN), WARP_ID_NONE, 30, 17);
     gFieldCallback = FieldCB_DefaultWarpExit;
     WarpIntoMap();

@@ -1,5 +1,6 @@
 #include "global.h"
 #include "pokegotchi_feed.h"
+#include "pokegotchi.h"
 #include "bg.h"
 #include "data.h"
 #include "decompress.h"
@@ -233,9 +234,7 @@ static void Menu_Init(MainCallback callback)
         return;
     }
 
-    // Temporarily set so they appear for debugging
-    gSaveBlock3Ptr->PokegotchiFood.leaf = 200;
-    gSaveBlock3Ptr->PokegotchiFood.pecha = 200;
+    Pokegotchi_SyncAndSave();
 
     sMenuDataPtr->gfxLoadState = 0;
     sMenuDataPtr->savedCallback = callback;
@@ -450,12 +449,14 @@ static void Menu_LoadPetSprite(void)
 
 static u8 Menu_GetFoodCount(u8 inventoryKey)
 {
+    const struct PokegotchiRuntimeState *runtime = PokegotchiSave_GetRuntime();
+
     switch (inventoryKey)
     {
     case FEED_FOOD_KEY_LEAF:
-        return gSaveBlock3Ptr->PokegotchiFood.leaf;
+        return runtime->food.leaf;
     case FEED_FOOD_KEY_PECHA:
-        return gSaveBlock3Ptr->PokegotchiFood.pecha;
+        return runtime->food.pecha;
     case FEED_FOOD_KEY_NONE:
     default:
         return 0;

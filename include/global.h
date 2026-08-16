@@ -259,6 +259,17 @@ struct PokegotchiFood
     u8 pecha;
 };
 
+struct PokegotchiStats
+{
+    u8 version;
+    u16 food;
+    u16 fun;
+    u16 happy;
+    u16 poop;
+    u16 poopsOnScreen;
+    struct Time lastUpdated;
+};
+
 #include "constants/items.h"
 #define ITEM_FLAGS_COUNT ((ITEMS_COUNT / 8) + ((ITEMS_COUNT % 8) ? 1 : 0))
 

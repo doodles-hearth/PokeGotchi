@@ -1,7 +1,7 @@
 GAME_VERSION ?= EMERALD
-TITLE        ?= POKEMON EMER
-GAME_CODE    ?= BPEE
-BUILD_NAME   ?= emerald
+TITLE        ?= POKEGOTCHI
+GAME_CODE    ?= POKG
+BUILD_NAME   ?= gotchi
 MAP_VERSION  ?= emerald
 
 ifeq (firered, $(or $(BUILD), $(MAKECMDGOALS)))
