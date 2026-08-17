@@ -43,6 +43,8 @@
 #include "constants/maps.h"
 #include "constants/songs.h"
 #include "constants/rgb.h"
+#include "constants/songs.h"
+#include "m4a.h"
 
 /*
  * 
@@ -375,6 +377,7 @@ static bool8 Menu_DoGfxSetup(void)
         gMain.state++;
         break;
     case 5:
+        m4aSongNumStart(MUS_FORTREE);
         Menu_LoadTopIcons();
         Menu_LoadPetSprite();
         CreateTask(Task_MenuWaitFadeIn, 0);
@@ -666,8 +669,8 @@ static void Task_MenuMain(u8 taskId)
             DestroyTask(taskId);
             return;
         default:
-            if (!IsSEPlaying())
-                PlaySE(SE_FAILURE);
+        if (!IsSEPlaying())
+        PlaySE(SE_FAILURE);
             break;
         }
     }
