@@ -401,6 +401,10 @@ extern const struct ObjectEventGraphicsInfo gObjectEventGraphicsInfo_UnusedMauvi
 extern const struct ObjectEventGraphicsInfo gObjectEventGraphicsInfo_UnusedMauvilleOldMan2;
 extern const struct ObjectEventGraphicsInfo gObjectEventGraphicsInfo_ApricornTree;
 
+// PokeGotchi
+extern const struct ObjectEventGraphicsInfo gObjectEventGraphicsInfo_PokeGotchi_Porygon;
+extern const struct ObjectEventGraphicsInfo gObjectEventGraphicsInfo_PokeGotchi_Trubbish;
+
 const struct ObjectEventGraphicsInfo *const gObjectEventGraphicsInfoPointers[NUM_OBJ_EVENT_GFX] = {
     [OBJ_EVENT_GFX_BRENDAN_NORMAL] =           &gObjectEventGraphicsInfo_BrendanNormal,
     [OBJ_EVENT_GFX_BRENDAN_MACH_BIKE] =        &gObjectEventGraphicsInfo_BrendanMachBike,
@@ -790,6 +794,9 @@ const struct ObjectEventGraphicsInfo *const gObjectEventGraphicsInfoPointers[NUM
     [OBJ_EVENT_GFX_DEOXYS_A]                 = &gObjectEventGraphicsInfo_DeoxysA,
     [OBJ_EVENT_GFX_DEOXYS_N]                 = &gObjectEventGraphicsInfo_DeoxysN,
     [OBJ_EVENT_GFX_SS_ANNE]                  = &gObjectEventGraphicsInfo_SSAnne,
+    // PokeGotchi
+    [OBJ_EVENT_GFX_PG_PORYGON]               = &gObjectEventGraphicsInfo_PokeGotchi_Porygon,
+    [OBJ_EVENT_GFX_PG_TRUBBISH]              = &gObjectEventGraphicsInfo_PokeGotchi_Trubbish,
 #endif // IS_FRLG
 };
 

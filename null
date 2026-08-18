@@ -1,0 +1,8 @@
+tools/scaninc/scaninc -M build/emerald/src/event_object_movement.d -g build/assets -I include -I tools/agbcc/include src/event_object_movement.c
+tools/gbagfx/gbagfx graphics/object_events/people/brendan/walking.png build/assets/graphics/object_events/people/brendan/walking.png.gbapal 
+tools/gbagfx/gbagfx graphics/object_events/pics/berry_trees/haban.png build/assets/graphics/object_events/pics/berry_trees/haban.png_mwidth_2__mheight_4.4bpp -mwidth 2 -mheight 4
+tools/gbagfx/gbagfx graphics/object_events/pics/berry_trees/hondew.png build/assets/graphics/object_events/pics/berry_trees/hondew.png_mwidth_2__mheight_4.4bpp -mwidth 2 -mheight 4
+tools/gbagfx/gbagfx graphics/object_events/pics/berry_trees/iapapa.png build/assets/graphics/object_events/pics/berry_trees/iapapa.png_mwidth_2__mheight_4.4bpp -mwidth 2 -mheight 4
+tools/gbagfx/gbagfx graphics/object_events/pics/berry_trees/jaboca.png build/assets/graphics/object_events/pics/berry_trees/jaboca.png_mwidth_2__mheight_4.4bpp -mwidth 2 -mheight 4
+tools/gbagfx/gbagfx graphics/object_events/pics/berry_trees/kasib.png build/assets/graphics/object_events/pics/berry_trees/kasib.png_mwidth_2__mheight_4.4bpp -mwidth 2 -mheight 4
+tools/gbagfx/gbagfx graphics/object_events/pics/berry_trees/kebia.png build/assets/graphics/object_events/pics/berry_trees/kebia.png_mwidth_2__mheight_4.4bpp -mwidth 2 -mheight 4

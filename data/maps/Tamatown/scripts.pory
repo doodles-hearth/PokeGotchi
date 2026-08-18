@@ -1,0 +1,82 @@
+mapscripts Tamatown_MapScripts {
+	
+}
+
+script Tamatown_EventScript_Porygon {
+	msgbox(
+		"Yo, my man, wanna try beating my high score?",
+		MSGBOX_YESNO
+	)
+
+	switch(var(VAR_RESULT)) {
+		case YES:
+			// TODO
+		default:
+			msgbox(
+				"Aight, aight, guess I'll remain…\nUNBEATEN!!!",
+				MSGBOX_YESNO
+			)
+	}
+
+	closemessage
+}
+
+script Tamatown_EventScript_Trashcan {
+	msgbox(
+		"It's a trashcan.\p"
+		"As hungry as it makes you, you need\nto go.",
+		MSGBOX_AUTOCLOSE
+	)
+}
+
+script Tamatown_EventScript_Trubbish {
+	msgbox(
+		"It's a trashcan.\p"
+		"…Wait a second…\nDid the trashcan just move?"
+	)
+
+	mcdialogueB(
+		"It did!",
+		"I'm imagining things."
+	)
+
+	if (var(VAR_RESULT) == 0) {
+		msgbox(
+			"What to do?"
+		)
+
+		mcdialogue(
+			"Kick it.",
+			"Hug it."
+		)
+
+		if (var(VAR_RESULT) == 0) {
+			playmoncry(SPECIES_TRUBBISH, CRY_MODE_NORMAL)
+			msgbox(
+				"WAIT! WAIT! STOP!"
+			)
+
+			waitmoncry
+			closemessage
+
+			playse(SE_PIN)
+			applymovement(ID_PLAYER, moves(emote_exclamation_mark, delay_16 * 6))
+			waitse
+			waitmovement(0)
+
+			clearflag(FLAG_HIDE_TRUBBISH)
+			addobject(LOCALID_TRUBBISH)
+
+			playse(SE_LEDGE)
+			applymovement(LOCALID_TRUBBISH, moves(jump_in_place_down))
+			waitmovement(0)
+		} else {
+			// TODO EVA ICI
+		}
+	} else {
+		msgbox(
+			"The trashcan looks saddened."
+		)
+	}
+	closemessage
+}

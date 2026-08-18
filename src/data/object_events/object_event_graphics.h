@@ -633,3 +633,11 @@ const u16 gObjectEventPic_PidgeyOld[] = INCGFX_U16("graphics/object_events/pics/
 const u16 gObjectEventPic_ClefairyOld[] = INCGFX_U16("graphics/object_events/pics/pokemon_old/clefairy.png", ".4bpp", "-mwidth 2 -mheight 2");
 
 #endif // IS_FRLG
+
+
+// PokéGotchi
+
+const u32 gObjectEventPic_PokeGotchi_Porygon[] = INCGFX_U32("graphics/object_events/pics/pokegotchi/porygon.png", ".4bpp", "-mwidth 2 -mheight 4");
+const u32 gObjectEventPic_PokeGotchi_Trubbish[] = INCGFX_U32("graphics/object_events/pics/pokegotchi/trubbish.png", ".4bpp", "-mwidth 2 -mheight 4");
+
+const u16 gObjectEventPal_PokeGotchi[] = INCGFX_U16("graphics/object_events/people/brendan/walking.png", ".gbapal");
