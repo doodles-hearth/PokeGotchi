@@ -1,15 +1,25 @@
 #include "global.h"
+#include "constants/flags.h"
+#include "event_data.h"
 #include "fake_rtc.h"
 #include "load_save.h"
 #include "pokegotchi.h"
 #include "pokegotchi_save.h"
 #include "save.h"
+#include "test/overworld_script.h"
 #include "test/test.h"
 
 // If you would like to ensure save compatibility, update the values below with those for your hack. You can find these through the debug menu.
 // Please note that this simple check is not 100% foolproof, but should be able to catch most unintended shifts.
-#define T_POKEGOTCHI_SAVE_DATA_SIZE 660
+#define T_POKEGOTCHI_SAVE_DATA_SIZE 664
 #define T_POKEGOTCHI_STAGED_WRITE_BYTES (sizeof(struct PokegotchiPersistedSave) - sizeof(((struct PokegotchiPersistedSave *)0)->magic))
+
+static void ExpectPokegotchiFlagsCleared(void)
+{
+    EXPECT_EQ(PokegotchiSave_GetRuntime()->flags[0], 0);
+    EXPECT_EQ(PokegotchiSave_GetRuntime()->flags[1], 0);
+    EXPECT_EQ(PokegotchiSave_GetRuntime()->flags[2], 0);
+}
 
 static void ResetSaveTestStateWithBackend(bool32 flashPresent)
 {
@@ -48,6 +58,7 @@ TEST("(Pokegotchi) Blank SRAM boot initializes defaults")
     EXPECT_EQ(runtime->stats.version, 1);
     EXPECT_EQ(runtime->playerPartyCount, 0);
     EXPECT_EQ((u32)runtime->optionsSound, OPTIONS_SOUND_MONO);
+    ExpectPokegotchiFlagsCleared();
 }
 
 TEST("(Pokegotchi) Blank flash boot initializes defaults")
@@ -67,6 +78,7 @@ TEST("(Pokegotchi) Blank flash boot initializes defaults")
     EXPECT_EQ(runtime->stats.version, 1);
     EXPECT_EQ(runtime->playerPartyCount, 0);
     EXPECT_EQ((u32)runtime->optionsSound, OPTIONS_SOUND_MONO);
+    ExpectPokegotchiFlagsCleared();
 }
 
 TEST("(Pokegotchi) SRAM save round-trip preserves runtime payload")
@@ -101,6 +113,9 @@ TEST("(Pokegotchi) SRAM save round-trip preserves runtime payload")
     runtime->playerName[2] = 0;
     runtime->playerGender = FEMALE;
     runtime->optionsSound = OPTIONS_SOUND_STEREO;
+    runtime->flags[0] = (1 << 0) | (1 << 5);
+    runtime->flags[1] = (1 << 1);
+    runtime->flags[2] = (1 << 7);
 
     SetMonData(&mon, MON_DATA_SPECIES, &(u16){SPECIES_BULBASAUR});
     SetMonData(&mon, MON_DATA_LEVEL, &(u8){12});
@@ -135,6 +150,9 @@ TEST("(Pokegotchi) SRAM save round-trip preserves runtime payload")
     EXPECT_EQ(loaded->playerName[1], 0x22);
     EXPECT_EQ(loaded->playerGender, FEMALE);
     EXPECT_EQ(loaded->optionsSound, OPTIONS_SOUND_STEREO);
+    EXPECT_EQ(loaded->flags[0], (1 << 0) | (1 << 5));
+    EXPECT_EQ(loaded->flags[1], (1 << 1));
+    EXPECT_EQ(loaded->flags[2], (1 << 7));
     EXPECT_EQ(GetMonData(&loadedMon, MON_DATA_SPECIES), SPECIES_BULBASAUR);
     EXPECT_EQ(GetMonData(&loadedMon, MON_DATA_LEVEL), 12);
 }
@@ -171,6 +189,9 @@ TEST("(Pokegotchi) Flash save round-trip preserves runtime payload")
     runtime->playerName[2] = 0;
     runtime->playerGender = MALE;
     runtime->optionsSound = OPTIONS_SOUND_STEREO;
+    runtime->flags[0] = (1 << 2);
+    runtime->flags[1] = (1 << 4) | (1 << 7);
+    runtime->flags[2] = (1 << 3);
 
     SetMonData(&mon, MON_DATA_SPECIES, &(u16){SPECIES_CHARMANDER});
     SetMonData(&mon, MON_DATA_LEVEL, &(u8){16});
@@ -205,6 +226,9 @@ TEST("(Pokegotchi) Flash save round-trip preserves runtime payload")
     EXPECT_EQ(loaded->playerName[1], 0x55);
     EXPECT_EQ(loaded->playerGender, MALE);
     EXPECT_EQ(loaded->optionsSound, OPTIONS_SOUND_STEREO);
+    EXPECT_EQ(loaded->flags[0], (1 << 2));
+    EXPECT_EQ(loaded->flags[1], (1 << 4) | (1 << 7));
+    EXPECT_EQ(loaded->flags[2], (1 << 3));
     EXPECT_EQ(GetMonData(&loadedMon, MON_DATA_SPECIES), SPECIES_CHARMANDER);
     EXPECT_EQ(GetMonData(&loadedMon, MON_DATA_LEVEL), 16);
 }
@@ -368,6 +392,131 @@ TEST("(Pokegotchi) Flash presence takes precedence over SRAM contents")
     gFlashMemoryPresent = FALSE;
     EXPECT_EQ(PokegotchiSave_InitOrLoad(), TRUE);
     EXPECT_EQ(PokegotchiSave_GetRuntime()->food.leaf, 15);
+}
+
+TEST("(Pokegotchi) Flag functions route reserved IDs into Pokegotchi saves")
+{
+    struct PokegotchiRuntimeState *runtime;
+
+    ResetSaveTestState();
+    runtime = PokegotchiSave_GetRuntimeMutable();
+
+    EXPECT_EQ(gSaveBlock1Ptr->flags[POKEGOTCHI_FLAGS_START / 8], 0);
+    FlagSet(POKEGOTCHI_FLAG_01);
+    FlagSet(POKEGOTCHI_FLAG_10);
+    FlagSet(POKEGOTCHI_FLAG_24);
+
+    EXPECT(FlagGet(POKEGOTCHI_FLAG_01));
+    EXPECT(FlagGet(POKEGOTCHI_FLAG_10));
+    EXPECT(FlagGet(POKEGOTCHI_FLAG_24));
+    EXPECT_EQ(runtime->flags[0], 1 << 0);
+    EXPECT_EQ(runtime->flags[1], 1 << 1);
+    EXPECT_EQ(runtime->flags[2], 1 << 7);
+    EXPECT_EQ(gSaveBlock1Ptr->flags[POKEGOTCHI_FLAGS_START / 8], 0);
+
+    FlagToggle(POKEGOTCHI_FLAG_10);
+    EXPECT(!FlagGet(POKEGOTCHI_FLAG_10));
+    EXPECT_EQ(runtime->flags[1], 0);
+
+    FlagClear(POKEGOTCHI_FLAG_24);
+    EXPECT(!FlagGet(POKEGOTCHI_FLAG_24));
+    EXPECT_EQ(runtime->flags[2], 0);
+}
+
+TEST("(Pokegotchi) Script flag commands use Pokegotchi storage")
+{
+    ResetSaveTestState();
+    VarSet(VAR_TEMP_0, 0);
+    VarSet(VAR_TEMP_1, 0);
+
+    RUN_OVERWORLD_SCRIPT(
+        setflag POKEGOTCHI_FLAG_03;
+        checkflag POKEGOTCHI_FLAG_03;
+        goto_if_eq FlagWasSet;
+        setvar VAR_TEMP_0, 1;
+        end;
+
+      FlagWasSet:
+        setvar VAR_TEMP_0, 2;
+        clearflag POKEGOTCHI_FLAG_03;
+        checkflag POKEGOTCHI_FLAG_03;
+        goto_if_eq FlagStillSet;
+        setvar VAR_TEMP_1, 3;
+        end;
+
+      FlagStillSet:
+        setvar VAR_TEMP_1, 4;
+        end;
+    );
+
+    EXPECT_EQ(VarGet(VAR_TEMP_0), 2);
+    EXPECT_EQ(VarGet(VAR_TEMP_1), 3);
+    EXPECT(!FlagGet(POKEGOTCHI_FLAG_03));
+    ExpectPokegotchiFlagsCleared();
+}
+
+TEST("(Pokegotchi) SRAM persists Pokegotchi flags and keeps the older slot on corruption")
+{
+    struct PokegotchiRuntimeState *runtime;
+
+    ResetSaveTestState();
+    runtime = PokegotchiSave_GetRuntimeMutable();
+
+    FlagSet(POKEGOTCHI_FLAG_01);
+    FlagSet(POKEGOTCHI_FLAG_17);
+    EXPECT_EQ(PokegotchiSave_Commit(), SAVE_STATUS_OK);
+
+    FlagClear(POKEGOTCHI_FLAG_01);
+    FlagSet(POKEGOTCHI_FLAG_24);
+    EXPECT_EQ(PokegotchiSave_Commit(), SAVE_STATUS_OK);
+
+    Pokegotchi_ResetStateForTest();
+    EXPECT_EQ(PokegotchiSave_InitOrLoad(), TRUE);
+    runtime = PokegotchiSave_GetRuntimeMutable();
+    EXPECT(!FlagGet(POKEGOTCHI_FLAG_01));
+    EXPECT(FlagGet(POKEGOTCHI_FLAG_17));
+    EXPECT(FlagGet(POKEGOTCHI_FLAG_24));
+    EXPECT_EQ(runtime->flags[0], 0);
+    EXPECT_EQ(runtime->flags[1], 0);
+    EXPECT_EQ(runtime->flags[2], (1 << 0) | (1 << 7));
+
+    PokegotchiSave_CorruptSlotForTest(0);
+    EXPECT_EQ(PokegotchiSave_InitOrLoad(), TRUE);
+    EXPECT(FlagGet(POKEGOTCHI_FLAG_01));
+    EXPECT(FlagGet(POKEGOTCHI_FLAG_17));
+    EXPECT(!FlagGet(POKEGOTCHI_FLAG_24));
+}
+
+TEST("(Pokegotchi) Flash persists Pokegotchi flags and keeps the older slot on corruption")
+{
+    struct PokegotchiRuntimeState *runtime;
+
+    ResetSaveTestStateWithBackend(TRUE);
+    runtime = PokegotchiSave_GetRuntimeMutable();
+
+    FlagSet(POKEGOTCHI_FLAG_02);
+    FlagSet(POKEGOTCHI_FLAG_18);
+    EXPECT_EQ(PokegotchiSave_Commit(), SAVE_STATUS_OK);
+
+    FlagClear(POKEGOTCHI_FLAG_02);
+    FlagSet(POKEGOTCHI_FLAG_23);
+    EXPECT_EQ(PokegotchiSave_Commit(), SAVE_STATUS_OK);
+
+    Pokegotchi_ResetStateForTest();
+    EXPECT_EQ(PokegotchiSave_InitOrLoad(), TRUE);
+    runtime = PokegotchiSave_GetRuntimeMutable();
+    EXPECT(!FlagGet(POKEGOTCHI_FLAG_02));
+    EXPECT(FlagGet(POKEGOTCHI_FLAG_18));
+    EXPECT(FlagGet(POKEGOTCHI_FLAG_23));
+    EXPECT_EQ(runtime->flags[0], 0);
+    EXPECT_EQ(runtime->flags[1], 0);
+    EXPECT_EQ(runtime->flags[2], (1 << 1) | (1 << 6));
+
+    PokegotchiSave_CorruptSlotForTest(0);
+    EXPECT_EQ(PokegotchiSave_InitOrLoad(), TRUE);
+    EXPECT(FlagGet(POKEGOTCHI_FLAG_02));
+    EXPECT(FlagGet(POKEGOTCHI_FLAG_18));
+    EXPECT(!FlagGet(POKEGOTCHI_FLAG_23));
 }
 
 TEST("(Pokegotchi) Committing runtime fields persists")

@@ -1,5 +1,6 @@
 #include "global.h"
 #include "event_data.h"
+#include "pokegotchi_save.h"
 #include "pokedex.h"
 
 #define SPECIAL_FLAGS_SIZE  (NUM_SPECIAL_FLAGS / 8)  // 8 flags per byte
@@ -35,6 +36,19 @@ EWRAM_DATA static u16 sTestVars[TEST_VARS_SIZE] = {0};
 #endif // TESTING
 
 extern u16 *const gSpecialVars[];
+
+static bool8 IsPokegotchiFlag(u16 id)
+{
+    return id >= POKEGOTCHI_FLAGS_START && id <= POKEGOTCHI_FLAGS_END;
+}
+
+static u8 GetFlagBitIndex(u16 id)
+{
+    if (IsPokegotchiFlag(id))
+        return (id - POKEGOTCHI_FLAGS_START) & 7;
+
+    return id & 7;
+}
 
 const u16 gBadgeFlags[NUM_BADGES] =
 {
@@ -208,6 +222,8 @@ u8 *GetFlagPointer(u16 id)
 {
     if (id == 0)
         return NULL;
+    else if (IsPokegotchiFlag(id))
+        return &PokegotchiSave_GetRuntimeMutable()->flags[(id - POKEGOTCHI_FLAGS_START) / 8];
     else if (id < SPECIAL_FLAGS_START)
         return &gSaveBlock1Ptr->flags[id / 8];
 #if TESTING
@@ -222,7 +238,7 @@ u8 FlagSet(u16 id)
 {
     u8 *ptr = GetFlagPointer(id);
     if (ptr)
-        *ptr |= 1 << (id & 7);
+        *ptr |= 1 << GetFlagBitIndex(id);
     return 0;
 }
 
@@ -230,7 +246,7 @@ u8 FlagToggle(u16 id)
 {
     u8 *ptr = GetFlagPointer(id);
     if (ptr)
-        *ptr ^= 1 << (id & 7);
+        *ptr ^= 1 << GetFlagBitIndex(id);
     return 0;
 }
 
@@ -238,18 +254,20 @@ u8 FlagClear(u16 id)
 {
     u8 *ptr = GetFlagPointer(id);
     if (ptr)
-        *ptr &= ~(1 << (id & 7));
+        *ptr &= ~(1 << GetFlagBitIndex(id));
     return 0;
 }
 
 bool8 FlagGet(u16 id)
 {
     u8 *ptr = GetFlagPointer(id);
+    u8 bitIndex;
 
     if (!ptr)
         return FALSE;
 
-    if (!(((*ptr) >> (id & 7)) & 1))
+    bitIndex = GetFlagBitIndex(id);
+    if (!(((*ptr) >> bitIndex) & 1))
         return FALSE;
 
     return TRUE;

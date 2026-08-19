@@ -2,9 +2,10 @@
 #define GUARD_POKEGOTCHI_SAVE_H
 
 #include "global.h"
+#include "constants/flags.h"
 
 #define POKEGOTCHI_SAVE_MAGIC   0x50475443
-#define POKEGOTCHI_SAVE_VERSION 1
+#define POKEGOTCHI_SAVE_VERSION 2
 #define POKEGOTCHI_SAVE_SLOT_COUNT 2
 
 struct PokegotchiRuntimeState
@@ -18,6 +19,7 @@ struct PokegotchiRuntimeState
     u8 playerName[PLAYER_NAME_LENGTH + 1];
     u8 playerGender;
     u8 optionsSound;
+    u8 flags[POKEGOTCHI_FLAG_BYTES];
 };
 
 struct PokegotchiPersistedPayload
@@ -31,6 +33,7 @@ struct PokegotchiPersistedPayload
     u8 playerName[PLAYER_NAME_LENGTH + 1];
     u8 playerGender;
     u8 optionsSound;
+    u8 flags[POKEGOTCHI_FLAG_BYTES];
 };
 
 struct PokegotchiPersistedSave
@@ -55,6 +58,7 @@ void PokegotchiSave_ClearStorage(void);
 void PokegotchiSave_ClearForTest(void);
 void PokegotchiSave_CorruptSlotForTest(u32 slot);
 void PokegotchiSave_PartialCommitForTest(u32 bytesToWrite);
+void PokegotchiSave_SetSlotVersionForTest(u32 slot, u16 version);
 #endif
 
 #endif // GUARD_POKEGOTCHI_SAVE_H

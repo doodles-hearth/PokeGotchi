@@ -195,6 +195,18 @@ void PokegotchiSave_PartialCommitForTest(u32 bytesToWrite)
     SerializeRuntimeState(&save, nextCounter);
     WritePersistedSavePartial(slot, &save, bytesToWrite);
 }
+
+void PokegotchiSave_SetSlotVersionForTest(u32 slot, u16 version)
+{
+    struct PokegotchiPersistedSave save;
+
+    if (slot >= POKEGOTCHI_SAVE_SLOT_COUNT)
+        return;
+
+    ReadPersistedSave(&save, slot);
+    save.version = version;
+    WritePersistedSave(slot, &save);
+}
 #endif
 
 static bool8 IsSlotBlank(const struct PokegotchiPersistedSave *save)
@@ -336,6 +348,9 @@ static void SerializeRuntimeState(struct PokegotchiPersistedSave *dst, u32 saveC
            sizeof(dst->payload.playerName));
     dst->payload.playerGender = sPokegotchiRuntimeState.playerGender;
     dst->payload.optionsSound = sPokegotchiRuntimeState.optionsSound;
+    memcpy(dst->payload.flags,
+           sPokegotchiRuntimeState.flags,
+           sizeof(dst->payload.flags));
     dst->checksum = Crc32B((const u8 *)&dst->payload, sizeof(dst->payload));
 }
 
@@ -356,6 +371,9 @@ static void DeserializeRuntimeState(const struct PokegotchiPersistedSave *src)
            sizeof(sPokegotchiRuntimeState.playerName));
     sPokegotchiRuntimeState.playerGender = src->payload.playerGender;
     sPokegotchiRuntimeState.optionsSound = src->payload.optionsSound;
+    memcpy(sPokegotchiRuntimeState.flags,
+           src->payload.flags,
+           sizeof(sPokegotchiRuntimeState.flags));
 }
 
 static volatile u8 *GetSramMemoryBase(void)

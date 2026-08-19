@@ -51,30 +51,34 @@
 
 #else
 
-#define FLAG_UNUSED_0x020    0x20 // Unused Flag
-#define FLAG_UNUSED_0x021    0x21 // Unused Flag
-#define FLAG_UNUSED_0x022    0x22 // Unused Flag
-#define FLAG_UNUSED_0x023    0x23 // Unused Flag
-#define FLAG_UNUSED_0x024    0x24 // Unused Flag
-#define FLAG_UNUSED_0x025    0x25 // Unused Flag
-#define FLAG_UNUSED_0x026    0x26 // Unused Flag
-#define FLAG_UNUSED_0x027    0x27 // Unused Flag
-#define FLAG_UNUSED_0x028    0x28 // Unused Flag
-#define FLAG_UNUSED_0x029    0x29 // Unused Flag
-#define FLAG_UNUSED_0x02A    0x2A // Unused Flag
-#define FLAG_UNUSED_0x02B    0x2B // Unused Flag
-#define FLAG_UNUSED_0x02C    0x2C // Unused Flag
-#define FLAG_UNUSED_0x02D    0x2D // Unused Flag
-#define FLAG_UNUSED_0x02E    0x2E // Unused Flag
-#define FLAG_UNUSED_0x02F    0x2F // Unused Flag
-#define FLAG_UNUSED_0x030    0x30 // Unused Flag
-#define FLAG_UNUSED_0x031    0x31 // Unused Flag
-#define FLAG_UNUSED_0x032    0x32 // Unused Flag
-#define FLAG_UNUSED_0x033    0x33 // Unused Flag
-#define FLAG_UNUSED_0x034    0x34 // Unused Flag
-#define FLAG_UNUSED_0x035    0x35 // Unused Flag
-#define FLAG_UNUSED_0x036    0x36 // Unused Flag
-#define FLAG_UNUSED_0x037    0x37 // Unused Flag
+#define POKEGOTCHI_FLAGS_START  0x20
+#define POKEGOTCHI_FLAG_01      0x20
+#define POKEGOTCHI_FLAG_02      0x21
+#define POKEGOTCHI_FLAG_03      0x22
+#define POKEGOTCHI_FLAG_04      0x23
+#define POKEGOTCHI_FLAG_05      0x24
+#define POKEGOTCHI_FLAG_06      0x25
+#define POKEGOTCHI_FLAG_07      0x26
+#define POKEGOTCHI_FLAG_08      0x27
+#define POKEGOTCHI_FLAG_09      0x28
+#define POKEGOTCHI_FLAG_10      0x29
+#define POKEGOTCHI_FLAG_11      0x2A
+#define POKEGOTCHI_FLAG_12      0x2B
+#define POKEGOTCHI_FLAG_13      0x2C
+#define POKEGOTCHI_FLAG_14      0x2D
+#define POKEGOTCHI_FLAG_15      0x2E
+#define POKEGOTCHI_FLAG_16      0x2F
+#define POKEGOTCHI_FLAG_17      0x30
+#define POKEGOTCHI_FLAG_18      0x31
+#define POKEGOTCHI_FLAG_19      0x32
+#define POKEGOTCHI_FLAG_20      0x33
+#define POKEGOTCHI_FLAG_21      0x34
+#define POKEGOTCHI_FLAG_22      0x35
+#define POKEGOTCHI_FLAG_23      0x36
+#define POKEGOTCHI_FLAG_24      0x37
+#define POKEGOTCHI_FLAGS_END    POKEGOTCHI_FLAG_24
+#define NUM_POKEGOTCHI_FLAGS    (POKEGOTCHI_FLAGS_END - POKEGOTCHI_FLAGS_START + 1)
+#define POKEGOTCHI_FLAG_BYTES   (NUM_POKEGOTCHI_FLAGS / 8)
 #define FLAG_UNUSED_0x038    0x38 // Unused Flag
 #define FLAG_UNUSED_0x039    0x39 // Unused Flag
 #define FLAG_UNUSED_0x03A    0x3A // Unused Flag
