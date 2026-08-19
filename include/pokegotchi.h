@@ -21,6 +21,7 @@ void Pokegotchi_BeginSession(void);
 void Pokegotchi_EnsureInitialized(void);
 void Pokegotchi_Sync(void);
 void Pokegotchi_SyncAndSave(void);
+enum Species Pokegotchi_GetPrimarySpecies(void);
 const struct PokegotchiStats *Pokegotchi_GetStats(void);
 void Pokegotchi_AddToStat(enum PokegotchiStat stat, s16 delta);
 void Pokegotchi_ClearPoops(void);

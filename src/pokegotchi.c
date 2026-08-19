@@ -1,5 +1,6 @@
 #include "global.h"
 #include "pokegotchi.h"
+#include "pokemon.h"
 #include "random.h"
 #include "rtc.h"
 
@@ -97,6 +98,21 @@ void Pokegotchi_SyncAndSave(void)
 {
     Pokegotchi_Sync();
     PokegotchiSave_Commit();
+}
+
+enum Species Pokegotchi_GetPrimarySpecies(void)
+{
+    struct PokegotchiRuntimeState *runtime = PokegotchiSave_GetRuntimeMutable();
+    enum Species species;
+
+    if (runtime->playerPartyCount == 0)
+        return SPECIES_NONE;
+
+    species = GetMonData(&runtime->playerParty[0], MON_DATA_SPECIES_OR_EGG);
+    if (species == SPECIES_NONE || species == SPECIES_EGG)
+        return SPECIES_NONE;
+
+    return species;
 }
 
 const struct PokegotchiStats *Pokegotchi_GetStats(void)

@@ -5,12 +5,14 @@
 #include "gba/flash_internal.h"
 #include "gba/isagbprint.h"
 #include "load_save.h"
+#include "pokemon.h"
 #include "random.h"
 #include "save.h"
 #include "test_runner.h"
 
 #define POKEGOTCHI_SRAM_SIZE 0x8000
 #define POKEGOTCHI_FLASH_SECTOR_SIZE SECTOR_SIZE
+#define POKEGOTCHI_DEFAULT_PARTNER_LEVEL 5
 
 STATIC_ASSERT(sizeof(struct PokegotchiPersistedSave) * POKEGOTCHI_SAVE_SLOT_COUNT <= POKEGOTCHI_SRAM_SIZE,
               PokegotchiPersistedSaveFitsInSram);
@@ -148,6 +150,8 @@ u8 PokegotchiSave_Commit(void)
 void PokegotchiSave_ResetToDefaults(void)
 {
     CpuFill16(0, &sPokegotchiRuntimeState, sizeof(sPokegotchiRuntimeState));
+    CreateMon(&sPokegotchiRuntimeState.playerParty[0], SPECIES_FOMANTIS, POKEGOTCHI_DEFAULT_PARTNER_LEVEL, 0, OTID_STRUCT_PLAYER_ID);
+    sPokegotchiRuntimeState.playerPartyCount = 1;
     sPokegotchiRuntimeState.optionsSound = OPTIONS_SOUND_MONO;
     sPokegotchiSaveCounter = 0;
 }
