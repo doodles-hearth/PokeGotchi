@@ -37,7 +37,7 @@
       "movement_range_y": 0,
       "trainer_type": "TRAINER_TYPE_NONE",
       "trainer_sight_or_berry_tree_id": "0",
-      "script": "Tamatown_EventScript_TrubbishCan",
+      "script": "Tamatown_EventScript_Trashcan",
       "flag": "FLAG_TEMP_1"
     },
     {
@@ -51,7 +51,7 @@
       "movement_range_y": 0,
       "trainer_type": "TRAINER_TYPE_NONE",
       "trainer_sight_or_berry_tree_id": "0",
-      "script": "Tamatown_EventScript_Trubbish",
+      "script": "Tamatown_EventScript_TrubbishCan",
       "flag": "FLAG_HIDE_TRUBBISH"
     },
     {
@@ -142,7 +142,7 @@
       "movement_range_y": 0,
       "trainer_type": "TRAINER_TYPE_NONE",
       "trainer_sight_or_berry_tree_id": "0",
-      "script": "Tamatown_EventScript_Waiter",
+      "script": "Tamatown_EventScript_Slowpoke",
       "flag": "0"
     },
     {
@@ -159,7 +159,6 @@
       "flag": "0"
     },
     {
-      "local_id": "LOCALID_TRUBBISH",
       "graphics_id": "OBJ_EVENT_GFX_PG_TANGELA",
       "x": 45,
       "y": 28,

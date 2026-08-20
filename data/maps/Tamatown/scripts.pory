@@ -43,10 +43,12 @@ script Tamatown_EventScript_Tangela {
 	lock
 
 	if (flag(FLAG_FOUND_TANGELA)) {
+		playmoncry(SPECIES_TANGELA, CRY_MODE_NORMAL)
 		setspeaker("Tangela")
 		msgbox(
 			"Don't look at me!\nI am invisible!"
 		)
+		waitmoncry
 	} else {
 		msgbox(
 			"It's a tree."
@@ -101,6 +103,7 @@ script Tamatown_EventScript_Tangela {
 		waitmovement(0)
 		waitse
 
+		playmoncry(SPECIES_TANGELA, CRY_MODE_NORMAL)
 		setspeaker("Tangela")
 		msgbox(
 			"What? Oh, man!\p"
@@ -108,6 +111,7 @@ script Tamatown_EventScript_Tangela {
 			"But you saw right through me!\p"
 			"You must be some kind of genius!"
 		)
+		waitmoncry
 
 		setflag(FLAG_FOUND_TANGELA)
 	}
@@ -120,8 +124,12 @@ script Tamatown_EventScript_Tangela {
 script Tamatown_EventScript_Sign {
 	msgbox(
 		// TODO
-		"“6 Week Course: How To Threaten\nYour Human Through Pooping"", MSGBOX_SIGN
+		"“6 Week Course: How To Manipulate\nYour Human Through Pooping”", MSGBOX_SIGN
 	)
+}
+
+script Tamatown_EventScript_Skitty {
+	// TODO
 }
 
 script Tamatown_EventScript_Trashcan {
@@ -171,7 +179,7 @@ script Tamatown_EventScript_TrubbishCan {
 			closemessage
 
 			playse(SE_PIN)
-			applymovement(ID_PLAYER, moves(emote_exclamation_mark, delay_16 * 6))
+			applymovement(LOCALID_PLAYER, moves(emote_exclamation_mark, delay_16 * 6))
 			waitse
 			waitmovement(0)
 
@@ -239,7 +247,7 @@ script Tamatown_EventScript_TrubbishCan {
 	release
 }
 
-script Tamatown_EventScript_Waiter {
+script Tamatown_EventScript_Slowpoke {
 	lock
 
 	playmoncry(SPECIES_SLOWPOKE, CRY_MODE_NORMAL)
