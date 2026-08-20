@@ -1,4 +1,5 @@
 const FLAG_REMOVE_TRASHCAN_INTERACTION = FLAG_TEMP_1
+const FLAG_REMOVE_TREE_INTERACTION = FLAG_TEMP_2
 
 mapscripts Tamatown_MapScripts {
 	
@@ -29,6 +30,98 @@ script Tamatown_EventScript_Porygon {
 	closemessage
 
 	release
+}
+
+script Tamatown_EventScript_Tree {
+	msgbox(
+		"It's a tree.\nIt kinda looks like your cousin Mark.",
+		MSGBOX_AUTOCLOSE
+	)
+}
+
+script Tamatown_EventScript_Tangela {
+	lock
+
+	if (flag(FLAG_FOUND_TANGELA)) {
+		setspeaker("Tangela")
+		msgbox(
+			"Don't look at me!\nI am invisible!"
+		)
+	} else {
+		msgbox(
+			"It's a tree."
+		)
+
+		mcdialogue(
+			"Yep",
+			"Totes"
+		)
+
+		closemessage
+
+		delay(24)
+
+		// TODO EVA Jamie shake
+		playse(SE_FU_ZAKU)
+		// applymovement(VAR_LAST_TALKED, moves())
+		waitse
+		// waitmovement(0)
+
+		msgbox(
+			"The tree moved impatiently."
+		)
+
+		mcdialogue(
+			"Hmm.",
+			"Ahem."
+		)
+
+		closemessage
+
+		delay(24)
+
+		// TODO EVA Jamie shake
+		playse(SE_FU_ZAKU)
+		// applymovement(VAR_LAST_TALKED, moves())
+		waitse
+		// waitmovement(0)
+
+		setspeaker("Tree")
+		msgbox(
+			"{FONT_SMALL}Hee hee hee hee…{FONT_NORMAL}"
+		)
+
+		mcdialogue(
+			"Were you hiding?",
+			"I can see you"
+		)
+
+		playse(SE_PIN)
+		applymovement(VAR_LAST_TALKED, moves(emote_exclamation_mark, delay_16 * 6))
+		waitmovement(0)
+		waitse
+
+		setspeaker("Tangela")
+		msgbox(
+			"What? Oh, man!\p"
+			"I was trying out my new “hiding in\nplain sight” secret technique…\l"
+			"But you saw right through me!\p"
+			"You must be some kind of genius!"
+		)
+
+		setflag(FLAG_FOUND_TANGELA)
+	}
+
+	closemessage
+
+	release
+}
+
+script Tamatown_EventScript_Sign {
+	msgbox(
+		// TODO
+		"“6 Week Course: How To Threaten\nYour Human Through Pooping"", MSGBOX_SIGN
+	)
 }
 
 script Tamatown_EventScript_Trashcan {
