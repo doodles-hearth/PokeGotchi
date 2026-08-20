@@ -1,3 +1,19 @@
+// PokéGotchi
+
+static const struct SpriteFrameImage sPicTable_PokeGotchi_Porygon[] = {
+    overworld_ascending_frames(gObjectEventPic_PokeGotchi_Porygon, 2, 4),
+};
+
+static const struct SpriteFrameImage sPicTable_PokeGotchi_Trubbish[] = {
+    overworld_ascending_frames(gObjectEventPic_PokeGotchi_Trubbish, 2, 4),
+};
+
+static const struct SpriteFrameImage sPicTable_PokeGotchi_Slowpoke[] = {
+    overworld_ascending_frames(gObjectEventPic_PokeGotchi_Slowpoke, 2, 2),
+};
+
+// End of PokéGotchi
+
 static const struct SpriteFrameImage sPicTable_BrendanNormal[] = {
     overworld_ascending_frames(gObjectEventPic_BrendanNormalRunning, 2, 4),
 };
@@ -2494,13 +2510,3 @@ static const struct SpriteFrameImage sPicTable_MomFrlg[] = {
 };
 
 #endif // IS_FRLG
-
-// PokéGotchi
-
-static const struct SpriteFrameImage sPicTable_Pokegotchi_Porygon[] = {
-    overworld_ascending_frames(gObjectEventPic_Pokegotchi_Porygon, 2, 4),
-};
-
-static const struct SpriteFrameImage sPicTable_Pokegotchi_Trubbish[] = {
-    overworld_ascending_frames(gObjectEventPic_Pokegotchi_Trubbish, 2, 4),
-};

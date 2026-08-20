@@ -174,7 +174,7 @@ script Tamatown_EventScript_Waiter {
 			"… … … … … … …\p"
 			"Yaaaaaaaaaaaaaaaaaaay…"
 		)
-		// TODO
+		// TODO minigame
 	} else {
 		playmoncry(SPECIES_SLOWPOKE, CRY_MODE_FAINT)
 		setspeaker("Slowpoke")
