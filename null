@@ -1,0 +1,12 @@
+tools/poryscript/poryscript -i data/maps/Tamatown/scripts.pory -o data/maps/Tamatown/scripts.inc -fc tools/poryscript/font_config.json -cc tools/poryscript/command_config.json
+tools/scaninc/scaninc -M build/gotchi/data/event_scripts.d -g build/assets -I include -I "" data/event_scripts.s
+python3 tools/learnset_helpers/make_tutors.py tools/learnset_helpers/build/all_tutors.json
+tools/preproc/preproc -s data/event_scripts.s charmap.txt | arm-none-eabi-cpp -iquote include -Wno-trigraphs -DMODERN=1 -DTESTING=0 -DEMERALD -std=gnu17 -I include - | tools/preproc/preproc -ie data/event_scripts.s charmap.txt | arm-none-eabi-as -mcpu=arm7tdmi -march=armv4t -meabi=5 --defsym MODERN=1 --defsym EMERALD=1 -o build/gotchi/data/event_scripts.o
+Memory region         Used Size  Region Size  %age Used
+           EWRAM:      223340 B       256 KB     85.20%
+           IWRAM:       28440 B        32 KB     86.79%
+             ROM:    26879728 B        32 MB     80.11%
+cd build/gotchi && arm-none-eabi-ld -Map ../../pokegotchi.map --print-memory-usage --gc-sections -T ../../ld_script_modern.ld -o ../../pokegotchi.elf <objs> <libs> | cat
+tools/gbafix/gbafix pokegotchi.elf -t"POKEGOTCHI" -cPOKG -m01 -r0 --silent
+arm-none-eabi-objcopy -O binary pokegotchi.elf pokegotchi.gba
+tools/gbafix/gbafix pokegotchi.gba -p --silent

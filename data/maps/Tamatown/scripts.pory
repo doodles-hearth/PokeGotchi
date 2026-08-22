@@ -1,0 +1,292 @@
+const FLAG_REMOVE_TRASHCAN_INTERACTION = FLAG_TEMP_1
+const FLAG_REMOVE_TREE_INTERACTION = FLAG_TEMP_2
+
+mapscripts Tamatown_MapScripts {
+	
+}
+
+script Tamatown_EventScript_Porygon {
+	lock
+
+	msgbox(
+		"Yo, my man, wanna try beating my high score?",
+		MSGBOX_YESNO
+	)
+
+	switch(var(VAR_RESULT)) {
+		case YES:
+			msgbox(
+				"Heck yeah!",
+				MSGBOX_YESNO
+			)
+			// TODO
+		default:
+			msgbox(
+				"Aight, aight, guess I'll remain…\nUNBEATEN!!!",
+				MSGBOX_YESNO
+			)
+	}
+
+	closemessage
+
+	release
+}
+
+script Tamatown_EventScript_Tree {
+	msgbox(
+		"It's a tree.\nIt kinda looks like your cousin Mark.",
+		MSGBOX_AUTOCLOSE
+	)
+}
+
+script Tamatown_EventScript_Tangela {
+	lock
+
+	if (flag(POKEGOTCHI_FLAG_FOUND_TANGELA)) {
+		playmoncry(SPECIES_TANGELA, CRY_MODE_NORMAL)
+		setspeaker("Tangela")
+		msgbox(
+			"Don't look at me!\nI am invisible!"
+		)
+		waitmoncry
+	} else {
+		msgbox(
+			"It's a tree."
+		)
+
+		mcdialogue(
+			"Yep",
+			"Totes"
+		)
+
+		closemessage
+
+		delay(24)
+
+		// TODO EVA Jamie shake
+		playse(SE_FU_ZAKU)
+		// applymovement(VAR_LAST_TALKED, moves())
+		waitse
+		// waitmovement(0)
+
+		msgbox(
+			"The tree moved impatiently."
+		)
+
+		mcdialogue(
+			"Hmm.",
+			"Ahem."
+		)
+
+		closemessage
+
+		delay(24)
+
+		// TODO EVA Jamie shake
+		playse(SE_FU_ZAKU)
+		// applymovement(VAR_LAST_TALKED, moves())
+		waitse
+		// waitmovement(0)
+
+		setspeaker("Tree")
+		msgbox(
+			"{FONT_SMALL}Hee hee hee hee…{FONT_NORMAL}"
+		)
+
+		mcdialogue(
+			"Were you hiding?",
+			"I can see you"
+		)
+
+		playse(SE_PIN)
+		applymovement(VAR_LAST_TALKED, moves(emote_exclamation_mark, delay_16 * 6))
+		waitmovement(0)
+		waitse
+
+		playmoncry(SPECIES_TANGELA, CRY_MODE_NORMAL)
+		setspeaker("Tangela")
+		msgbox(
+			"What? Oh, man!\p"
+			"I was trying out my new “hiding in\nplain sight” secret technique…\l"
+			"But you saw right through me!\p"
+			"You must be some kind of genius!"
+		)
+		waitmoncry
+
+		setflag(POKEGOTCHI_FLAG_FOUND_TANGELA)
+	}
+
+	closemessage
+
+	release
+}
+
+script Tamatown_EventScript_Sign {
+	msgbox(
+		// TODO
+		"“6 Week Course: How To Manipulate\nYour Human Through Pooping”", MSGBOX_SIGN
+	)
+}
+
+script Tamatown_EventScript_Skitty {
+	// TODO
+}
+
+script Tamatown_EventScript_Trashcan {
+	msgbox(
+		"It's a trashcan.\p"
+		"As hungry as it makes you, you need\nto go.",
+		MSGBOX_AUTOCLOSE
+	)
+}
+
+script Tamatown_EventScript_TrubbishCan {
+	lock
+
+	msgbox(
+		"It's a trashcan.\p"
+		"…Wait a second…\nDid the trashcan just move?"
+	)
+
+	mcdialogueB(
+		"It did!",
+		"I'm imagining things."
+	)
+
+	if (var(VAR_RESULT) == 0) {
+		msgbox(
+			"What to do?"
+		)
+
+		mcdialogue(
+			"Kick it.",
+			"Hug it."
+		)
+
+		if (var(VAR_RESULT) == 0) {
+			setvar(VAR_0x8004, 0) // Vertical pan
+			setvar(VAR_0x8005, 3) // Horizontal pan
+			setvar(VAR_0x8006, 4) // Num shakes
+			setvar(VAR_0x8007, 2) // Shake delay
+			special(ShakeScreen)
+			playmoncry(SPECIES_TRUBBISH, CRY_MODE_NORMAL)
+			setspeaker("Trashcan?")
+			msgbox(
+				"WAIT! WAIT! STOP!"
+			)
+
+			waitmoncry
+			closemessage
+
+			playse(SE_PIN)
+			applymovement(LOCALID_PLAYER, moves(emote_exclamation_mark, delay_16 * 6))
+			waitse
+			waitmovement(0)
+
+			clearflag(POKEGOTCHI_FLAG_HIDE_TRUBBISH)
+			addobject(LOCALID_TRUBBISH)
+
+			playse(SE_LEDGE)
+			applymovement(LOCALID_TRUBBISH, moves(jump_in_place_down, delay_16 * 3))
+			waitmovement(0)
+
+			setspeaker("Trubbish")
+			msgbox(
+				"Whew! You almost got me there!\nNo, I wasn't hiding…\p"
+				"I just found this box of barely licked\ndoughnuts!\p"
+				"Look at these glazed beauties\nwhispering “Eat me”…\lI can't resist!\p"
+				"Here, have one, you'll see what I mean!"
+			)
+		} else {
+			// TODO EVA Jamie's half-step
+
+			playse(SE_PIN)
+			applymovement(VAR_LAST_TALKED, moves(emote_heart, delay_16 * 6))
+			waitse
+			waitmovement(0)
+
+			msgbox(
+				"The trashcan looks… happy?"
+			)
+			closemessage
+
+			clearflag(POKEGOTCHI_FLAG_HIDE_TRUBBISH)
+			addobject(LOCALID_TRUBBISH)
+
+			playse(SE_LEDGE)
+			applymovement(LOCALID_TRUBBISH, moves(jump_in_place_down, delay_16 * 3))
+			waitmovement(0)
+
+			setspeaker("Trubbish")
+			msgbox(
+				"I-I've never been held with such\nkindness before…\p"
+				"Thanks, buddy.\nI'm happy you don't think I'm trash!\p"
+				"I just found this box of barely licked\ndoughnuts!\p"
+				"Look at these glazed beauties\nwhispering “Eat me”…\lI can't resist!\p"
+				"Here, have one, you'll see what I mean!"
+			)
+		}
+	
+		setflag(POKEGOTCHI_FLAG_UNLOCKED_SNACK_DOUGHNUT)
+
+		setspeaker(NULL)
+		playfanfare(MUS_LEVEL_UP)
+		message(
+			"You got the Doughnut!"
+		)
+		waitfanfare
+		closemessage
+		setflag(FLAG_REMOVE_TRASHCAN_INTERACTION)
+	} else {
+		msgbox(
+			"The trashcan looks saddened."
+		)
+	}
+	closemessage
+
+	release
+}
+
+script Tamatown_EventScript_Slowpoke {
+	lock
+
+	playmoncry(SPECIES_SLOWPOKE, CRY_MODE_NORMAL)
+	setspeaker("Slowpoke")
+	msgbox(
+		"… … … … … … …\p"
+		"… … … … … … …\p"
+		"We opened up our restaurant\nreeeeecently… Buuuut…\p"
+		"Customers don't tiiiiiiiip…\p"
+		"They say the service is too sloooow…\p"
+		"Can you belieeeeve it?\p"
+		"You look faaaaast enouuuuuugh…\p"
+		"Think you could help us ouuuuut?"
+	)
+
+	mcdialogueB(
+		"For sure!",
+		"Sounds tiring…"
+	)
+
+	if (var(VAR_RESULT) == 0) {
+		playmoncry(SPECIES_SLOWPOKE, CRY_MODE_NORMAL)
+		setspeaker("Slowpoke")
+		msgbox(
+			"… … … … … … …\p"
+			"Yaaaaaaaaaaaaaaaaaaay…"
+		)
+		// TODO minigame
+	} else {
+		playmoncry(SPECIES_SLOWPOKE, CRY_MODE_FAINT)
+		setspeaker("Slowpoke")
+		msgbox(
+			"… … … … … … …\p"
+			"I understaaaand…\p"
+			"It's suuuuuper tiiiiiiring…"
+		)
+	}
+
+	closemessage
+
+	release
+}
