@@ -490,6 +490,18 @@
 #define MUS_RG_TRAINER_TOWER        556 // MUS_RG_T_TOWER
 #define MUS_RG_SLOW_PALLET          557 // MUS_RG_SLOWMASARA
 #define MUS_RG_TEACHY_TV_MENU       558 // MUS_RG_TVNOIZE
+#define MUS_HGSS_CASINO             559
+#define MUS_CASINO_PLUS_1           560
+#define MUS_CASINO_PLUS_2           561
+#define MUS_CASINO_PLUS_3           562
+#define MUS_CASINO_PLUS_4           563
+#define MUS_CASINO_PLUS_5           564
+#define MUS_CASINO_PLUS_6           565
+#define MUS_CASINO_PLUS_7           566
+#define MUS_CASINO_PLUS_8           567
+#define MUS_CASINO_PLUS_9           568
+#define MUS_CASINO_PLUS_GACHA       569
+#define END_MUS                     MUS_CASINO_PLUS_GACHA
 
 #define END_MUS                     558
 
