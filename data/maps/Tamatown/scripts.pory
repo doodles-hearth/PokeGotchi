@@ -42,7 +42,7 @@ script Tamatown_EventScript_Tree {
 script Tamatown_EventScript_Tangela {
 	lock
 
-	if (flag(FLAG_FOUND_TANGELA)) {
+	if (flag(POKEGOTCHI_FLAG_FOUND_TANGELA)) {
 		playmoncry(SPECIES_TANGELA, CRY_MODE_NORMAL)
 		setspeaker("Tangela")
 		msgbox(
@@ -113,7 +113,7 @@ script Tamatown_EventScript_Tangela {
 		)
 		waitmoncry
 
-		setflag(FLAG_FOUND_TANGELA)
+		setflag(POKEGOTCHI_FLAG_FOUND_TANGELA)
 	}
 
 	closemessage
@@ -183,7 +183,7 @@ script Tamatown_EventScript_TrubbishCan {
 			waitse
 			waitmovement(0)
 
-			clearflag(FLAG_HIDE_TRUBBISH)
+			clearflag(POKEGOTCHI_FLAG_HIDE_TRUBBISH)
 			addobject(LOCALID_TRUBBISH)
 
 			playse(SE_LEDGE)
@@ -210,7 +210,7 @@ script Tamatown_EventScript_TrubbishCan {
 			)
 			closemessage
 
-			clearflag(FLAG_HIDE_TRUBBISH)
+			clearflag(POKEGOTCHI_FLAG_HIDE_TRUBBISH)
 			addobject(LOCALID_TRUBBISH)
 
 			playse(SE_LEDGE)
@@ -227,7 +227,7 @@ script Tamatown_EventScript_TrubbishCan {
 			)
 		}
 	
-		setflag(FLAG_UNLOCKED_SNACK_DOUGHNUT)
+		setflag(POKEGOTCHI_FLAG_UNLOCKED_SNACK_DOUGHNUT)
 
 		setspeaker(NULL)
 		playfanfare(MUS_LEVEL_UP)

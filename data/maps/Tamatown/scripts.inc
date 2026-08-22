@@ -36,7 +36,7 @@ Tamatown_EventScript_Tangela::
 # 43 "data/maps/Tamatown/scripts.pory"
 	lock
 # 45 "data/maps/Tamatown/scripts.pory"
-	goto_if_set FLAG_FOUND_TANGELA, Tamatown_EventScript_Tangela_2
+	goto_if_set POKEGOTCHI_FLAG_FOUND_TANGELA, Tamatown_EventScript_Tangela_2
 # 53 "data/maps/Tamatown/scripts.pory"
 	msgbox Tamatown_EventScript_Tangela_Text_2
 # 57 "data/maps/Tamatown/scripts.pory"
@@ -84,7 +84,7 @@ Tamatown_EventScript_Tangela::
 # 114 "data/maps/Tamatown/scripts.pory"
 	waitmoncry
 # 116 "data/maps/Tamatown/scripts.pory"
-	setflag FLAG_FOUND_TANGELA
+	setflag POKEGOTCHI_FLAG_FOUND_TANGELA
 Tamatown_EventScript_Tangela_1:
 # 119 "data/maps/Tamatown/scripts.pory"
 	closemessage
@@ -160,7 +160,7 @@ Tamatown_EventScript_TrubbishCan_2:
 # 211 "data/maps/Tamatown/scripts.pory"
 	closemessage
 # 213 "data/maps/Tamatown/scripts.pory"
-	clearflag FLAG_HIDE_TRUBBISH
+	clearflag POKEGOTCHI_FLAG_HIDE_TRUBBISH
 # 214 "data/maps/Tamatown/scripts.pory"
 	addobject LOCALID_TRUBBISH
 # 216 "data/maps/Tamatown/scripts.pory"
@@ -175,7 +175,7 @@ Tamatown_EventScript_TrubbishCan_2:
 	msgbox Tamatown_EventScript_TrubbishCan_Text_11
 Tamatown_EventScript_TrubbishCan_5:
 # 230 "data/maps/Tamatown/scripts.pory"
-	setflag FLAG_UNLOCKED_SNACK_DOUGHNUT
+	setflag POKEGOTCHI_FLAG_UNLOCKED_SNACK_DOUGHNUT
 # 232 "data/maps/Tamatown/scripts.pory"
 	setspeaker NULL
 # 233 "data/maps/Tamatown/scripts.pory"
@@ -220,7 +220,7 @@ Tamatown_EventScript_TrubbishCan_6:
 # 184 "data/maps/Tamatown/scripts.pory"
 	waitmovement 0
 # 186 "data/maps/Tamatown/scripts.pory"
-	clearflag FLAG_HIDE_TRUBBISH
+	clearflag POKEGOTCHI_FLAG_HIDE_TRUBBISH
 # 187 "data/maps/Tamatown/scripts.pory"
 	addobject LOCALID_TRUBBISH
 # 189 "data/maps/Tamatown/scripts.pory"

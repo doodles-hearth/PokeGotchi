@@ -328,5 +328,5 @@ EventScript_ResetAllMapFlagsFrlg::
 	setvar VAR_MASSAGE_COOLDOWN_STEP_COUNTER, 500
 
 
-	setflag FLAG_HIDE_TRUBBISH
+	setflag POKEGOTCHI_FLAG_HIDE_TRUBBISH
 	end
