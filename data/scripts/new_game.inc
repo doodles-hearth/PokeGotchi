@@ -329,4 +329,6 @@ EventScript_ResetAllMapFlagsFrlg::
 
 
 	setflag POKEGOTCHI_FLAG_HIDE_TRUBBISH
+	setflag FLAG_SYS_B_DASH
+	setflag FLAG_RECEIVED_RUNNING_SHOES
 	end
