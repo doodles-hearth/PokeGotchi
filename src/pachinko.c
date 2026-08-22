@@ -312,111 +312,111 @@ static const u16 sFlipperPalette[] = INCGFX_U16("graphics/pinball/flipper.png", 
 static const u8 sFlipperCollisionRadii[] = INCBIN_U8("data/pinball/flipper_radii.bin");
 static const u8 sFlipperCollisionNormalAngles[] = INCBIN_U8("data/pinball/flipper_normal_angles.bin");
 
-static const u32 sDiglettStageBgGfx[] = INCGFX_U32("graphics/pachinko/bgtiles.png", ".4bpp");
-static const u16 sDiglettStageBgPalette[] = INCGFX_U16("graphics/pachinko/bg_indexed.pal", ".gbapal");
+static const u32 sDiglettStageBgGfx[] = INCGFX_U32("graphics/pachinko/PokeGotchi/bgtiles.png", ".4bpp");
+static const u16 sDiglettStageBgPalette[] = INCGFX_U16("graphics/pachinko/PokeGotchi/bg_indexed.pal", ".gbapal");
 static const u8 sDiglettStageBgCollisionMasks[] = INCGFX_U8("graphics/pinball/bg_collision_masks_diglett.png", ".1bpp");
-static const u8 sDiglettStageBgCollisionMap[] = INCBIN_U8("graphics/pachinko/collisionmap.bin");
+static const u8 sDiglettStageBgCollisionMap[] = INCBIN_U8("graphics/pachinko/PokeGotchi/collisionmap.bin");
 
-static const u32 gPlayer_Gfx[] = INCGFX_U32("graphics/pachinko/input_numbers.png", ".4bpp.smol");
-static const u16 sPlayer_Pal[] = INCGFX_U16("graphics/pachinko/input_numbers.pal", ".gbapal");
+static const u32 gPlayer_Gfx[] = INCGFX_U32("graphics/pachinko/PokeGotchi/input_numbers.png", ".4bpp.smol");
+static const u16 sPlayer_Pal[] = INCGFX_U16("graphics/pachinko/PokeGotchi/input_numbers.png", ".gbapal");
 
-static const u32 SpinarakGFX[] = INCGFX_U32("graphics/pachinko/spider.png", ".4bpp.smol");
-static const u16 SpinarakPAL[] = INCGFX_U16("graphics/pachinko/spider.pal", ".gbapal");
+static const u32 SpinarakGFX[] = INCGFX_U32("graphics/pachinko/PokeGotchi/spider.png", ".4bpp.smol");
+static const u16 SpinarakPAL[] = INCGFX_U16("graphics/pachinko/PokeGotchi/spider.png", ".gbapal");
 
-static const u32 SpeedGFX[] = INCGFX_U32("graphics/pachinko/speed.png", ".4bpp.smol");
-static const u16 SpeedPAL[] = INCGFX_U16("graphics/pachinko/speed.pal", ".gbapal");
+static const u32 SpeedGFX[] = INCGFX_U32("graphics/pachinko/PokeGotchi/speed.png", ".4bpp.smol");
+static const u16 SpeedPAL[] = INCGFX_U16("graphics/pachinko/PokeGotchi/speed.png", ".gbapal");
 
-static const u32 MultiplierGFX[] = INCGFX_U32("graphics/pachinko/multiplier.png", ".4bpp.smol");
-static const u16 MultiplierPAL[] = INCGFX_U16("graphics/pachinko/multiplier.pal", ".gbapal");
+static const u32 MultiplierGFX[] = INCGFX_U32("graphics/pachinko/PokeGotchi/multiplier.png", ".4bpp.smol");
+static const u16 MultiplierPAL[] = INCGFX_U16("graphics/pachinko/PokeGotchi/multiplier.png", ".gbapal");
 
-static const u32 LivesGFX[] = INCGFX_U32("graphics/pachinko/lives.png", ".4bpp.smol");
-static const u16 LivesPAL[] = INCGFX_U16("graphics/pachinko/lives.pal", ".gbapal");
+static const u32 LivesGFX[] = INCGFX_U32("graphics/pachinko/PokeGotchi/lives.png", ".4bpp.smol");
+static const u16 LivesPAL[] = INCGFX_U16("graphics/pachinko/PokeGotchi/lives.png", ".gbapal");
 
-static const u32 ArrowGFX[] = INCGFX_U32("graphics/pachinko/arrow.png", ".4bpp.smol");
-static const u16 ArrowPAL[] = INCGFX_U16("graphics/pachinko/arrow.pal", ".gbapal");
+static const u32 ArrowGFX[] = INCGFX_U32("graphics/pachinko/PokeGotchi/arrow.png", ".4bpp.smol");
+static const u16 ArrowPAL[] = INCGFX_U16("graphics/pachinko/PokeGotchi/arrow.png", ".gbapal");
 
-static const u32 TitleGFX[] = INCGFX_U32("graphics/pachinko/title.png", ".4bpp.smol");
-static const u16 TitlePAL[] = INCGFX_U16("graphics/pachinko/title.pal", ".gbapal");
+static const u32 TitleGFX[] = INCGFX_U32("graphics/pachinko/PokeGotchi/title.png", ".4bpp.smol");
+static const u16 TitlePAL[] = INCGFX_U16("graphics/pachinko/PokeGotchi/title.png", ".gbapal");
 
-static const u32 GameOverGFX[] = INCGFX_U32("graphics/pachinko/gameover.png", ".4bpp.smol");
-static const u16 GameOverPAL[] = INCGFX_U16("graphics/pachinko/gameover.pal", ".gbapal");
+static const u32 GameOverGFX[] = INCGFX_U32("graphics/pachinko/PokeGotchi/gameover.png", ".4bpp.smol");
+static const u16 GameOverPAL[] = INCGFX_U16("graphics/pachinko/PokeGotchi/gameover.png", ".gbapal");
 
-static const u32 WinGFX[] = INCGFX_U32("graphics/pachinko/win.png", ".4bpp.smol");
-static const u16 WinPAL[] = INCGFX_U16("graphics/pachinko/win.pal", ".gbapal");
+static const u32 WinGFX[] = INCGFX_U32("graphics/pachinko/PokeGotchi/win.png", ".4bpp.smol");
+static const u16 WinPAL[] = INCGFX_U16("graphics/pachinko/PokeGotchi/win.png", ".gbapal");
 
-static const u32 NewLevelGFX[] = INCGFX_U32("graphics/pachinko/newlevel.png", ".4bpp.smol");
-static const u16 NewLevelPAL[] = INCGFX_U16("graphics/pachinko/newlevel.pal", ".gbapal");
+static const u32 NewLevelGFX[] = INCGFX_U32("graphics/pachinko/PokeGotchi/newlevel.png", ".4bpp.smol");
+static const u16 NewLevelPAL[] = INCGFX_U16("graphics/pachinko/PokeGotchi/newlevel.png", ".gbapal");
 
 // Levels
 
-static const u16 sLevel_01_BgTilemap[] = INCBIN_U16("graphics/pachinko/LevelTilemaps/Level_01.bin");
-static const u8 sLevel_01_BgCollisionMap[] = INCBIN_U8("graphics/pachinko/LevelCollision/Level_01.bin");
+static const u16 sLevel_01_BgTilemap[] = INCBIN_U16("graphics/pachinko/PokeGotchi/LevelTilemaps/Level_01.bin");
+static const u8 sLevel_01_BgCollisionMap[] = INCBIN_U8("graphics/pachinko/PokeGotchi/LevelCollision/Level_01.bin");
 
-static const u16 sLevel_02_BgTilemap[] = INCBIN_U16("graphics/pachinko/LevelTilemaps/Level_02.bin");
-static const u8 sLevel_02_BgCollisionMap[] = INCBIN_U8("graphics/pachinko/LevelCollision/Level_02.bin");
+static const u16 sLevel_02_BgTilemap[] = INCBIN_U16("graphics/pachinko/PokeGotchi/LevelTilemaps/Level_02.bin");
+static const u8 sLevel_02_BgCollisionMap[] = INCBIN_U8("graphics/pachinko/PokeGotchi/LevelCollision/Level_02.bin");
 
-static const u16 sLevel_03_BgTilemap[] = INCBIN_U16("graphics/pachinko/LevelTilemaps/Level_03.bin");
-static const u8 sLevel_03_BgCollisionMap[] = INCBIN_U8("graphics/pachinko/LevelCollision/Level_03.bin");
+static const u16 sLevel_03_BgTilemap[] = INCBIN_U16("graphics/pachinko/PokeGotchi/LevelTilemaps/Level_03.bin");
+static const u8 sLevel_03_BgCollisionMap[] = INCBIN_U8("graphics/pachinko/PokeGotchi/LevelCollision/Level_03.bin");
 
-static const u16 sLevel_04_BgTilemap[] = INCBIN_U16("graphics/pachinko/LevelTilemaps/Level_04.bin");
-static const u8 sLevel_04_BgCollisionMap[] = INCBIN_U8("graphics/pachinko/LevelCollision/Level_04.bin");
+static const u16 sLevel_04_BgTilemap[] = INCBIN_U16("graphics/pachinko/PokeGotchi/LevelTilemaps/Level_04.bin");
+static const u8 sLevel_04_BgCollisionMap[] = INCBIN_U8("graphics/pachinko/PokeGotchi/LevelCollision/Level_04.bin");
 
-static const u16 sLevel_05_BgTilemap[] = INCBIN_U16("graphics/pachinko/LevelTilemaps/Level_05.bin");
-static const u8 sLevel_05_BgCollisionMap[] = INCBIN_U8("graphics/pachinko/LevelCollision/Level_05.bin");
+static const u16 sLevel_05_BgTilemap[] = INCBIN_U16("graphics/pachinko/PokeGotchi/LevelTilemaps/Level_05.bin");
+static const u8 sLevel_05_BgCollisionMap[] = INCBIN_U8("graphics/pachinko/PokeGotchi/LevelCollision/Level_05.bin");
 
-static const u16 sLevel_06_BgTilemap[] = INCBIN_U16("graphics/pachinko/LevelTilemaps/Level_06.bin");
-static const u8 sLevel_06_BgCollisionMap[] = INCBIN_U8("graphics/pachinko/LevelCollision/Level_06.bin");
+static const u16 sLevel_06_BgTilemap[] = INCBIN_U16("graphics/pachinko/PokeGotchi/LevelTilemaps/Level_06.bin");
+static const u8 sLevel_06_BgCollisionMap[] = INCBIN_U8("graphics/pachinko/PokeGotchi/LevelCollision/Level_06.bin");
 
-static const u16 sLevel_07_BgTilemap[] = INCBIN_U16("graphics/pachinko/LevelTilemaps/Level_07.bin");
-static const u8 sLevel_07_BgCollisionMap[] = INCBIN_U8("graphics/pachinko/LevelCollision/Level_07.bin");
+static const u16 sLevel_07_BgTilemap[] = INCBIN_U16("graphics/pachinko/PokeGotchi/LevelTilemaps/Level_07.bin");
+static const u8 sLevel_07_BgCollisionMap[] = INCBIN_U8("graphics/pachinko/PokeGotchi/LevelCollision/Level_07.bin");
 
-static const u16 sLevel_08_BgTilemap[] = INCBIN_U16("graphics/pachinko/LevelTilemaps/Level_08.bin");
-static const u8 sLevel_08_BgCollisionMap[] = INCBIN_U8("graphics/pachinko/LevelCollision/Level_08.bin");
+static const u16 sLevel_08_BgTilemap[] = INCBIN_U16("graphics/pachinko/PokeGotchi/LevelTilemaps/Level_08.bin");
+static const u8 sLevel_08_BgCollisionMap[] = INCBIN_U8("graphics/pachinko/PokeGotchi/LevelCollision/Level_08.bin");
 
-static const u16 sLevel_09_BgTilemap[] = INCBIN_U16("graphics/pachinko/LevelTilemaps/Level_09.bin");
-static const u8 sLevel_09_BgCollisionMap[] = INCBIN_U8("graphics/pachinko/LevelCollision/Level_09.bin");
+static const u16 sLevel_09_BgTilemap[] = INCBIN_U16("graphics/pachinko/PokeGotchi/LevelTilemaps/Level_09.bin");
+static const u8 sLevel_09_BgCollisionMap[] = INCBIN_U8("graphics/pachinko/PokeGotchi/LevelCollision/Level_09.bin");
 
-static const u16 sLevel_10_BgTilemap[] = INCBIN_U16("graphics/pachinko/LevelTilemaps/Level_10.bin");
-static const u8 sLevel_10_BgCollisionMap[] = INCBIN_U8("graphics/pachinko/LevelCollision/Level_10.bin");
+static const u16 sLevel_10_BgTilemap[] = INCBIN_U16("graphics/pachinko/PokeGotchi/LevelTilemaps/Level_10.bin");
+static const u8 sLevel_10_BgCollisionMap[] = INCBIN_U8("graphics/pachinko/PokeGotchi/LevelCollision/Level_10.bin");
 
-static const u16 sLevel_11_BgTilemap[] = INCBIN_U16("graphics/pachinko/LevelTilemaps/Level_11.bin");
-static const u8 sLevel_11_BgCollisionMap[] = INCBIN_U8("graphics/pachinko/LevelCollision/Level_11.bin");
+static const u16 sLevel_11_BgTilemap[] = INCBIN_U16("graphics/pachinko/PokeGotchi/LevelTilemaps/Level_11.bin");
+static const u8 sLevel_11_BgCollisionMap[] = INCBIN_U8("graphics/pachinko/PokeGotchi/LevelCollision/Level_11.bin");
 
-static const u16 sLevel_12_BgTilemap[] = INCBIN_U16("graphics/pachinko/LevelTilemaps/Level_12.bin");
-static const u8 sLevel_12_BgCollisionMap[] = INCBIN_U8("graphics/pachinko/LevelCollision/Level_12.bin");
+static const u16 sLevel_12_BgTilemap[] = INCBIN_U16("graphics/pachinko/PokeGotchi/LevelTilemaps/Level_12.bin");
+static const u8 sLevel_12_BgCollisionMap[] = INCBIN_U8("graphics/pachinko/PokeGotchi/LevelCollision/Level_12.bin");
 
-static const u16 sLevel_13_BgTilemap[] = INCBIN_U16("graphics/pachinko/LevelTilemaps/Level_13.bin");
-static const u8 sLevel_13_BgCollisionMap[] = INCBIN_U8("graphics/pachinko/LevelCollision/Level_13.bin");
+static const u16 sLevel_13_BgTilemap[] = INCBIN_U16("graphics/pachinko/PokeGotchi/LevelTilemaps/Level_13.bin");
+static const u8 sLevel_13_BgCollisionMap[] = INCBIN_U8("graphics/pachinko/PokeGotchi/LevelCollision/Level_13.bin");
 
-static const u16 sLevel_14_BgTilemap[] = INCBIN_U16("graphics/pachinko/LevelTilemaps/Level_14.bin");
-static const u8 sLevel_14_BgCollisionMap[] = INCBIN_U8("graphics/pachinko/LevelCollision/Level_14.bin");
+static const u16 sLevel_14_BgTilemap[] = INCBIN_U16("graphics/pachinko/PokeGotchi/LevelTilemaps/Level_14.bin");
+static const u8 sLevel_14_BgCollisionMap[] = INCBIN_U8("graphics/pachinko/PokeGotchi/LevelCollision/Level_14.bin");
 
-static const u16 sLevel_15_BgTilemap[] = INCBIN_U16("graphics/pachinko/LevelTilemaps/Level_15.bin");
-static const u8 sLevel_15_BgCollisionMap[] = INCBIN_U8("graphics/pachinko/LevelCollision/Level_15.bin");
+static const u16 sLevel_15_BgTilemap[] = INCBIN_U16("graphics/pachinko/PokeGotchi/LevelTilemaps/Level_15.bin");
+static const u8 sLevel_15_BgCollisionMap[] = INCBIN_U8("graphics/pachinko/PokeGotchi/LevelCollision/Level_15.bin");
 
-static const u16 sLevel_16_BgTilemap[] = INCBIN_U16("graphics/pachinko/LevelTilemaps/Level_16.bin");
-static const u8 sLevel_16_BgCollisionMap[] = INCBIN_U8("graphics/pachinko/LevelCollision/Level_16.bin");
+static const u16 sLevel_16_BgTilemap[] = INCBIN_U16("graphics/pachinko/PokeGotchi/LevelTilemaps/Level_16.bin");
+static const u8 sLevel_16_BgCollisionMap[] = INCBIN_U8("graphics/pachinko/PokeGotchi/LevelCollision/Level_16.bin");
 
-static const u16 sLevel_17_BgTilemap[] = INCBIN_U16("graphics/pachinko/LevelTilemaps/Level_17.bin");
-static const u8 sLevel_17_BgCollisionMap[] = INCBIN_U8("graphics/pachinko/LevelCollision/Level_17.bin");
+static const u16 sLevel_17_BgTilemap[] = INCBIN_U16("graphics/pachinko/PokeGotchi/LevelTilemaps/Level_17.bin");
+static const u8 sLevel_17_BgCollisionMap[] = INCBIN_U8("graphics/pachinko/PokeGotchi/LevelCollision/Level_17.bin");
 
-static const u16 sLevel_18_BgTilemap[] = INCBIN_U16("graphics/pachinko/LevelTilemaps/Level_18.bin");
-static const u8 sLevel_18_BgCollisionMap[] = INCBIN_U8("graphics/pachinko/LevelCollision/Level_18.bin");
+static const u16 sLevel_18_BgTilemap[] = INCBIN_U16("graphics/pachinko/PokeGotchi/LevelTilemaps/Level_18.bin");
+static const u8 sLevel_18_BgCollisionMap[] = INCBIN_U8("graphics/pachinko/PokeGotchi/LevelCollision/Level_18.bin");
 
-static const u16 sLevel_19_BgTilemap[] = INCBIN_U16("graphics/pachinko/LevelTilemaps/Level_19.bin");
-static const u8 sLevel_19_BgCollisionMap[] = INCBIN_U8("graphics/pachinko/LevelCollision/Level_19.bin");
+static const u16 sLevel_19_BgTilemap[] = INCBIN_U16("graphics/pachinko/PokeGotchi/LevelTilemaps/Level_19.bin");
+static const u8 sLevel_19_BgCollisionMap[] = INCBIN_U8("graphics/pachinko/PokeGotchi/LevelCollision/Level_19.bin");
 
-static const u16 sLevel_20_BgTilemap[] = INCBIN_U16("graphics/pachinko/LevelTilemaps/Level_20.bin");
-static const u8 sLevel_20_BgCollisionMap[] = INCBIN_U8("graphics/pachinko/LevelCollision/Level_20.bin");
+static const u16 sLevel_20_BgTilemap[] = INCBIN_U16("graphics/pachinko/PokeGotchi/LevelTilemaps/Level_20.bin");
+static const u8 sLevel_20_BgCollisionMap[] = INCBIN_U8("graphics/pachinko/PokeGotchi/LevelCollision/Level_20.bin");
 
-static const u16 sLevel_21_BgTilemap[] = INCBIN_U16("graphics/pachinko/LevelTilemaps/Level_21.bin");
-static const u8 sLevel_21_BgCollisionMap[] = INCBIN_U8("graphics/pachinko/LevelCollision/Level_21.bin");
+static const u16 sLevel_21_BgTilemap[] = INCBIN_U16("graphics/pachinko/PokeGotchi/LevelTilemaps/Level_21.bin");
+static const u8 sLevel_21_BgCollisionMap[] = INCBIN_U8("graphics/pachinko/PokeGotchi/LevelCollision/Level_21.bin");
 
-static const u16 sLevel_22_BgTilemap[] = INCBIN_U16("graphics/pachinko/LevelTilemaps/Level_22.bin");
-static const u8 sLevel_22_BgCollisionMap[] = INCBIN_U8("graphics/pachinko/LevelCollision/Level_22.bin");
+static const u16 sLevel_22_BgTilemap[] = INCBIN_U16("graphics/pachinko/PokeGotchi/LevelTilemaps/Level_22.bin");
+static const u8 sLevel_22_BgCollisionMap[] = INCBIN_U8("graphics/pachinko/PokeGotchi/LevelCollision/Level_22.bin");
 
-static const u16 sLevel_23_BgTilemap[] = INCBIN_U16("graphics/pachinko/LevelTilemaps/Level_23.bin");
-static const u8 sLevel_23_BgCollisionMap[] = INCBIN_U8("graphics/pachinko/LevelCollision/Level_23.bin");
+static const u16 sLevel_23_BgTilemap[] = INCBIN_U16("graphics/pachinko/PokeGotchi/LevelTilemaps/Level_23.bin");
+static const u8 sLevel_23_BgCollisionMap[] = INCBIN_U8("graphics/pachinko/PokeGotchi/LevelCollision/Level_23.bin");
 
 static const struct SpritePalette sSpritePalettes2[] =
 {

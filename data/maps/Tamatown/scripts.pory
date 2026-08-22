@@ -6,30 +6,72 @@ mapscripts Tamatown_MapScripts {
 }
 
 script Tamatown_EventScript_Porygon {
-	lock
+	lockall
 
 	msgbox(
-		"Yo, my man, wanna try beating my high score?",
-		MSGBOX_YESNO
+		"Yo, my man, come over here…\p"
+		"Wanna try your luck at the most fun\nway to lose money ever invented?\l"
+		"That's right, PACHINKO!!\p"
+		"A game costs 3 coins.\nI'll give you 15 coins everyday!\p"
+		"What are the coins for? Uhh…\nThey look super neat!"
 	)
+	closemessage
+
+	if (!flag(FLAG_RECEIVED_PACHINKO_COINS)) {
+		message(
+			"You got 15 coins!"
+		)
+		playfanfare(MUS_OBTAIN_ITEM)
+		waitfanfare
+
+		addcoins(15)
+
+		closemessage
+
+		setflag(FLAG_RECEIVED_PACHINKO_COINS)
+	}
+
+	mcdialogueB(
+		"I wanna play!",
+		"Nah."
+	)	
 
 	switch(var(VAR_RESULT)) {
-		case YES:
+		case 0:
 			msgbox(
-				"Heck yeah!",
-				MSGBOX_YESNO
+				"Heck yeah! Have fun!"
 			)
-			// TODO
+			closemessage
+
+			switch (var(VAR_FACING)) {
+				case DIR_NORTH:
+					applymovement(LOCALID_PLAYER, moves(walk_right, face_up))
+				case DIR_SOUTH:
+					applymovement(LOCALID_PLAYER, moves(walk_left, walk_down * 2, walk_right * 2, face_up))
+				case DIR_EAST:
+					applymovement(LOCALID_PLAYER, moves(walk_down, walk_right * 2, face_up))
+			}
+
+			waitmovement(0)
+
+			playbgm(MUS_TRICK_HOUSE, FALSE)
+			delay(32)
+			callnative(PlayPachinko)
+			waitstate
+			savebgm(MUS_DUMMY)
+			fadedefaultbgm
+			releaseall
+			end
 		default:
 			msgbox(
-				"Aight, aight, guess I'll remain…\nUNBEATEN!!!",
+				"Aight, aight, can't help ya if you\nhate fun…",
 				MSGBOX_YESNO
 			)
 	}
 
 	closemessage
 
-	release
+	releaseall
 }
 
 script Tamatown_EventScript_Tree {
