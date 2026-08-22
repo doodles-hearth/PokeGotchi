@@ -401,7 +401,21 @@ extern const struct ObjectEventGraphicsInfo gObjectEventGraphicsInfo_UnusedMauvi
 extern const struct ObjectEventGraphicsInfo gObjectEventGraphicsInfo_UnusedMauvilleOldMan2;
 extern const struct ObjectEventGraphicsInfo gObjectEventGraphicsInfo_ApricornTree;
 
+// PokeGotchi
+extern const struct ObjectEventGraphicsInfo gObjectEventGraphicsInfo_PokeGotchi_Porygon;
+extern const struct ObjectEventGraphicsInfo gObjectEventGraphicsInfo_PokeGotchi_Trubbish;
+extern const struct ObjectEventGraphicsInfo gObjectEventGraphicsInfo_PokeGotchi_Slowpoke;
+extern const struct ObjectEventGraphicsInfo gObjectEventGraphicsInfo_PokeGotchi_Skitty;
+extern const struct ObjectEventGraphicsInfo gObjectEventGraphicsInfo_PokeGotchi_Tangela;
+
 const struct ObjectEventGraphicsInfo *const gObjectEventGraphicsInfoPointers[NUM_OBJ_EVENT_GFX] = {
+    // PokeGotchi
+    [OBJ_EVENT_GFX_PG_PORYGON]               = &gObjectEventGraphicsInfo_PokeGotchi_Porygon,
+    [OBJ_EVENT_GFX_PG_TRUBBISH]              = &gObjectEventGraphicsInfo_PokeGotchi_Trubbish,
+    [OBJ_EVENT_GFX_PG_SLOWPOKE]              = &gObjectEventGraphicsInfo_PokeGotchi_Slowpoke,
+    [OBJ_EVENT_GFX_PG_SKITTY]                = &gObjectEventGraphicsInfo_PokeGotchi_Skitty,
+    [OBJ_EVENT_GFX_PG_TANGELA]               = &gObjectEventGraphicsInfo_PokeGotchi_Tangela,
+
     [OBJ_EVENT_GFX_BRENDAN_NORMAL] =           &gObjectEventGraphicsInfo_BrendanNormal,
     [OBJ_EVENT_GFX_BRENDAN_MACH_BIKE] =        &gObjectEventGraphicsInfo_BrendanMachBike,
     [OBJ_EVENT_GFX_BRENDAN_SURFING] =          &gObjectEventGraphicsInfo_BrendanSurfing,
