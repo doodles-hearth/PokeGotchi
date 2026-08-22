@@ -544,9 +544,8 @@ static void Menu_LoadPetSprite(void)
 {
     enum Species species;
 
-    // species = GetMonData(&gParties[B_TRAINER_PLAYER][GetLeadMonIndex()], MON_DATA_SPECIES_OR_EGG);
-    species = SPECIES_FOMANTIS; // hardcode fomantis for now
-    if (species == SPECIES_NONE || species == SPECIES_EGG)
+    species = Pokegotchi_GetPrimarySpecies();
+    if (species == SPECIES_NONE)
         return;
     if (!HasPokegotchiSprite(species, POKEGOTCHI_EMOTION_IDLE))
         return;

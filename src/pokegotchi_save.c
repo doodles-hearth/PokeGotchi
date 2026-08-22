@@ -1,37 +1,61 @@
 #include "global.h"
 #include "pokegotchi_save.h"
+#include "agb_flash.h"
 #include "gba/defines.h"
+#include "gba/flash_internal.h"
+#include "gba/isagbprint.h"
+#include "load_save.h"
+#include "pokemon.h"
 #include "random.h"
 #include "save.h"
+#include "test_runner.h"
 
 #define POKEGOTCHI_SRAM_SIZE 0x8000
+#define POKEGOTCHI_FLASH_SECTOR_SIZE SECTOR_SIZE
+#define POKEGOTCHI_DEFAULT_PARTNER_LEVEL 5
 
 STATIC_ASSERT(sizeof(struct PokegotchiPersistedSave) * POKEGOTCHI_SAVE_SLOT_COUNT <= POKEGOTCHI_SRAM_SIZE,
               PokegotchiPersistedSaveFitsInSram);
+STATIC_ASSERT(sizeof(struct PokegotchiPersistedSave) <= POKEGOTCHI_FLASH_SECTOR_SIZE,
+              PokegotchiPersistedSaveFitsInFlashSector);
+
+enum PokegotchiSaveBackend
+{
+    POKEGOTCHI_SAVE_BACKEND_SRAM,
+    POKEGOTCHI_SAVE_BACKEND_FLASH,
+};
 
 static EWRAM_DATA struct PokegotchiRuntimeState sPokegotchiRuntimeState = {0};
 static EWRAM_DATA u32 sPokegotchiSaveCounter = 0;
+static EWRAM_DATA u8 sPokegotchiFlashSectorBuffer[POKEGOTCHI_FLASH_SECTOR_SIZE] = {0};
 
 #if TESTING
 static EWRAM_DATA u8 sPokegotchiTestSram[POKEGOTCHI_SRAM_SIZE] = {0};
+static EWRAM_DATA struct PokegotchiPersistedSave sPokegotchiTestFlash[POKEGOTCHI_SAVE_SLOT_COUNT] = {0};
 #endif
 
+static enum PokegotchiSaveBackend GetSaveBackend(void);
+static void LogSaveEvent(const char *action, enum PokegotchiSaveBackend backend, const char *detail, u32 value);
 static bool8 IsSlotBlank(const struct PokegotchiPersistedSave *save);
 static bool8 IsSaveValid(const struct PokegotchiPersistedSave *save);
-static const struct PokegotchiPersistedSave *GetPersistedSaveSlot(u32 slot);
-static struct PokegotchiPersistedSave *GetPersistedSaveSlotMutable(u32 slot);
+static const struct PokegotchiPersistedSave *GetSramPersistedSaveSlot(u32 slot);
+static struct PokegotchiPersistedSave *GetSramPersistedSaveSlotMutable(u32 slot);
 static void SetSramWaitstates(void);
 ARM_FUNC __attribute__((section(".iwram.code"))) NOINLINE static void SramReadBytes(u8 *dst, const volatile u8 *src, u32 size);
 ARM_FUNC __attribute__((section(".iwram.code"))) NOINLINE static void SramWriteBytes(volatile u8 *dst, const u8 *src, u32 size);
 static void ReadPersistedSave(struct PokegotchiPersistedSave *dst, u32 slot);
-static void WritePersistedSave(u32 slot, const struct PokegotchiPersistedSave *src);
+static bool8 WritePersistedSave(u32 slot, const struct PokegotchiPersistedSave *src);
 #if TESTING
-static void WritePersistedSavePartial(u32 slot, const struct PokegotchiPersistedSave *src, u32 bytesToWrite);
+static bool8 WritePersistedSavePartial(u32 slot, const struct PokegotchiPersistedSave *src, u32 bytesToWrite);
 #endif
 static void SerializeRuntimeState(struct PokegotchiPersistedSave *dst, u32 saveCounter);
 static void DeserializeRuntimeState(const struct PokegotchiPersistedSave *src);
-static volatile u8 *GetSaveMemoryBase(void);
-static void WritePersistedSaveBytes(volatile u8 *dst, const struct PokegotchiPersistedSave *src, u32 bytesToWrite, bool8 writeMagic);
+static volatile u8 *GetSramMemoryBase(void);
+static void WriteSramPersistedSaveBytes(volatile u8 *dst, const struct PokegotchiPersistedSave *src, u32 bytesToWrite, bool8 writeMagic);
+static void ClearSramStorage(void);
+static void ClearFlashStorage(void);
+static bool8 WriteFlashSectorImage(u32 slot, const u8 *src);
+static void ReadFlashSectorImage(u32 slot, u8 *dst);
 
 const struct PokegotchiRuntimeState *PokegotchiSave_GetRuntime(void)
 {
@@ -43,12 +67,27 @@ struct PokegotchiRuntimeState *PokegotchiSave_GetRuntimeMutable(void)
     return &sPokegotchiRuntimeState;
 }
 
+static enum PokegotchiSaveBackend GetSaveBackend(void)
+{
+    return gFlashMemoryPresent == TRUE ? POKEGOTCHI_SAVE_BACKEND_FLASH : POKEGOTCHI_SAVE_BACKEND_SRAM;
+}
+
+static void LogSaveEvent(const char *action, enum PokegotchiSaveBackend backend, const char *detail, u32 value)
+{
+    const char *backendName = backend == POKEGOTCHI_SAVE_BACKEND_FLASH ? "FLASH" : "SRAM";
+    if (gTestRunnerEnabled)
+        return;
+
+    DebugPrintfLevel(MGBA_LOG_WARN, "PokegotchiSave: %s backend=%s %s=%lu", action, backendName, detail, value);
+}
+
 bool8 PokegotchiSave_InitOrLoad(void)
 {
     struct PokegotchiPersistedSave slots[POKEGOTCHI_SAVE_SLOT_COUNT];
     s32 bestSlot = -1;
     bool8 anyBlank = FALSE;
     bool8 anyCorrupt = FALSE;
+    enum PokegotchiSaveBackend backend = GetSaveBackend();
     u32 i;
 
     for (i = 0; i < POKEGOTCHI_SAVE_SLOT_COUNT; i++)
@@ -74,34 +113,45 @@ bool8 PokegotchiSave_InitOrLoad(void)
         DeserializeRuntimeState(&slots[bestSlot]);
         sPokegotchiSaveCounter = slots[bestSlot].saveCounter;
         gSaveFileStatus = SAVE_STATUS_OK;
+        LogSaveEvent("load_ok", backend, "counter", sPokegotchiSaveCounter);
         return TRUE;
     }
 
     PokegotchiSave_ResetToDefaults();
     sPokegotchiSaveCounter = 0;
     gSaveFileStatus = anyCorrupt && !anyBlank ? SAVE_STATUS_CORRUPT : SAVE_STATUS_EMPTY;
+    LogSaveEvent(gSaveFileStatus == SAVE_STATUS_CORRUPT ? "load_reset_corrupt" : "load_reset_empty", backend, "counter", 0);
     return FALSE;
 }
 
 u8 PokegotchiSave_Commit(void)
 {
     struct PokegotchiPersistedSave save;
+    enum PokegotchiSaveBackend backend = GetSaveBackend();
     u32 nextCounter;
     u32 slot;
 
     nextCounter = sPokegotchiSaveCounter + 1;
     slot = nextCounter % POKEGOTCHI_SAVE_SLOT_COUNT;
     SerializeRuntimeState(&save, nextCounter);
-    WritePersistedSave(slot, &save);
+    if (!WritePersistedSave(slot, &save))
+    {
+        gSaveFileStatus = SAVE_STATUS_ERROR;
+        LogSaveEvent("commit_error", backend, "slot", slot);
+        return SAVE_STATUS_ERROR;
+    }
 
     sPokegotchiSaveCounter = nextCounter;
     gSaveFileStatus = SAVE_STATUS_OK;
+    LogSaveEvent("commit_ok", backend, "counter", sPokegotchiSaveCounter);
     return SAVE_STATUS_OK;
 }
 
 void PokegotchiSave_ResetToDefaults(void)
 {
     CpuFill16(0, &sPokegotchiRuntimeState, sizeof(sPokegotchiRuntimeState));
+    CreateMon(&sPokegotchiRuntimeState.playerParty[0], SPECIES_FOMANTIS, POKEGOTCHI_DEFAULT_PARTNER_LEVEL, 0, OTID_STRUCT_PLAYER_ID);
+    sPokegotchiRuntimeState.playerPartyCount = 1;
     sPokegotchiRuntimeState.optionsSound = OPTIONS_SOUND_MONO;
     sPokegotchiSaveCounter = 0;
 }
@@ -114,19 +164,18 @@ void PokegotchiSave_ClearRuntimeState(void)
 
 void PokegotchiSave_ClearStorage(void)
 {
-    u32 i;
-    volatile u8 *saveMemory = GetSaveMemoryBase();
-
-    SetSramWaitstates();
-    for (i = 0; i < POKEGOTCHI_SRAM_SIZE; i++)
-        saveMemory[i] = 0xFF;
+    if (GetSaveBackend() == POKEGOTCHI_SAVE_BACKEND_FLASH)
+        ClearFlashStorage();
+    else
+        ClearSramStorage();
 }
 
 #if TESTING
 void PokegotchiSave_ClearForTest(void)
 {
     PokegotchiSave_ClearRuntimeState();
-    PokegotchiSave_ClearStorage();
+    ClearSramStorage();
+    ClearFlashStorage();
 }
 
 void PokegotchiSave_CorruptSlotForTest(u32 slot)
@@ -149,6 +198,18 @@ void PokegotchiSave_PartialCommitForTest(u32 bytesToWrite)
 
     SerializeRuntimeState(&save, nextCounter);
     WritePersistedSavePartial(slot, &save, bytesToWrite);
+}
+
+void PokegotchiSave_SetSlotVersionForTest(u32 slot, u16 version)
+{
+    struct PokegotchiPersistedSave save;
+
+    if (slot >= POKEGOTCHI_SAVE_SLOT_COUNT)
+        return;
+
+    ReadPersistedSave(&save, slot);
+    save.version = version;
+    WritePersistedSave(slot, &save);
 }
 #endif
 
@@ -184,14 +245,14 @@ static bool8 IsSaveValid(const struct PokegotchiPersistedSave *save)
     return TRUE;
 }
 
-static const struct PokegotchiPersistedSave *GetPersistedSaveSlot(u32 slot)
+static const struct PokegotchiPersistedSave *GetSramPersistedSaveSlot(u32 slot)
 {
-    return (const struct PokegotchiPersistedSave *)(GetSaveMemoryBase() + sizeof(struct PokegotchiPersistedSave) * slot);
+    return (const struct PokegotchiPersistedSave *)(GetSramMemoryBase() + sizeof(struct PokegotchiPersistedSave) * slot);
 }
 
-static struct PokegotchiPersistedSave *GetPersistedSaveSlotMutable(u32 slot)
+static struct PokegotchiPersistedSave *GetSramPersistedSaveSlotMutable(u32 slot)
 {
-    return (struct PokegotchiPersistedSave *)(GetSaveMemoryBase() + sizeof(struct PokegotchiPersistedSave) * slot);
+    return (struct PokegotchiPersistedSave *)(GetSramMemoryBase() + sizeof(struct PokegotchiPersistedSave) * slot);
 }
 
 static void SetSramWaitstates(void)
@@ -217,28 +278,56 @@ ARM_FUNC __attribute__((section(".iwram.code"))) NOINLINE static void SramWriteB
 
 static void ReadPersistedSave(struct PokegotchiPersistedSave *dst, u32 slot)
 {
-    SetSramWaitstates();
-    SramReadBytes((u8 *)dst, (const volatile u8 *)GetPersistedSaveSlot(slot), sizeof(*dst));
+    if (GetSaveBackend() == POKEGOTCHI_SAVE_BACKEND_FLASH)
+    {
+        ReadFlashSectorImage(slot, sPokegotchiFlashSectorBuffer);
+        memcpy(dst, sPokegotchiFlashSectorBuffer, sizeof(*dst));
+    }
+    else
+    {
+        SetSramWaitstates();
+        SramReadBytes((u8 *)dst, (const volatile u8 *)GetSramPersistedSaveSlot(slot), sizeof(*dst));
+    }
 }
 
-static void WritePersistedSave(u32 slot, const struct PokegotchiPersistedSave *src)
+static bool8 WritePersistedSave(u32 slot, const struct PokegotchiPersistedSave *src)
 {
-    volatile u8 *dst = (volatile u8 *)GetPersistedSaveSlotMutable(slot);
+    if (GetSaveBackend() == POKEGOTCHI_SAVE_BACKEND_FLASH)
+    {
+        memset(sPokegotchiFlashSectorBuffer, 0xFF, sizeof(sPokegotchiFlashSectorBuffer));
+        memcpy(sPokegotchiFlashSectorBuffer, src, sizeof(*src));
+        return WriteFlashSectorImage(slot, sPokegotchiFlashSectorBuffer);
+    }
+    else
+    {
+        volatile u8 *dst = (volatile u8 *)GetSramPersistedSaveSlotMutable(slot);
 
-    SetSramWaitstates();
-    WritePersistedSaveBytes(dst, src, sizeof(*src) - sizeof(src->magic), TRUE);
+        SetSramWaitstates();
+        WriteSramPersistedSaveBytes(dst, src, sizeof(*src) - sizeof(src->magic), TRUE);
+        return TRUE;
+    }
 }
 
 #if TESTING
-static void WritePersistedSavePartial(u32 slot, const struct PokegotchiPersistedSave *src, u32 bytesToWrite)
+static bool8 WritePersistedSavePartial(u32 slot, const struct PokegotchiPersistedSave *src, u32 bytesToWrite)
 {
-    volatile u8 *dst = (volatile u8 *)GetPersistedSaveSlotMutable(slot);
+    if (GetSaveBackend() == POKEGOTCHI_SAVE_BACKEND_FLASH)
+    {
+        memset(sPokegotchiFlashSectorBuffer, 0xFF, sizeof(sPokegotchiFlashSectorBuffer));
+        memcpy(sPokegotchiFlashSectorBuffer, src, min(bytesToWrite, (u32)sizeof(*src)));
+        return WriteFlashSectorImage(slot, sPokegotchiFlashSectorBuffer);
+    }
+    else
+    {
+        volatile u8 *dst = (volatile u8 *)GetSramPersistedSaveSlotMutable(slot);
 
-    // Tests use this to emulate a power cut partway through a staged SRAM write.
-    // The final magic word is intentionally omitted so the interrupted slot never
-    // looks valid just because some earlier fields landed in SRAM first.
-    SetSramWaitstates();
-    WritePersistedSaveBytes(dst, src, bytesToWrite, FALSE);
+        // Tests use this to emulate a power cut partway through a staged SRAM write.
+        // The final magic word is intentionally omitted so the interrupted slot never
+        // looks valid just because some earlier fields landed in SRAM first.
+        SetSramWaitstates();
+        WriteSramPersistedSaveBytes(dst, src, bytesToWrite, FALSE);
+        return TRUE;
+    }
 }
 #endif
 
@@ -263,6 +352,9 @@ static void SerializeRuntimeState(struct PokegotchiPersistedSave *dst, u32 saveC
            sizeof(dst->payload.playerName));
     dst->payload.playerGender = sPokegotchiRuntimeState.playerGender;
     dst->payload.optionsSound = sPokegotchiRuntimeState.optionsSound;
+    memcpy(dst->payload.flags,
+           sPokegotchiRuntimeState.flags,
+           sizeof(dst->payload.flags));
     dst->checksum = Crc32B((const u8 *)&dst->payload, sizeof(dst->payload));
 }
 
@@ -283,9 +375,12 @@ static void DeserializeRuntimeState(const struct PokegotchiPersistedSave *src)
            sizeof(sPokegotchiRuntimeState.playerName));
     sPokegotchiRuntimeState.playerGender = src->payload.playerGender;
     sPokegotchiRuntimeState.optionsSound = src->payload.optionsSound;
+    memcpy(sPokegotchiRuntimeState.flags,
+           src->payload.flags,
+           sizeof(sPokegotchiRuntimeState.flags));
 }
 
-static volatile u8 *GetSaveMemoryBase(void)
+static volatile u8 *GetSramMemoryBase(void)
 {
 #if TESTING
     return sPokegotchiTestSram;
@@ -294,7 +389,7 @@ static volatile u8 *GetSaveMemoryBase(void)
 #endif
 }
 
-static void WritePersistedSaveBytes(volatile u8 *dst, const struct PokegotchiPersistedSave *src, u32 bytesToWrite, bool8 writeMagic)
+static void WriteSramPersistedSaveBytes(volatile u8 *dst, const struct PokegotchiPersistedSave *src, u32 bytesToWrite, bool8 writeMagic)
 {
     u32 zeroMagic = 0;
     u32 offset;
@@ -339,4 +434,43 @@ static void WritePersistedSaveBytes(volatile u8 *dst, const struct PokegotchiPer
 
     if (writeMagic)
         SramWriteBytes(dst + offsetof(struct PokegotchiPersistedSave, magic), (const u8 *)&src->magic, sizeof(src->magic));
+}
+
+static void ClearSramStorage(void)
+{
+    u32 i;
+    volatile u8 *saveMemory = GetSramMemoryBase();
+
+    SetSramWaitstates();
+    for (i = 0; i < POKEGOTCHI_SRAM_SIZE; i++)
+        saveMemory[i] = 0xFF;
+}
+
+static void ClearFlashStorage(void)
+{
+    u32 slot;
+
+    memset(sPokegotchiFlashSectorBuffer, 0xFF, sizeof(sPokegotchiFlashSectorBuffer));
+    for (slot = 0; slot < POKEGOTCHI_SAVE_SLOT_COUNT; slot++)
+        WriteFlashSectorImage(slot, sPokegotchiFlashSectorBuffer);
+}
+
+static bool8 WriteFlashSectorImage(u32 slot, const u8 *src)
+{
+#if TESTING
+    memcpy(&sPokegotchiTestFlash[slot], src, sizeof(sPokegotchiTestFlash[slot]));
+    return TRUE;
+#else
+    return ProgramFlashSectorAndVerify(slot, (u8 *)src) == 0;
+#endif
+}
+
+static void ReadFlashSectorImage(u32 slot, u8 *dst)
+{
+#if TESTING
+    memset(dst, 0xFF, POKEGOTCHI_FLASH_SECTOR_SIZE);
+    memcpy(dst, &sPokegotchiTestFlash[slot], sizeof(sPokegotchiTestFlash[slot]));
+#else
+    ReadFlash(slot, 0, dst, POKEGOTCHI_FLASH_SECTOR_SIZE);
+#endif
 }

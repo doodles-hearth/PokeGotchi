@@ -7,6 +7,7 @@
 #include "field_weather.h"
 #include "gpu_regs.h"
 #include "graphics.h"
+#include "international_string_util.h"
 #include "main.h"
 #include "malloc.h"
 #include "menu.h"
@@ -19,6 +20,11 @@
 #include "text_window.h"
 #include "constants/rgb.h"
 #include "constants/songs.h"
+
+#define FEED_TEXT_NICKNAME_Y 12
+#define FEED_TEXT_CATEGORY_Y 56
+#define FEED_TEXT_MEAL_CENTER_X 72
+#define FEED_TEXT_SNACK_CENTER_X 168
 
 struct MenuResources
 {
@@ -48,6 +54,7 @@ static void Menu_FadeAndBail(void);
 static bool8 Menu_InitBgs(void);
 static bool8 Menu_LoadGraphics(void);
 static void Menu_InitWindows(void);
+static void Menu_PrintText(void);
 static void Menu_LoadPetSprite(void);
 static void Menu_LoadFoodSprites(void);
 static u8 Menu_GetFoodCount(u8 inventoryKey);
@@ -56,6 +63,7 @@ static bool8 Menu_LoadFoodSpritePalette(const struct PokegotchiFeedFoodItem *foo
 static void Menu_DestroyFoodSprites(void);
 static void Task_MenuWaitFadeIn(u8 taskId);
 static void Task_MenuMain(u8 taskId);
+static bool8 TryGetFeedNickname(u8 *dest);
 
 static const struct BgTemplate sMenuBgTemplates[] =
 {
@@ -87,7 +95,7 @@ static const struct WindowTemplate sMenuWindowTemplates[] =
         .tilemapLeft = 0,
         .tilemapTop = 0,
         .width = 30,
-        .height = 4,
+        .height = 20,
         .paletteNum = 14,
         .baseBlock = 20,
     },
@@ -97,6 +105,9 @@ static const struct WindowTemplate sMenuWindowTemplates[] =
 static const u32 sMenuTiles[] = INCBIN_U32("graphics/pokegotchi_feed_ui/room_tiles.4bpp.lz");
 static const u32 sMenuTilemap[] = INCBIN_U32("graphics/pokegotchi_feed_ui/room_tilemap.bin.lz");
 static const u16 sMenuPalette[] = INCGFX_U16("graphics/pokegotchi_feed_ui/room_tiles.png", ".gbapal");
+static const u16 sMenuTextPalette[] = INCGFX_U16("graphics/pokegotchi_feed_ui/feed_text.pal", ".gbapal");
+static const u8 sText_FeedMeal[] = _("Meal");
+static const u8 sText_FeedSnack[] = _("Snack");
 
 const u8 gPokegotchiFeedFoodLeafSpriteGfx[] = INCGFX_U8("graphics/pokegotchi_feed_ui/food/meals/leaf.png", ".4bpp");
 const u16 gPokegotchiFeedFoodLeafPalette[] = INCGFX_U16("graphics/pokegotchi_feed_ui/food/meals/leaf.png", ".gbapal");
@@ -311,6 +322,7 @@ static bool8 Menu_DoGfxSetup(void)
         break;
     case 4:
         Menu_InitWindows();
+        Menu_PrintText();
         gMain.state++;
         break;
     case 5:
@@ -410,6 +422,7 @@ static bool8 Menu_LoadGraphics(void)
         break;
     case 2:
         LoadPalette(sMenuPalette, 0, 32);
+        LoadPalette(sMenuTextPalette, BG_PLTT_ID(14), PLTT_SIZE_4BPP);
         sMenuDataPtr->gfxLoadState++;
         break;
     default:
@@ -426,25 +439,83 @@ static void Menu_InitWindows(void)
     DeactivateAllTextPrinters();
     ScheduleBgCopyTilemapToVram(0);
 
-    FillWindowPixelBuffer(MAIN_WINDOW, 0);
+    FillWindowPixelBuffer(MAIN_WINDOW, PIXEL_FILL(0));
     PutWindowTilemap(MAIN_WINDOW);
     CopyWindowToVram(MAIN_WINDOW, COPYWIN_FULL);
 
     ScheduleBgCopyTilemapToVram(2);
 }
 
+static void Menu_PrintText(void)
+{
+    u8 nickname[POKEMON_NAME_BUFFER_SIZE];
+    u8 x;
+
+    FillWindowPixelBuffer(MAIN_WINDOW, PIXEL_FILL(0));
+
+    if (TryGetFeedNickname(nickname))
+    {
+        x = GetStringCenterAlignXOffset(FONT_NORMAL, nickname, DISPLAY_WIDTH);
+        AddTextPrinterParameterized3(MAIN_WINDOW,
+                                     FONT_NORMAL,
+                                     x,
+                                     FEED_TEXT_NICKNAME_Y,
+                                     sMenuWindowFontColors[FONT_BLACK],
+                                     TEXT_SKIP_DRAW,
+                                     nickname);
+    }
+
+    x = FEED_TEXT_MEAL_CENTER_X - GetStringWidth(FONT_NORMAL, sText_FeedMeal, 0) / 2;
+    AddTextPrinterParameterized3(MAIN_WINDOW,
+                                 FONT_NORMAL,
+                                 x,
+                                 FEED_TEXT_CATEGORY_Y,
+                                 sMenuWindowFontColors[FONT_BLACK],
+                                 TEXT_SKIP_DRAW,
+                                 sText_FeedMeal);
+
+    x = FEED_TEXT_SNACK_CENTER_X - GetStringWidth(FONT_NORMAL, sText_FeedSnack, 0) / 2;
+    AddTextPrinterParameterized3(MAIN_WINDOW,
+                                 FONT_NORMAL,
+                                 x,
+                                 FEED_TEXT_CATEGORY_Y,
+                                 sMenuWindowFontColors[FONT_BLACK],
+                                 TEXT_SKIP_DRAW,
+                                 sText_FeedSnack);
+
+    CopyWindowToVram(MAIN_WINDOW, COPYWIN_FULL);
+}
+
 static void Menu_LoadPetSprite(void)
 {
     enum Species species;
 
-    species = SPECIES_FOMANTIS;
-    if (species == SPECIES_NONE || species == SPECIES_EGG)
+    species = Pokegotchi_GetPrimarySpecies();
+    if (species == SPECIES_NONE)
         return;
 
     if (!HasPokegotchiSprite(species, POKEGOTCHI_EMOTION_IDLE))
         return;
 
-    sMenuDataPtr->petSpriteId = CreatePokegotchiSprite(species, POKEGOTCHI_EMOTION_IDLE, 120, 88, 0);
+    sMenuDataPtr->petSpriteId = CreatePokegotchiSprite(species, POKEGOTCHI_EMOTION_IDLE, 32, 26, 0);
+}
+
+static bool8 TryGetFeedNickname(u8 *dest)
+{
+    struct PokegotchiRuntimeState *runtime = PokegotchiSave_GetRuntimeMutable();
+    struct Pokemon *mon;
+    enum Species species;
+
+    if (runtime->playerPartyCount == 0)
+        return FALSE;
+
+    mon = &runtime->playerParty[0];
+    species = GetMonData(mon, MON_DATA_SPECIES_OR_EGG);
+    if (species == SPECIES_NONE || species == SPECIES_EGG)
+        return FALSE;
+
+    GetMonData(mon, MON_DATA_NICKNAME, dest);
+    return TRUE;
 }
 
 static u8 Menu_GetFoodCount(u8 inventoryKey)

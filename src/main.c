@@ -40,7 +40,7 @@ const enum Language gGameLanguage = GAME_LANGUAGE; // English
 const char BuildDateTime[] = "2026 08 21 12:50";
 
 __attribute__((used))
-static const char sSaveTypeId[] __attribute__((aligned(4))) = "SRAM_V130"; // Some emulators and flash carts will look for magic strings to determain save type
+static const char sSaveTypeId[] __attribute__((aligned(4))) = "FLASH1M_V103"; // Some emulators and flash carts will look for magic strings to determain save type
 
 const IntrFunc gIntrTableTemplate[] =
 {
@@ -102,6 +102,7 @@ void AgbMain(void)
     EnableVCountIntrAtLine150();
     InitRFU();
     RtcInit();
+    CheckForFlashMemory();
     InitMainCallbacks();
     InitMapMusic();
 #ifdef BUGFIX

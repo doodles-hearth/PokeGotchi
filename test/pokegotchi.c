@@ -1,4 +1,5 @@
 #include "global.h"
+#include "fake_rtc.h"
 #include "load_save.h"
 #include "pokegotchi.h"
 #include "pokegotchi_save.h"
@@ -18,9 +19,7 @@ static void ResetPokegotchiTestState(void)
 {
     SetSaveBlocksPointers(0);
     PokegotchiSave_ClearForTest();
-    ClearSav1();
-    ClearSav2();
-    ClearSav3();
+    FakeRtc_Reset(); // Potentially using Fake RTC if RTC is not detected later
     Pokegotchi_ResetStateForTest();
 }
 

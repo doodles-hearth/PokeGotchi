@@ -45,7 +45,7 @@ void CB2_InitPokegotchiBootup(void)
     CreateTask(Task_LoadIntro, 0);
     SetVBlankCallback(VBlankCB_PokeGotchiIntro);
     SetMainCallback2(MainCB2_PokeGotchiIntro);
-    SetSaveBlocksPointers(GetSaveBlocksPointersBaseOffset());
+    SetSaveBlocksPointers(0);
     ResetMenuAndMonGlobals();
     Save_ResetSaveCounters();
     PokegotchiSave_InitOrLoad();

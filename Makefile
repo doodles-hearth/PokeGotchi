@@ -1,6 +1,6 @@
 GAME_VERSION ?= EMERALD
-TITLE        ?= POKEGOTCHI
-GAME_CODE    ?= POKG
+TITLE        ?= POKEMON EMER
+GAME_CODE    ?= BPEE
 BUILD_NAME   ?= gotchi
 MAP_VERSION  ?= emerald
 
@@ -52,6 +52,8 @@ ifeq (compare,$(MAKECMDGOALS))
 endif
 ifeq (check,$(MAKECMDGOALS))
   TEST := 1
+  TESTS ?= (Pokegotchi)
+  TEST_FILE_SRCS ?= test/pokegotchi.c test/save.c
 endif
 ifeq (debug,$(MAKECMDGOALS))
   DEBUG := 1
@@ -309,7 +311,18 @@ C_SRCS := $(foreach src,$(C_SRCS_IN),$(if $(findstring .inc.c,$(src)),,$(src)))
 C_OBJS := $(patsubst $(C_SUBDIR)/%.c,$(C_BUILDDIR)/%.o,$(C_SRCS))
 
 TEST_SRCS_IN := $(wildcard $(TEST_SUBDIR)/*.c $(TEST_SUBDIR)/*/*.c $(TEST_SUBDIR)/*/*/*.c)
-TEST_SRCS := $(foreach src,$(TEST_SRCS_IN),$(if $(findstring .inc.c,$(src)),,$(src)))
+TEST_SRCS_ALL := $(foreach src,$(TEST_SRCS_IN),$(if $(findstring .inc.c,$(src)),,$(src)))
+TEST_SUPPORT_SRCS := \
+	$(TEST_SUBDIR)/test_runner.c \
+	$(TEST_SUBDIR)/test_runner_args.c \
+	$(TEST_SUBDIR)/test_runner_battle.c \
+	$(TEST_SUBDIR)/test_test_runner.c
+TEST_SELECTED_FILE_SRCS := $(filter %.c,$(or $(TEST_FILE_SRCS),$(TESTS)))
+ifeq ($(strip $(TEST_SELECTED_FILE_SRCS)),)
+TEST_SRCS := $(TEST_SRCS_ALL)
+else
+TEST_SRCS := $(sort $(TEST_SUPPORT_SRCS) $(filter $(TEST_SELECTED_FILE_SRCS),$(TEST_SRCS_ALL)))
+endif
 TEST_OBJS := $(patsubst $(TEST_SUBDIR)/%.c,$(TEST_BUILDDIR)/%.o,$(TEST_SRCS))
 TEST_OBJS_REL := $(patsubst $(OBJ_DIR)/%,%,$(TEST_OBJS))
 
