@@ -52,6 +52,22 @@
  
 //==========DEFINES==========//
 #define MENU_ICONS 4
+#define HOUSE_EATING_FOOD_X 88
+#define HOUSE_EATING_FOOD_Y 104
+#define HOUSE_EATING_FOOD_FRAME_COUNT 3
+#define HOUSE_POST_EAT_PHASE_FRAMES 48
+
+enum HouseEntryMode
+{
+    HOUSE_ENTRY_NORMAL,
+    HOUSE_ENTRY_EATING_SCENE,
+};
+
+enum HouseEatingScenePhase
+{
+    HOUSE_EATING_SCENE_PHASE_EATING,
+    HOUSE_EATING_SCENE_PHASE_POST_EAT,
+};
 
 struct MenuResources
 {
@@ -59,6 +75,8 @@ struct MenuResources
     u8 gfxLoadState;
     u8 menuIconIds[MENU_ICONS];
     u8 petSpriteId;
+    u8 petEmotion;
+    u8 foodSpriteId;
     u8 syncTaskId;
 };
 
@@ -72,10 +90,16 @@ enum WindowIds
 static EWRAM_DATA struct MenuResources *sMenuDataPtr = NULL;
 static EWRAM_DATA u8 *sBg1TilemapBuffer = NULL;
 static EWRAM_DATA MainCallback sHouseMenuExitCallback = NULL;
+static EWRAM_DATA MainCallback sHouseEatingSceneReturnCallback = NULL;
+static EWRAM_DATA u8 sHouseEntryMode = HOUSE_ENTRY_NORMAL;
+static EWRAM_DATA u8 sHouseEatingSceneFoodKey = FEED_FOOD_KEY_NONE;
 
 //==========STATIC=DEFINES==========//
 static void Menu_Init(MainCallback callback);
 static void Menu_RunSetup(void);
+static void Menu_MainCB(void);
+static void Menu_VBlankCB(void);
+static void Menu_ResetGpuRegsAndBgs(void);
 static bool8 Menu_DoGfxSetup(void);
 static bool8 Menu_InitBgs(void);
 static void Menu_FadeAndBail(void);
@@ -83,9 +107,18 @@ static bool8 Menu_LoadGraphics(void);
 static void Menu_InitWindows(void);
 static void Menu_LoadTopIcons(void);
 static void Menu_LoadPetSprite(void);
+static bool8 Menu_SetPetEmotion(u8 emotion);
+static void Menu_LoadSceneFoodSprite(void);
+static const struct PokegotchiFeedFoodItem *Menu_GetFoodItemByKey(u8 inventoryKey);
+static bool8 Menu_LoadFoodSpriteSheet(const struct PokegotchiFeedFoodItem *foodItem);
+static bool8 Menu_LoadFoodSpritePalette(const struct PokegotchiFeedFoodItem *foodItem);
+static void Menu_DestroyFoodSprite(void);
+static void Menu_SetFoodBiteFrame(u8 frame);
 static void Menu_SetSelectedTopIcon(u8 selectedIcon);
+static u8 Menu_GetPostEatEmotionStub(u8 foodKey);
 static void Task_MenuWaitFadeIn(u8 taskId);
 static void Task_MenuMain(u8 taskId);
+static void Task_MenuEatingScene(u8 taskId);
 static void Task_MenuSyncPokegotchi(u8 taskId);
 static void CB2_ReturnToPokegotchiHouseMenu(void);
 static void CB2_OpenPokegotchiFeedMenuFromHouse(void);
@@ -270,10 +303,72 @@ static const struct SpriteTemplate sMenuIconsSprites[MENU_ICONS] =
     },
 };
 
+static const union AnimCmd sAnim_FoodFrame0[] =
+{
+    ANIMCMD_FRAME(0, 0),
+    ANIMCMD_END,
+};
+
+static const union AnimCmd sAnim_FoodFrame1[] =
+{
+    ANIMCMD_FRAME(4, 0),
+    ANIMCMD_END,
+};
+
+static const union AnimCmd sAnim_FoodFrame2[] =
+{
+    ANIMCMD_FRAME(8, 0),
+    ANIMCMD_END,
+};
+
+static const union AnimCmd *const sFoodSpriteAnims[] =
+{
+    sAnim_FoodFrame0,
+    sAnim_FoodFrame1,
+    sAnim_FoodFrame2,
+};
+
+static const struct OamData sFoodSpriteOamData =
+{
+    .shape = SPRITE_SHAPE(16x16),
+    .size = SPRITE_SIZE(16x16),
+    .priority = 0,
+    .bpp = ST_OAM_4BPP,
+};
+
+static const struct SpriteTemplate sFoodSpriteTemplate =
+{
+    .tileTag = TAG_NONE,
+    .paletteTag = TAG_NONE,
+    .oam = &sFoodSpriteOamData,
+    .anims = sFoodSpriteAnims,
+    .images = NULL,
+    .affineAnims = gDummySpriteAffineAnimTable,
+    .callback = SpriteCallbackDummy,
+};
+
+static const u8 sHouseEatingFoodStageDurations[HOUSE_EATING_FOOD_FRAME_COUNT] =
+{
+    28,
+    30,
+    60,
+};
+
 //==========FUNCTIONS==========//
 void OpenPokegotchiHouseMenu(MainCallback callback)
 {
+    sHouseEntryMode = HOUSE_ENTRY_NORMAL;
+    sHouseEatingSceneFoodKey = FEED_FOOD_KEY_NONE;
+    sHouseEatingSceneReturnCallback = NULL;
     Menu_Init(callback);
+}
+
+void OpenPokegotchiHouseEatingScene(u8 foodKey, MainCallback returnCallback)
+{
+    sHouseEntryMode = HOUSE_ENTRY_EATING_SCENE;
+    sHouseEatingSceneFoodKey = foodKey;
+    sHouseEatingSceneReturnCallback = returnCallback;
+    Menu_Init(sHouseEatingSceneReturnCallback);
 }
 
 // UI loader template
@@ -293,7 +388,8 @@ static void Menu_Init(MainCallback callback)
         return;
     }
 
-    Pokegotchi_SyncAndSave();
+    if (sHouseEntryMode == HOUSE_ENTRY_NORMAL)
+        Pokegotchi_SyncAndSave();
 
     // initialize stuff
     sMenuDataPtr->gfxLoadState = 0;
@@ -301,6 +397,8 @@ static void Menu_Init(MainCallback callback)
     for (i = 0; i < MENU_ICONS; i++)
         sMenuDataPtr->menuIconIds[i] = MAX_SPRITES;
     sMenuDataPtr->petSpriteId = SPRITE_NONE;
+    sMenuDataPtr->petEmotion = POKEGOTCHI_EMOTION_COUNT;
+    sMenuDataPtr->foodSpriteId = SPRITE_NONE;
     sMenuDataPtr->syncTaskId = TASK_NONE;
 
     SetMainCallback2(Menu_RunSetup);
@@ -380,6 +478,8 @@ static bool8 Menu_DoGfxSetup(void)
         m4aSongNumStart(MUS_FORTREE);
         Menu_LoadTopIcons();
         Menu_LoadPetSprite();
+        if (sHouseEntryMode == HOUSE_ENTRY_EATING_SCENE)
+            Menu_LoadSceneFoodSprite();
         CreateTask(Task_MenuWaitFadeIn, 0);
         gMain.state++;
         break;
@@ -421,6 +521,8 @@ static void Menu_FreeResources(void)
             DestroyPokegotchiSprite(sMenuDataPtr->petSpriteId);
             sMenuDataPtr->petSpriteId = SPRITE_NONE;
         }
+
+        Menu_DestroyFoodSprite();
 
         if (sMenuDataPtr->syncTaskId != TASK_NONE && FuncIsActiveTask(Task_MenuSyncPokegotchi))
         {
@@ -537,20 +639,19 @@ static void Menu_LoadTopIcons(void)
                                                     0);
     }
 
-    Menu_SetSelectedTopIcon(STATUS_ICON);
+    Menu_SetSelectedTopIcon(sHouseEntryMode == HOUSE_ENTRY_EATING_SCENE ? FOOD_ICON : STATUS_ICON);
 }
 
 static void Menu_LoadPetSprite(void)
 {
-    enum Species species;
+    u8 emotion = POKEGOTCHI_EMOTION_IDLE;
 
-    species = Pokegotchi_GetPrimarySpecies();
-    if (species == SPECIES_NONE)
-        return;
-    if (!HasPokegotchiSprite(species, POKEGOTCHI_EMOTION_IDLE))
-        return;
+    if (sHouseEntryMode == HOUSE_ENTRY_EATING_SCENE
+     && HasPokegotchiSprite(Pokegotchi_GetPrimarySpecies(), POKEGOTCHI_EMOTION_EATING))
+        emotion = POKEGOTCHI_EMOTION_EATING;
 
-    sMenuDataPtr->petSpriteId = CreatePokegotchiSprite(species, POKEGOTCHI_EMOTION_IDLE, 120, 88, 0);
+    if (!Menu_SetPetEmotion(emotion))
+        Menu_SetPetEmotion(POKEGOTCHI_EMOTION_IDLE);
 }
 
 static void Menu_SetSelectedTopIcon(u8 selectedIcon)
@@ -567,13 +668,159 @@ static void Menu_SetSelectedTopIcon(u8 selectedIcon)
     }
 }
 
+static bool8 Menu_SetPetEmotion(u8 emotion)
+{
+    enum Species species = Pokegotchi_GetPrimarySpecies();
+    u8 spriteId;
+
+    if (species == SPECIES_NONE || !HasPokegotchiSprite(species, emotion))
+        return FALSE;
+
+    if (sMenuDataPtr->petSpriteId != SPRITE_NONE)
+    {
+        DestroyPokegotchiSprite(sMenuDataPtr->petSpriteId);
+        sMenuDataPtr->petSpriteId = SPRITE_NONE;
+    }
+
+    spriteId = CreatePokegotchiSprite(species, emotion, 120, 88, 0);
+    if (spriteId == SPRITE_NONE)
+        return FALSE;
+
+    sMenuDataPtr->petSpriteId = spriteId;
+    sMenuDataPtr->petEmotion = emotion;
+    return TRUE;
+}
+
+static const struct PokegotchiFeedFoodItem *Menu_GetFoodItemByKey(u8 inventoryKey)
+{
+    u32 i;
+
+    for (i = 0; i < ARRAY_COUNT(gPokegotchiFeedFoodItems); i++)
+    {
+        if (gPokegotchiFeedFoodItems[i].inventoryKey == inventoryKey)
+            return &gPokegotchiFeedFoodItems[i];
+    }
+
+    return NULL;
+}
+
+static bool8 Menu_LoadFoodSpriteSheet(const struct PokegotchiFeedFoodItem *foodItem)
+{
+    struct SpriteSheet spriteSheet;
+
+    if (foodItem == NULL || foodItem->spriteTiles == NULL)
+        return FALSE;
+
+    if (GetSpriteTileStartByTag(foodItem->tileTag) != 0xFFFF)
+        return TRUE;
+
+    spriteSheet.data = foodItem->spriteTiles;
+    spriteSheet.size = FEED_FOOD_SPRITESHEET_SIZE;
+    spriteSheet.tag = foodItem->tileTag;
+
+    LoadSpriteSheet(&spriteSheet);
+    return GetSpriteTileStartByTag(foodItem->tileTag) != 0xFFFF;
+}
+
+static bool8 Menu_LoadFoodSpritePalette(const struct PokegotchiFeedFoodItem *foodItem)
+{
+    struct SpritePalette spritePalette;
+
+    if (foodItem == NULL || foodItem->palette == NULL)
+        return FALSE;
+
+    if (IndexOfSpritePaletteTag(foodItem->paletteTag) != 0xFF)
+        return TRUE;
+
+    spritePalette.data = foodItem->palette;
+    spritePalette.tag = foodItem->paletteTag;
+
+    return LoadSpritePalette(&spritePalette) != 0xFF;
+}
+
+static void Menu_LoadSceneFoodSprite(void)
+{
+    const struct PokegotchiFeedFoodItem *foodItem = Menu_GetFoodItemByKey(sHouseEatingSceneFoodKey);
+    struct SpriteTemplate spriteTemplate;
+    u8 spriteId;
+
+    if (foodItem == NULL)
+        return;
+
+    if (!Menu_LoadFoodSpriteSheet(foodItem) || !Menu_LoadFoodSpritePalette(foodItem))
+        return;
+
+    spriteTemplate = sFoodSpriteTemplate;
+    spriteTemplate.tileTag = foodItem->tileTag;
+    spriteTemplate.paletteTag = foodItem->paletteTag;
+    spriteId = CreateSprite(&spriteTemplate, HOUSE_EATING_FOOD_X, HOUSE_EATING_FOOD_Y, 1);
+    if (spriteId == MAX_SPRITES)
+        return;
+
+    sMenuDataPtr->foodSpriteId = spriteId;
+    Menu_SetFoodBiteFrame(0);
+}
+
+static void Menu_DestroyFoodSprite(void)
+{
+    const struct PokegotchiFeedFoodItem *foodItem = Menu_GetFoodItemByKey(sHouseEatingSceneFoodKey);
+
+    if (sMenuDataPtr != NULL
+     && sMenuDataPtr->foodSpriteId != SPRITE_NONE
+     && sMenuDataPtr->foodSpriteId < MAX_SPRITES
+     && gSprites[sMenuDataPtr->foodSpriteId].inUse)
+    {
+        DestroySprite(&gSprites[sMenuDataPtr->foodSpriteId]);
+        sMenuDataPtr->foodSpriteId = SPRITE_NONE;
+    }
+
+    if (foodItem == NULL || foodItem->spriteTiles == NULL)
+        return;
+
+    if (GetSpriteTileStartByTag(foodItem->tileTag) != 0xFFFF)
+        FreeSpriteTilesByTag(foodItem->tileTag);
+
+    if (IndexOfSpritePaletteTag(foodItem->paletteTag) != 0xFF)
+        FreeSpritePaletteByTag(foodItem->paletteTag);
+}
+
+static void Menu_SetFoodBiteFrame(u8 frame)
+{
+    if (sMenuDataPtr == NULL
+     || sMenuDataPtr->foodSpriteId == SPRITE_NONE
+     || sMenuDataPtr->foodSpriteId >= MAX_SPRITES
+     || !gSprites[sMenuDataPtr->foodSpriteId].inUse)
+        return;
+
+    if (frame >= HOUSE_EATING_FOOD_FRAME_COUNT)
+        frame = HOUSE_EATING_FOOD_FRAME_COUNT - 1;
+
+    StartSpriteAnimIfDifferent(&gSprites[sMenuDataPtr->foodSpriteId], frame);
+}
+
+static u8 Menu_GetPostEatEmotionStub(u8 foodKey)
+{
+    (void)foodKey;
+    return POKEGOTCHI_EMOTION_IDLE;
+}
+
 static void Task_MenuWaitFadeIn(u8 taskId)
 {
     if (!gPaletteFade.active)
     {
-        gTasks[taskId].data[0] = STATUS_ICON;
-        sMenuDataPtr->syncTaskId = CreateTask(Task_MenuSyncPokegotchi, 1);
-        gTasks[taskId].func = Task_MenuMain;
+        if (sHouseEntryMode == HOUSE_ENTRY_EATING_SCENE)
+        {
+            gTasks[taskId].data[0] = HOUSE_EATING_SCENE_PHASE_EATING;
+            gTasks[taskId].data[1] = 0;
+            gTasks[taskId].data[2] = 0;
+            gTasks[taskId].func = Task_MenuEatingScene;
+        }
+        else
+        {
+            gTasks[taskId].data[0] = STATUS_ICON;
+            sMenuDataPtr->syncTaskId = CreateTask(Task_MenuSyncPokegotchi, 1);
+            gTasks[taskId].func = Task_MenuMain;
+        }
     }
 }
 
@@ -678,4 +925,41 @@ static void Task_MenuMain(u8 taskId)
     {
         PlaySE(SE_FAILURE);
     }
+}
+
+static void Task_MenuEatingScene(u8 taskId)
+{
+    if (gTasks[taskId].data[0] == HOUSE_EATING_SCENE_PHASE_EATING)
+    {
+        u8 stage = gTasks[taskId].data[2];
+        u8 stageDuration = sHouseEatingFoodStageDurations[stage];
+
+        if (++gTasks[taskId].data[1] < stageDuration)
+            return;
+
+        gTasks[taskId].data[1] = 0;
+        if (gTasks[taskId].data[2] < HOUSE_EATING_FOOD_FRAME_COUNT - 1)
+        {
+            gTasks[taskId].data[2]++;
+            Menu_SetFoodBiteFrame(gTasks[taskId].data[2]);
+            return;
+        }
+
+        Menu_DestroyFoodSprite();
+        gTasks[taskId].data[0] = HOUSE_EATING_SCENE_PHASE_POST_EAT;
+        gTasks[taskId].data[1] = 0;
+        {
+        u8 postEatEmotion = Menu_GetPostEatEmotionStub(sHouseEatingSceneFoodKey);
+
+        if (postEatEmotion != sMenuDataPtr->petEmotion)
+            Menu_SetPetEmotion(postEatEmotion);
+        }
+        return;
+    }
+
+    if (++gTasks[taskId].data[1] < HOUSE_POST_EAT_PHASE_FRAMES)
+        return;
+
+    Menu_FadeAndBail();
+    DestroyTask(taskId);
 }
