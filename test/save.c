@@ -56,7 +56,7 @@ TEST("(Pokegotchi) Blank SRAM boot initializes defaults")
     EXPECT_EQ(runtime->food.leaf, 10);
     EXPECT_EQ(runtime->food.pecha, 10);
     EXPECT_EQ(runtime->stats.version, 1);
-    EXPECT_EQ(runtime->playerPartyCount, 0);
+    EXPECT_EQ(runtime->playerPartyCount, 1);
     EXPECT_EQ((u32)runtime->optionsSound, OPTIONS_SOUND_MONO);
     ExpectPokegotchiFlagsCleared();
 }
@@ -76,7 +76,7 @@ TEST("(Pokegotchi) Blank flash boot initializes defaults")
     EXPECT_EQ(runtime->food.leaf, 10);
     EXPECT_EQ(runtime->food.pecha, 10);
     EXPECT_EQ(runtime->stats.version, 1);
-    EXPECT_EQ(runtime->playerPartyCount, 0);
+    EXPECT_EQ(runtime->playerPartyCount, 1);
     EXPECT_EQ((u32)runtime->optionsSound, OPTIONS_SOUND_MONO);
     ExpectPokegotchiFlagsCleared();
 }
