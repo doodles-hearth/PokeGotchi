@@ -74,11 +74,13 @@ static enum PokegotchiSaveBackend GetSaveBackend(void)
 
 static void LogSaveEvent(const char *action, enum PokegotchiSaveBackend backend, const char *detail, u32 value)
 {
+#ifndef NDEBUG
     const char *backendName = backend == POKEGOTCHI_SAVE_BACKEND_FLASH ? "FLASH" : "SRAM";
     if (gTestRunnerEnabled)
         return;
 
     DebugPrintfLevel(MGBA_LOG_WARN, "PokegotchiSave: %s backend=%s %s=%lu", action, backendName, detail, value);
+#endif
 }
 
 bool8 PokegotchiSave_InitOrLoad(void)
