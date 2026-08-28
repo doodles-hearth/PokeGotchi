@@ -146,9 +146,15 @@ static const u8 sText_FeedCursorGfx[] = INCGFX_U8("graphics/pokegotchi_feed_ui/c
 static const u16 sText_FeedCursorPal[] = INCGFX_U16("graphics/pokegotchi_feed_ui/cursor.png", ".gbapal");
 
 const u8 gPokegotchiFeedFoodLeafSpriteGfx[] = INCGFX_U8("graphics/pokegotchi_feed_ui/food/meals/leaf.png", ".4bpp");
-const u16 gPokegotchiFeedFoodLeafPalette[] = INCGFX_U16("graphics/pokegotchi_feed_ui/food/meals/leaf.png", ".gbapal");
+const u8 gPokegotchiFeedFoodHotDogSpriteGfx[] = INCGFX_U8("graphics/pokegotchi_feed_ui/food/meals/hot_dog.png", ".4bpp");
+const u8 gPokegotchiFeedFoodPokeblockSpriteGfx[] = INCGFX_U8("graphics/pokegotchi_feed_ui/food/meals/pokeblock.png", ".4bpp");
+const u8 gPokegotchiFeedFoodEggSpriteGfx[] = INCGFX_U8("graphics/pokegotchi_feed_ui/food/meals/egg.png", ".4bpp");
 const u8 gPokegotchiFeedFoodPechaSpriteGfx[] = INCGFX_U8("graphics/pokegotchi_feed_ui/food/snacks/pecha.png", ".4bpp");
-const u16 gPokegotchiFeedFoodPechaPalette[] = INCGFX_U16("graphics/pokegotchi_feed_ui/food/snacks/pecha.png", ".gbapal");
+const u8 gPokegotchiFeedFoodIceCreamSpriteGfx[] = INCGFX_U8("graphics/pokegotchi_feed_ui/food/snacks/ice_cream.png", ".4bpp");
+const u8 gPokegotchiFeedFoodDonutSpriteGfx[] = INCGFX_U8("graphics/pokegotchi_feed_ui/food/snacks/donut.png", ".4bpp");
+// TODO
+const u8 gPokegotchiFeedFoodSnack4SpriteGfx[] = INCGFX_U8("graphics/pokegotchi_feed_ui/food/snacks/pecha.png", ".4bpp");
+const u16 gPokegotchiPalette[] = INCGFX_U16("graphics/pokegotchi_feed_ui/food/snacks/pecha.png", ".gbapal");
 
 const struct PokegotchiFeedFoodItem gPokegotchiFeedFoodItems[FEED_FOOD_SLOT_COUNT] =
 {
@@ -157,48 +163,72 @@ const struct PokegotchiFeedFoodItem gPokegotchiFeedFoodItems[FEED_FOOD_SLOT_COUN
         .slot = 0,
         .inventoryKey = FEED_FOOD_KEY_LEAF,
         .tileTag = FEED_FOOD_TILE_TAG_LEAF,
-        .paletteTag = FEED_FOOD_PAL_TAG_LEAF,
+        .paletteTag = FEED_FOOD_PAL_TAG,
         .spriteTiles = gPokegotchiFeedFoodLeafSpriteGfx,
-        .palette = gPokegotchiFeedFoodLeafPalette,
+        .palette = gPokegotchiPalette,
     },
     {
         .category = FEED_FOOD_CATEGORY_MEAL,
         .slot = 1,
-        .inventoryKey = FEED_FOOD_KEY_NONE,
+        .inventoryKey = FEED_FOOD_KEY_HOT_DOG,
+        .tileTag = FEED_FOOD_TILE_TAG_HOT_DOG,
+        .paletteTag = FEED_FOOD_PAL_TAG,
+        .spriteTiles = gPokegotchiFeedFoodHotDogSpriteGfx,
+        .palette = gPokegotchiPalette,
     },
     {
         .category = FEED_FOOD_CATEGORY_MEAL,
         .slot = 2,
-        .inventoryKey = FEED_FOOD_KEY_NONE,
+        .inventoryKey = FEED_FOOD_KEY_POKEBLOCK,
+        .tileTag = FEED_FOOD_TILE_TAG_POKEBLOCK,
+        .paletteTag = FEED_FOOD_PAL_TAG,
+        .spriteTiles = gPokegotchiFeedFoodPokeblockSpriteGfx,
+        .palette = gPokegotchiPalette,
     },
     {
         .category = FEED_FOOD_CATEGORY_MEAL,
         .slot = 3,
-        .inventoryKey = FEED_FOOD_KEY_NONE,
+        .inventoryKey = FEED_FOOD_KEY_EGG,
+        .tileTag = FEED_FOOD_TILE_TAG_EGG,
+        .paletteTag = FEED_FOOD_PAL_TAG,
+        .spriteTiles = gPokegotchiFeedFoodEggSpriteGfx,
+        .palette = gPokegotchiPalette,
     },
     {
         .category = FEED_FOOD_CATEGORY_SNACK,
         .slot = 0,
         .inventoryKey = FEED_FOOD_KEY_PECHA,
         .tileTag = FEED_FOOD_TILE_TAG_PECHA,
-        .paletteTag = FEED_FOOD_PAL_TAG_PECHA,
+        .paletteTag = FEED_FOOD_PAL_TAG,
         .spriteTiles = gPokegotchiFeedFoodPechaSpriteGfx,
-        .palette = gPokegotchiFeedFoodPechaPalette,
+        .palette = gPokegotchiPalette,
     },
     {
         .category = FEED_FOOD_CATEGORY_SNACK,
-        .slot = 1,
-        .inventoryKey = FEED_FOOD_KEY_NONE,
+        .slot = 0,
+        .inventoryKey = FEED_FOOD_KEY_DONUT,
+        .tileTag = FEED_FOOD_TILE_TAG_DONUT,
+        .paletteTag = FEED_FOOD_PAL_TAG,
+        .spriteTiles = gPokegotchiFeedFoodDonutSpriteGfx,
+        .palette = gPokegotchiPalette,
     },
     {
         .category = FEED_FOOD_CATEGORY_SNACK,
-        .slot = 2,
-        .inventoryKey = FEED_FOOD_KEY_NONE,
+        .slot = 0,
+        .inventoryKey = FEED_FOOD_KEY_ICE_CREAM,
+        .tileTag = FEED_FOOD_TILE_TAG_ICE_CREAM,
+        .paletteTag = FEED_FOOD_PAL_TAG,
+        .spriteTiles = gPokegotchiFeedFoodIceCreamSpriteGfx,
+        .palette = gPokegotchiPalette,
     },
     {
         .category = FEED_FOOD_CATEGORY_SNACK,
-        .slot = 3,
-        .inventoryKey = FEED_FOOD_KEY_NONE,
+        .slot = 0,
+        .inventoryKey = FEED_FOOD_KEY_SNACK_4,
+        .tileTag = FEED_FOOD_TILE_TAG_SNACK_4,
+        .paletteTag = FEED_FOOD_PAL_TAG,
+        .spriteTiles = gPokegotchiFeedFoodSnack4SpriteGfx,
+        .palette = gPokegotchiPalette,
     },
 };
 
@@ -210,7 +240,38 @@ static const struct PokegotchiFoodEffect sPokegotchiFoodEffects[] =
         .fun = 10,
     },
     {
+        .inventoryKey = FEED_FOOD_KEY_HOT_DOG,
+        .food = 30,
+        .fun = 20,
+    },
+    {
+        .inventoryKey = FEED_FOOD_KEY_POKEBLOCK,
+        .food = 45,
+        .fun = 10,
+    },
+    {
+        .inventoryKey = FEED_FOOD_KEY_EGG,
+        .food = 50,
+        .fun = 15,
+    },
+
+    {
         .inventoryKey = FEED_FOOD_KEY_PECHA,
+        .food = 20,
+        .fun = 30,
+    },
+    {
+        .inventoryKey = FEED_FOOD_KEY_ICE_CREAM,
+        .food = 20,
+        .fun = 35,
+    },
+    {
+        .inventoryKey = FEED_FOOD_KEY_DONUT,
+        .food = 10,
+        .fun = 40,
+    },
+    {
+        .inventoryKey = FEED_FOOD_KEY_SNACK_4,
         .food = 20,
         .fun = 30,
     },
