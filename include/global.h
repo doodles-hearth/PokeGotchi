@@ -255,8 +255,14 @@ struct PokegotchiFood
 {
     // meals
     u8 leaf;
+    u8 hotDog;
+    u8 pokeblock;
+    u8 egg;
     // snacks
     u8 pecha;
+    u8 iceCream;
+    u8 donut;
+    u8 snack4;
 };
 
 struct PokegotchiStats
