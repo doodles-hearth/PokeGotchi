@@ -576,6 +576,7 @@ gSongTable::
 	song mus_casino_plus_8, MUSIC_PLAYER_BGM, 0
 	song mus_casino_plus_9, MUSIC_PLAYER_BGM, 0
 	song mus_casino_plus_gacha, MUSIC_PLAYER_BGM, 0
+	song mus_pokegotchi_need, MUSIC_PLAYER_BGM, 0
 	song ph_trap_blend, MUSIC_PLAYER_SE2, 2
 	song ph_trap_held, MUSIC_PLAYER_SE2, 2
 	song ph_trap_solo, MUSIC_PLAYER_SE2, 2

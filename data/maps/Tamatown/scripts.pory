@@ -8,6 +8,7 @@ mapscripts Tamatown_MapScripts {
 script Tamatown_EventScript_Porygon {
 	lockall
 
+	setspeaker("Porygon")
 	msgbox(
 		"Yo, my man, come over here…\p"
 		"Wanna try your luck at the most fun\nway to lose money ever invented?\l"
@@ -38,6 +39,7 @@ script Tamatown_EventScript_Porygon {
 
 	switch(var(VAR_RESULT)) {
 		case 0:
+			setspeaker("Porygon")
 			msgbox(
 				"Heck yeah! Have fun!"
 			)
@@ -63,9 +65,9 @@ script Tamatown_EventScript_Porygon {
 			releaseall
 			end
 		default:
+			setspeaker("Porygon")
 			msgbox(
-				"Aight, aight, can't help ya if you\nhate fun…",
-				MSGBOX_YESNO
+				"Aight, aight, can't help ya if you\nhate fun…"
 			)
 	}
 
