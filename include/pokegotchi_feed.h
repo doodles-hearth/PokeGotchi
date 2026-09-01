@@ -1,6 +1,7 @@
 #ifndef GUARD_POKEGOTCHI_FEED_H
 #define GUARD_POKEGOTCHI_FEED_H
 
+#include "constants/pokegotchi.h"
 #include "global.h"
 #include "main.h"
 
@@ -9,19 +10,6 @@ enum PokegotchiFeedFoodCategory
     FEED_FOOD_CATEGORY_MEAL,
     FEED_FOOD_CATEGORY_SNACK,
     FEED_FOOD_CATEGORY_COUNT,
-};
-
-enum PokegotchiFeedFoodInventoryKey
-{
-    FEED_FOOD_KEY_NONE,
-    FEED_FOOD_KEY_LEAF,
-    FEED_FOOD_KEY_HOT_DOG,
-    FEED_FOOD_KEY_POKEBLOCK,
-    FEED_FOOD_KEY_EGG,
-    FEED_FOOD_KEY_PECHA,
-    FEED_FOOD_KEY_ICE_CREAM,
-    FEED_FOOD_KEY_DONUT,
-    FEED_FOOD_KEY_SNACK_4,
 };
 
 enum

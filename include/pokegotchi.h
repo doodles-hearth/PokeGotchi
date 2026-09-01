@@ -1,6 +1,7 @@
 #ifndef GUARD_POKEGOTCHI_H
 #define GUARD_POKEGOTCHI_H
 
+#include "constants/pokegotchi.h"
 #include "global.h"
 #include "pokegotchi_save.h"
 
@@ -23,6 +24,7 @@ void Pokegotchi_Sync(void);
 void Pokegotchi_SyncAndSave(void);
 enum Species Pokegotchi_GetPrimarySpecies(void);
 const struct PokegotchiStats *Pokegotchi_GetStats(void);
+bool8 Pokegotchi_AddFoodByKey(u8 foodKey, u16 amount);
 void Pokegotchi_AddToStat(enum PokegotchiStat stat, s16 delta);
 void Pokegotchi_ClearPoops(void);
 

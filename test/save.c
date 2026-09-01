@@ -11,7 +11,7 @@
 
 // If you would like to ensure save compatibility, update the values below with those for your hack. You can find these through the debug menu.
 // Please note that this simple check is not 100% foolproof, but should be able to catch most unintended shifts.
-#define T_POKEGOTCHI_SAVE_DATA_SIZE 664
+#define T_POKEGOTCHI_SAVE_DATA_SIZE 668
 #define T_POKEGOTCHI_STAGED_WRITE_BYTES (sizeof(struct PokegotchiPersistedSave) - sizeof(((struct PokegotchiPersistedSave *)0)->magic))
 
 static void ExpectPokegotchiFlagsCleared(void)
@@ -54,7 +54,13 @@ TEST("(Pokegotchi) Blank SRAM boot initializes defaults")
     runtime = PokegotchiSave_GetRuntime();
 
     EXPECT_EQ(runtime->food.leaf, 10);
+    EXPECT_EQ(runtime->food.hotDog, 0);
+    EXPECT_EQ(runtime->food.pokeblock, 0);
+    EXPECT_EQ(runtime->food.egg, 0);
     EXPECT_EQ(runtime->food.pecha, 10);
+    EXPECT_EQ(runtime->food.iceCream, 0);
+    EXPECT_EQ(runtime->food.donut, 0);
+    EXPECT_EQ(runtime->food.snack4, 0);
     EXPECT_EQ(runtime->stats.version, 1);
     EXPECT_EQ(runtime->playerPartyCount, 1);
     EXPECT_EQ((u32)runtime->optionsSound, OPTIONS_SOUND_MONO);
@@ -74,7 +80,13 @@ TEST("(Pokegotchi) Blank flash boot initializes defaults")
     runtime = PokegotchiSave_GetRuntime();
 
     EXPECT_EQ(runtime->food.leaf, 10);
+    EXPECT_EQ(runtime->food.hotDog, 0);
+    EXPECT_EQ(runtime->food.pokeblock, 0);
+    EXPECT_EQ(runtime->food.egg, 0);
     EXPECT_EQ(runtime->food.pecha, 10);
+    EXPECT_EQ(runtime->food.iceCream, 0);
+    EXPECT_EQ(runtime->food.donut, 0);
+    EXPECT_EQ(runtime->food.snack4, 0);
     EXPECT_EQ(runtime->stats.version, 1);
     EXPECT_EQ(runtime->playerPartyCount, 1);
     EXPECT_EQ((u32)runtime->optionsSound, OPTIONS_SOUND_MONO);
@@ -93,7 +105,13 @@ TEST("(Pokegotchi) SRAM save round-trip preserves runtime payload")
 
     runtime->playerPartyCount = 1;
     runtime->food.leaf = 17;
+    runtime->food.hotDog = 16;
+    runtime->food.pokeblock = 15;
+    runtime->food.egg = 14;
     runtime->food.pecha = 9;
+    runtime->food.iceCream = 8;
+    runtime->food.donut = 7;
+    runtime->food.snack4 = 6;
     runtime->stats.version = 7;
     runtime->stats.food = 111;
     runtime->stats.fun = 112;
@@ -131,7 +149,13 @@ TEST("(Pokegotchi) SRAM save round-trip preserves runtime payload")
 
     EXPECT_EQ(loaded->playerPartyCount, 1);
     EXPECT_EQ(loaded->food.leaf, 17);
+    EXPECT_EQ(loaded->food.hotDog, 16);
+    EXPECT_EQ(loaded->food.pokeblock, 15);
+    EXPECT_EQ(loaded->food.egg, 14);
     EXPECT_EQ(loaded->food.pecha, 9);
+    EXPECT_EQ(loaded->food.iceCream, 8);
+    EXPECT_EQ(loaded->food.donut, 7);
+    EXPECT_EQ(loaded->food.snack4, 6);
     EXPECT_EQ(loaded->stats.version, 7);
     EXPECT_EQ(loaded->stats.food, 111);
     EXPECT_EQ(loaded->stats.fun, 112);
@@ -169,7 +193,13 @@ TEST("(Pokegotchi) Flash save round-trip preserves runtime payload")
 
     runtime->playerPartyCount = 1;
     runtime->food.leaf = 37;
+    runtime->food.hotDog = 36;
+    runtime->food.pokeblock = 35;
+    runtime->food.egg = 34;
     runtime->food.pecha = 19;
+    runtime->food.iceCream = 18;
+    runtime->food.donut = 17;
+    runtime->food.snack4 = 16;
     runtime->stats.version = 12;
     runtime->stats.food = 211;
     runtime->stats.fun = 212;
@@ -207,7 +237,13 @@ TEST("(Pokegotchi) Flash save round-trip preserves runtime payload")
 
     EXPECT_EQ(loaded->playerPartyCount, 1);
     EXPECT_EQ(loaded->food.leaf, 37);
+    EXPECT_EQ(loaded->food.hotDog, 36);
+    EXPECT_EQ(loaded->food.pokeblock, 35);
+    EXPECT_EQ(loaded->food.egg, 34);
     EXPECT_EQ(loaded->food.pecha, 19);
+    EXPECT_EQ(loaded->food.iceCream, 18);
+    EXPECT_EQ(loaded->food.donut, 17);
+    EXPECT_EQ(loaded->food.snack4, 16);
     EXPECT_EQ(loaded->stats.version, 12);
     EXPECT_EQ(loaded->stats.food, 211);
     EXPECT_EQ(loaded->stats.fun, 212);

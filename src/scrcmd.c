@@ -42,6 +42,7 @@
 #include "palette.h"
 #include "party_menu.h"
 #include "pokedex.h"
+#include "pokegotchi.h"
 #include "pokemon_storage_system.h"
 #include "random.h"
 #include "overworld.h"
@@ -3355,6 +3356,17 @@ bool8 ScrCmd_textcolor(struct ScriptContext * ctx)
     Script_RequestEffects(SCREFF_V1 | SCREFF_HARDWARE);
 
     return FALSE;
+}
+
+void ScrCmd_addpokegotchifood(struct ScriptContext *ctx)
+{
+    u16 foodKey = VarGet(ScriptReadHalfword(ctx));
+    u16 amount = VarGet(ScriptReadHalfword(ctx));
+
+    Script_RequestEffects(SCREFF_V1 | SCREFF_SAVE);
+
+    if (foodKey <= UINT8_MAX)
+        Pokegotchi_AddFoodByKey((u8)foodKey, amount);
 }
 
 bool8 ScrCmd_setworldmapflag(struct ScriptContext * ctx)

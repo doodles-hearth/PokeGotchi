@@ -1,8 +1,11 @@
 #include "global.h"
+#include "event_data.h"
 #include "fake_rtc.h"
 #include "load_save.h"
 #include "pokegotchi.h"
 #include "pokegotchi_save.h"
+#include "script.h"
+#include "test/overworld_script.h"
 #include "test/test.h"
 
 static const struct Time sTime_00_00 = {.days = 0, .hours = 0, .minutes = 0, .seconds = 0};
@@ -44,7 +47,13 @@ TEST("(Pokegotchi) EnsureInitialized seeds default stats and food inventory")
     EXPECT_EQ(stats->lastUpdated.hours, sTime_10_00.hours);
     EXPECT_EQ(stats->lastUpdated.minutes, sTime_10_00.minutes);
     EXPECT_EQ(runtime->food.leaf, 10);
+    EXPECT_EQ(runtime->food.hotDog, 0);
+    EXPECT_EQ(runtime->food.pokeblock, 0);
+    EXPECT_EQ(runtime->food.egg, 0);
     EXPECT_EQ(runtime->food.pecha, 10);
+    EXPECT_EQ(runtime->food.iceCream, 0);
+    EXPECT_EQ(runtime->food.donut, 0);
+    EXPECT_EQ(runtime->food.snack4, 0);
 }
 
 TEST("(Pokegotchi) One active minute reduces all four meters by two")

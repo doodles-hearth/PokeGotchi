@@ -5,7 +5,7 @@
 #include "constants/flags.h"
 
 #define POKEGOTCHI_SAVE_MAGIC   0x50475443
-#define POKEGOTCHI_SAVE_VERSION 2
+#define POKEGOTCHI_SAVE_VERSION 3
 #define POKEGOTCHI_SAVE_SLOT_COUNT 2
 
 struct PokegotchiRuntimeState

@@ -2396,6 +2396,13 @@
 	stringvar \stringVarId
 	.endm
 
+	@ Increments a Pokegotchi food count by the given number. Default 1.
+	.macro addpokegotchifood foodKey:req, amount=1
+	callnative ScrCmd_addpokegotchifood, requests_effects=1
+	.2byte \foodKey
+	.2byte \amount
+	.endm
+
 	@ Executes Follower actions
 	.macro getfolloweraction
 	callnative GetFollowerAction

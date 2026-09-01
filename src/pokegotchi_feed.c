@@ -205,7 +205,7 @@ const struct PokegotchiFeedFoodItem gPokegotchiFeedFoodItems[FEED_FOOD_SLOT_COUN
     },
     {
         .category = FEED_FOOD_CATEGORY_SNACK,
-        .slot = 0,
+        .slot = 1,
         .inventoryKey = FEED_FOOD_KEY_DONUT,
         .tileTag = FEED_FOOD_TILE_TAG_DONUT,
         .paletteTag = FEED_FOOD_PAL_TAG,
@@ -214,7 +214,7 @@ const struct PokegotchiFeedFoodItem gPokegotchiFeedFoodItems[FEED_FOOD_SLOT_COUN
     },
     {
         .category = FEED_FOOD_CATEGORY_SNACK,
-        .slot = 0,
+        .slot = 2,
         .inventoryKey = FEED_FOOD_KEY_ICE_CREAM,
         .tileTag = FEED_FOOD_TILE_TAG_ICE_CREAM,
         .paletteTag = FEED_FOOD_PAL_TAG,
@@ -223,7 +223,7 @@ const struct PokegotchiFeedFoodItem gPokegotchiFeedFoodItems[FEED_FOOD_SLOT_COUN
     },
     {
         .category = FEED_FOOD_CATEGORY_SNACK,
-        .slot = 0,
+        .slot = 3,
         .inventoryKey = FEED_FOOD_KEY_SNACK_4,
         .tileTag = FEED_FOOD_TILE_TAG_SNACK_4,
         .paletteTag = FEED_FOOD_PAL_TAG,
@@ -241,18 +241,18 @@ static const struct PokegotchiFoodEffect sPokegotchiFoodEffects[] =
     },
     {
         .inventoryKey = FEED_FOOD_KEY_HOT_DOG,
-        .food = 30,
+        .food = 50,
         .fun = 20,
     },
     {
         .inventoryKey = FEED_FOOD_KEY_POKEBLOCK,
         .food = 45,
-        .fun = 10,
+        .fun = 25,
     },
     {
         .inventoryKey = FEED_FOOD_KEY_EGG,
         .food = 50,
-        .fun = 15,
+        .fun = 20,
     },
 
     {
@@ -263,17 +263,17 @@ static const struct PokegotchiFoodEffect sPokegotchiFoodEffects[] =
     {
         .inventoryKey = FEED_FOOD_KEY_ICE_CREAM,
         .food = 20,
-        .fun = 35,
+        .fun = 50,
     },
     {
         .inventoryKey = FEED_FOOD_KEY_DONUT,
-        .food = 10,
-        .fun = 40,
+        .food = 25,
+        .fun = 45,
     },
     {
         .inventoryKey = FEED_FOOD_KEY_SNACK_4,
         .food = 20,
-        .fun = 30,
+        .fun = 50,
     },
 };
 
@@ -728,8 +728,20 @@ static u8 Menu_GetFoodCount(u8 inventoryKey)
     {
     case FEED_FOOD_KEY_LEAF:
         return runtime->food.leaf;
+    case FEED_FOOD_KEY_HOT_DOG:
+        return runtime->food.hotDog;
+    case FEED_FOOD_KEY_POKEBLOCK:
+        return runtime->food.pokeblock;
+    case FEED_FOOD_KEY_EGG:
+        return runtime->food.egg;
     case FEED_FOOD_KEY_PECHA:
         return runtime->food.pecha;
+    case FEED_FOOD_KEY_ICE_CREAM:
+        return runtime->food.iceCream;
+    case FEED_FOOD_KEY_DONUT:
+        return runtime->food.donut;
+    case FEED_FOOD_KEY_SNACK_4:
+        return runtime->food.snack4;
     case FEED_FOOD_KEY_NONE:
     default:
         return 0;
@@ -804,8 +816,26 @@ static bool8 Menu_ConsumeFoodByKey(u8 inventoryKey)
     case FEED_FOOD_KEY_LEAF:
         count = &runtime->food.leaf;
         break;
+    case FEED_FOOD_KEY_HOT_DOG:
+        count = &runtime->food.hotDog;
+        break;
+    case FEED_FOOD_KEY_POKEBLOCK:
+        count = &runtime->food.pokeblock;
+        break;
+    case FEED_FOOD_KEY_EGG:
+        count = &runtime->food.egg;
+        break;
     case FEED_FOOD_KEY_PECHA:
         count = &runtime->food.pecha;
+        break;
+    case FEED_FOOD_KEY_ICE_CREAM:
+        count = &runtime->food.iceCream;
+        break;
+    case FEED_FOOD_KEY_DONUT:
+        count = &runtime->food.donut;
+        break;
+    case FEED_FOOD_KEY_SNACK_4:
+        count = &runtime->food.snack4;
         break;
     case FEED_FOOD_KEY_NONE:
     default:

@@ -18,6 +18,7 @@ static u32 GetMinutesBetween(const struct Time *start, const struct Time *end);
 static u16 ClampStatValue(s32 value);
 static void ApplyDecay(u32 activeMinutes, u32 offlineMinutes);
 static void RestampLastUpdated(const struct Time *time);
+static u8 *GetMutableFoodCountByKey(u8 foodKey);
 static bool8 GetStatField(enum PokegotchiStat stat, u16 **value);
 static struct PokegotchiStats *GetMutableStats(void);
 static void CommitRuntimeState(void);
@@ -45,7 +46,13 @@ void Pokegotchi_EnsureInitialized(void)
     stats->poopsOnScreen = 0;
 
     runtime->food.leaf = POKEGOTCHI_STARTING_FOOD_COUNT;
+    runtime->food.hotDog = 0;
+    runtime->food.pokeblock = 0;
+    runtime->food.egg = 0;
     runtime->food.pecha = POKEGOTCHI_STARTING_FOOD_COUNT;
+    runtime->food.iceCream = 0;
+    runtime->food.donut = 0;
+    runtime->food.snack4 = 0;
     CommitRuntimeState();
 }
 
@@ -119,6 +126,27 @@ const struct PokegotchiStats *Pokegotchi_GetStats(void)
 {
     Pokegotchi_EnsureInitialized();
     return &PokegotchiSave_GetRuntime()->stats;
+}
+
+bool8 Pokegotchi_AddFoodByKey(u8 foodKey, u16 amount)
+{
+    u8 *count;
+    u32 total;
+
+    Pokegotchi_EnsureInitialized();
+    count = GetMutableFoodCountByKey(foodKey);
+    if (count == NULL)
+        return FALSE;
+
+    total = *count + amount;
+    if (total > UINT8_MAX)
+        total = UINT8_MAX;
+    if (total == *count)
+        return TRUE;
+
+    *count = total;
+    CommitRuntimeState();
+    return TRUE;
 }
 
 void Pokegotchi_AddToStat(enum PokegotchiStat stat, s16 delta)
@@ -237,6 +265,34 @@ static void ApplyDecay(u32 activeMinutes, u32 offlineMinutes)
 static void RestampLastUpdated(const struct Time *time)
 {
     GetMutableStats()->lastUpdated = *time;
+}
+
+static u8 *GetMutableFoodCountByKey(u8 foodKey)
+{
+    struct PokegotchiFood *food = &PokegotchiSave_GetRuntimeMutable()->food;
+
+    switch (foodKey)
+    {
+    case FEED_FOOD_KEY_LEAF:
+        return &food->leaf;
+    case FEED_FOOD_KEY_HOT_DOG:
+        return &food->hotDog;
+    case FEED_FOOD_KEY_POKEBLOCK:
+        return &food->pokeblock;
+    case FEED_FOOD_KEY_EGG:
+        return &food->egg;
+    case FEED_FOOD_KEY_PECHA:
+        return &food->pecha;
+    case FEED_FOOD_KEY_ICE_CREAM:
+        return &food->iceCream;
+    case FEED_FOOD_KEY_DONUT:
+        return &food->donut;
+    case FEED_FOOD_KEY_SNACK_4:
+        return &food->snack4;
+    case FEED_FOOD_KEY_NONE:
+    default:
+        return NULL;
+    }
 }
 
 static bool8 GetStatField(enum PokegotchiStat stat, u16 **value)
