@@ -28,6 +28,7 @@
 #include "party_menu.h"
 #include "pokemon.h"
 #include "pokegotchi_sprites.h"
+#include "random.h"
 #include "scanline_effect.h"
 #include "script.h"
 #include "sound.h"
@@ -53,6 +54,11 @@
  
 //==========DEFINES==========//
 #define MENU_ICONS 4
+#define HOUSE_POOP_SPRITES 4
+#define HOUSE_FLOOR_ANCHORS 13
+#define HOUSE_INITIAL_PET_ANCHOR 2
+#define HOUSE_WANDER_MIN_FRAMES (4 * 60)
+#define HOUSE_WANDER_MAX_FRAMES (6 * 60)
 #define HOUSE_EATING_FOOD_X 88
 #define HOUSE_EATING_FOOD_Y 104
 #define HOUSE_EATING_FOOD_FRAME_COUNT 3
@@ -70,6 +76,20 @@ enum HouseEatingScenePhase
     HOUSE_EATING_SCENE_PHASE_POST_EAT,
 };
 
+enum HousePetActivity
+{
+    HOUSE_PET_ACTIVITY_IDLE,
+    HOUSE_PET_ACTIVITY_BUSY,
+};
+
+struct HousePoopLayout
+{
+    u16 anchorIds;
+    u8 assignedMask;
+    u8 flipMask;
+};
+STATIC_ASSERT(sizeof(struct HousePoopLayout) == 4, HousePoopLayoutMustUseFourBytes);
+
 struct MenuResources
 {
     MainCallback savedCallback; // determines callback to run when we exit. e.g. where do we want to go after closing the menu
@@ -77,8 +97,11 @@ struct MenuResources
     u8 menuIconIds[MENU_ICONS];
     u8 petSpriteId;
     u8 petEmotion;
+    u8 petActivity;
     u8 foodSpriteId;
+    u8 poopSpriteIds[HOUSE_POOP_SPRITES];
     u8 syncTaskId;
+    u8 wanderTaskId;
 };
 
 enum WindowIds
@@ -95,6 +118,7 @@ static EWRAM_DATA MainCallback sHouseEatingSceneReturnCallback = NULL;
 static EWRAM_DATA u8 sHouseWaiterMinigameDifficulty = POKEGOTCHI_WAITER_MINIGAME_EASY;
 static EWRAM_DATA u8 sHouseEntryMode = HOUSE_ENTRY_NORMAL;
 static EWRAM_DATA u8 sHouseEatingSceneFoodKey = FEED_FOOD_KEY_NONE;
+static EWRAM_DATA struct HousePoopLayout sHousePoopLayout = {0};
 
 //==========STATIC=DEFINES==========//
 static void Menu_Init(MainCallback callback);
@@ -110,6 +134,14 @@ static void Menu_InitWindows(void);
 static void Menu_LoadTopIcons(void);
 static void Menu_LoadPetSprite(void);
 static bool8 Menu_SetPetEmotion(u8 emotion);
+static bool8 Menu_CanPetWander(void);
+static void Menu_GetPetSpawnPosition(s16 *x, s16 *y);
+static bool8 Menu_MovePetToRandomAnchor(bool8 requireDifferentAnchor);
+static void Menu_RefreshPoopSprites(void);
+static bool8 Menu_LoadPoopSpriteGfx(void);
+static void Menu_DestroyPoopSprites(void);
+static void Menu_FreePoopSpriteGfx(void);
+static void Menu_ResetPoopLayout(void);
 static void Menu_LoadSceneFoodSprite(void);
 static const struct PokegotchiFeedFoodItem *Menu_GetFoodItemByKey(u8 inventoryKey);
 static bool8 Menu_LoadFoodSpriteSheet(const struct PokegotchiFeedFoodItem *foodItem);
@@ -122,6 +154,7 @@ static void Task_MenuWaitFadeIn(u8 taskId);
 static void Task_MenuMain(u8 taskId);
 static void Task_MenuEatingScene(u8 taskId);
 static void Task_MenuSyncPokegotchi(u8 taskId);
+static void Task_MenuWanderPet(u8 taskId);
 static void CB2_ReturnToPokegotchiHouseMenu(void);
 static void CB2_OpenPokegotchiFeedMenuFromHouse(void);
 static void CB2_OpenPokegotchiStatusMenuFromHouse(void);
@@ -190,6 +223,8 @@ static const u8 sMenuWindowFontColors[][3] =
 #define ICON_3_SPRITE_TAG 5523
 #define ICON_4_SPRITE_TAG 5524
 #define ICON_SPRITES_PAL_TAG 5525
+#define POOP_SPRITE_TAG 5526
+#define POOP_SPRITE_PAL_TAG 5527
 
 #define SPRITE_SELECTED 0
 #define SPRITE_UNSELECTED 1
@@ -350,6 +385,76 @@ static const struct SpriteTemplate sFoodSpriteTemplate =
     .callback = SpriteCallbackDummy,
 };
 
+static const u8 sPoopSpriteGfx[] = INCGFX_U8("graphics/pokegotchi_house_ui/poop.png", ".4bpp");
+static const u16 sPoopSpritePaletteData[] = INCGFX_U16("graphics/pokegotchi_house_ui/poop.png", ".gbapal");
+
+static const struct SpriteSheet sPoopSpriteSheet =
+{
+    .data = sPoopSpriteGfx,
+    .size = sizeof(sPoopSpriteGfx),
+    .tag = POOP_SPRITE_TAG,
+};
+
+static const struct SpritePalette sPoopSpritePalette =
+{
+    .data = sPoopSpritePaletteData,
+    .tag = POOP_SPRITE_PAL_TAG,
+};
+
+static const union AnimCmd sAnim_PoopVariant0[] =
+{
+    ANIMCMD_FRAME(0, 0),
+    ANIMCMD_END,
+};
+
+static const union AnimCmd sAnim_PoopVariant1[] =
+{
+    ANIMCMD_FRAME(4, 0),
+    ANIMCMD_END,
+};
+
+static const union AnimCmd *const sPoopSpriteAnims[] =
+{
+    sAnim_PoopVariant0,
+    sAnim_PoopVariant1,
+};
+
+static const struct OamData sPoopSpriteOamData =
+{
+    .shape = SPRITE_SHAPE(16x16),
+    .size = SPRITE_SIZE(16x16),
+    .priority = 0,
+    .bpp = ST_OAM_4BPP,
+};
+
+static const struct SpriteTemplate sPoopSpriteTemplate =
+{
+    .tileTag = POOP_SPRITE_TAG,
+    .paletteTag = POOP_SPRITE_PAL_TAG,
+    .oam = &sPoopSpriteOamData,
+    .anims = sPoopSpriteAnims,
+    .images = NULL,
+    .affineAnims = gDummySpriteAffineAnimTable,
+    .callback = SpriteCallbackDummy,
+};
+
+static const s16 sHouseFloorAnchorCoords[HOUSE_FLOOR_ANCHORS][2] =
+{
+    {80, 90},
+    {151, 86},
+    {184, 94},
+    {216, 98},
+    {83, 118},
+    {116, 112},
+    {150, 117},
+    {216, 126},
+    {16, 139},
+    {82, 142},
+    {114, 138},
+    {146, 141},
+    {178, 137},
+};
+
 static const u8 sHouseEatingFoodStageDurations[HOUSE_EATING_FOOD_FRAME_COUNT] =
 {
     28,
@@ -401,8 +506,12 @@ static void Menu_Init(MainCallback callback)
         sMenuDataPtr->menuIconIds[i] = MAX_SPRITES;
     sMenuDataPtr->petSpriteId = SPRITE_NONE;
     sMenuDataPtr->petEmotion = POKEGOTCHI_EMOTION_COUNT;
+    sMenuDataPtr->petActivity = HOUSE_PET_ACTIVITY_IDLE;
     sMenuDataPtr->foodSpriteId = SPRITE_NONE;
+    for (i = 0; i < HOUSE_POOP_SPRITES; i++)
+        sMenuDataPtr->poopSpriteIds[i] = SPRITE_NONE;
     sMenuDataPtr->syncTaskId = TASK_NONE;
+    sMenuDataPtr->wanderTaskId = TASK_NONE;
 
     SetMainCallback2(Menu_RunSetup);
 }
@@ -481,6 +590,7 @@ static bool8 Menu_DoGfxSetup(void)
         m4aSongNumStart(MUS_FORTREE);
         Menu_LoadTopIcons();
         Menu_LoadPetSprite();
+        Menu_RefreshPoopSprites();
         if (sHouseEntryMode == HOUSE_ENTRY_EATING_SCENE)
             Menu_LoadSceneFoodSprite();
         CreateTask(Task_MenuWaitFadeIn, 0);
@@ -526,11 +636,18 @@ static void Menu_FreeResources(void)
         }
 
         Menu_DestroyFoodSprite();
+        Menu_DestroyPoopSprites();
 
         if (sMenuDataPtr->syncTaskId != TASK_NONE && FuncIsActiveTask(Task_MenuSyncPokegotchi))
         {
             DestroyTask(sMenuDataPtr->syncTaskId);
             sMenuDataPtr->syncTaskId = TASK_NONE;
+        }
+
+        if (sMenuDataPtr->wanderTaskId != TASK_NONE && FuncIsActiveTask(Task_MenuWanderPet))
+        {
+            DestroyTask(sMenuDataPtr->wanderTaskId);
+            sMenuDataPtr->wanderTaskId = TASK_NONE;
         }
     }
 
@@ -539,6 +656,7 @@ static void Menu_FreeResources(void)
     FreeSpriteTilesByTag(ICON_3_SPRITE_TAG);
     FreeSpriteTilesByTag(ICON_4_SPRITE_TAG);
     FreeSpritePaletteByTag(ICON_SPRITES_PAL_TAG);
+    Menu_FreePoopSpriteGfx();
     try_free(sMenuDataPtr);
     try_free(sBg1TilemapBuffer);
     FreeAllWindowBuffers();
@@ -675,23 +793,307 @@ static bool8 Menu_SetPetEmotion(u8 emotion)
 {
     enum Species species = Pokegotchi_GetPrimarySpecies();
     u8 spriteId;
+    s16 x;
+    s16 y;
 
     if (species == SPECIES_NONE || !HasPokegotchiSprite(species, emotion))
         return FALSE;
 
-    if (sMenuDataPtr->petSpriteId != SPRITE_NONE)
+    if (sMenuDataPtr->petSpriteId != SPRITE_NONE
+     && sMenuDataPtr->petSpriteId < MAX_SPRITES
+     && gSprites[sMenuDataPtr->petSpriteId].inUse)
     {
+        x = gSprites[sMenuDataPtr->petSpriteId].x;
+        y = gSprites[sMenuDataPtr->petSpriteId].y;
         DestroyPokegotchiSprite(sMenuDataPtr->petSpriteId);
         sMenuDataPtr->petSpriteId = SPRITE_NONE;
     }
+    else
+    {
+        Menu_GetPetSpawnPosition(&x, &y);
+    }
 
-    spriteId = CreatePokegotchiSprite(species, emotion, 120, 88, 0);
+    spriteId = CreatePokegotchiSprite(species, emotion, x, y, 0);
     if (spriteId == SPRITE_NONE)
         return FALSE;
 
     sMenuDataPtr->petSpriteId = spriteId;
     sMenuDataPtr->petEmotion = emotion;
+    sMenuDataPtr->petActivity = (emotion == POKEGOTCHI_EMOTION_IDLE) ? HOUSE_PET_ACTIVITY_IDLE : HOUSE_PET_ACTIVITY_BUSY;
     return TRUE;
+}
+
+static u8 Menu_GetPoopAnchorId(u8 slot)
+{
+    return (sHousePoopLayout.anchorIds >> (slot * 4)) & 0xF;
+}
+
+static void Menu_SetPoopAnchorId(u8 slot, u8 anchorId)
+{
+    u16 shift = slot * 4;
+
+    sHousePoopLayout.anchorIds &= ~(0xF << shift);
+    sHousePoopLayout.anchorIds |= anchorId << shift;
+}
+
+static void Menu_ResetPoopLayout(void)
+{
+    sHousePoopLayout.anchorIds = 0;
+    sHousePoopLayout.assignedMask = 0;
+    sHousePoopLayout.flipMask = 0;
+}
+
+static bool8 Menu_IsPetAnchorAvailable(u8 anchorId, bool8 requireDifferentAnchor)
+{
+    const struct PokegotchiStats *stats = Pokegotchi_GetStats();
+    u8 poopCount = min(stats->poopsOnScreen, HOUSE_POOP_SPRITES);
+    u8 i;
+
+    if (requireDifferentAnchor
+     && sMenuDataPtr->petSpriteId != SPRITE_NONE
+     && sMenuDataPtr->petSpriteId < MAX_SPRITES
+     && gSprites[sMenuDataPtr->petSpriteId].inUse
+     && gSprites[sMenuDataPtr->petSpriteId].x == sHouseFloorAnchorCoords[anchorId][0]
+     && gSprites[sMenuDataPtr->petSpriteId].y == sHouseFloorAnchorCoords[anchorId][1])
+        return FALSE;
+
+    for (i = 0; i < poopCount; i++)
+    {
+        u8 poopAnchorId;
+
+        if (!(sHousePoopLayout.assignedMask & (1 << i)))
+            continue;
+
+        poopAnchorId = Menu_GetPoopAnchorId(i);
+        if (poopAnchorId >= HOUSE_FLOOR_ANCHORS)
+            continue;
+
+        if (anchorId == poopAnchorId)
+            return FALSE;
+    }
+
+    return TRUE;
+}
+
+static bool8 Menu_IsPoopAnchorAvailable(u8 anchorId, u16 usedAnchors, s16 petX, s16 petY)
+{
+    if (usedAnchors & (1 << anchorId)
+     || (petX == sHouseFloorAnchorCoords[anchorId][0]
+      && petY == sHouseFloorAnchorCoords[anchorId][1]))
+        return FALSE;
+
+    return TRUE;
+}
+
+static bool8 Menu_GetRandomPetAnchor(bool8 requireDifferentAnchor, u8 *anchorId)
+{
+    u8 candidates[HOUSE_FLOOR_ANCHORS];
+    u8 candidateCount = 0;
+    u8 i;
+
+    for (i = 0; i < HOUSE_FLOOR_ANCHORS; i++)
+    {
+        if (Menu_IsPetAnchorAvailable(i, requireDifferentAnchor))
+            candidates[candidateCount++] = i;
+    }
+
+    if (candidateCount == 0)
+        return FALSE;
+
+    *anchorId = candidates[RandomUniform(RNG_POKEGOTCHI_HOUSE, 0, candidateCount - 1)];
+    return TRUE;
+}
+
+static void Menu_GetPetSpawnPosition(s16 *x, s16 *y)
+{
+    u8 anchorId = HOUSE_INITIAL_PET_ANCHOR;
+
+    if (sHouseEntryMode != HOUSE_ENTRY_NORMAL)
+    {
+        *x = 120;
+        *y = 88;
+        return;
+    }
+
+    if (!Menu_IsPetAnchorAvailable(anchorId, FALSE)
+     && !Menu_GetRandomPetAnchor(FALSE, &anchorId))
+    {
+        *x = 120;
+        *y = 88;
+        return;
+    }
+
+    *x = sHouseFloorAnchorCoords[anchorId][0];
+    *y = sHouseFloorAnchorCoords[anchorId][1];
+}
+
+static bool8 Menu_CanPetWander(void)
+{
+    return sHouseEntryMode == HOUSE_ENTRY_NORMAL
+        && sMenuDataPtr != NULL
+        && sMenuDataPtr->petEmotion == POKEGOTCHI_EMOTION_IDLE
+        && sMenuDataPtr->petActivity == HOUSE_PET_ACTIVITY_IDLE
+        && sMenuDataPtr->petSpriteId != SPRITE_NONE
+        && sMenuDataPtr->petSpriteId < MAX_SPRITES
+        && gSprites[sMenuDataPtr->petSpriteId].inUse;
+}
+
+static bool8 Menu_MovePetToRandomAnchor(bool8 requireDifferentAnchor)
+{
+    u8 anchorId;
+
+    if (!Menu_CanPetWander() || !Menu_GetRandomPetAnchor(requireDifferentAnchor, &anchorId))
+        return FALSE;
+
+    gSprites[sMenuDataPtr->petSpriteId].x = sHouseFloorAnchorCoords[anchorId][0];
+    gSprites[sMenuDataPtr->petSpriteId].y = sHouseFloorAnchorCoords[anchorId][1];
+    return TRUE;
+}
+
+static bool8 Menu_LoadPoopSpriteGfx(void)
+{
+    if (GetSpriteTileStartByTag(POOP_SPRITE_TAG) == 0xFFFF
+     && LoadSpriteSheet(&sPoopSpriteSheet) == TAG_NONE)
+        return FALSE;
+
+    if (IndexOfSpritePaletteTag(POOP_SPRITE_PAL_TAG) == 0xFF
+     && LoadSpritePalette(&sPoopSpritePalette) == 0xFF)
+    {
+        FreeSpriteTilesByTag(POOP_SPRITE_TAG);
+        return FALSE;
+    }
+
+    return TRUE;
+}
+
+static void Menu_DestroyPoopSprites(void)
+{
+    u8 i;
+
+    if (sMenuDataPtr == NULL)
+        return;
+
+    for (i = 0; i < HOUSE_POOP_SPRITES; i++)
+    {
+        u8 spriteId = sMenuDataPtr->poopSpriteIds[i];
+
+        if (spriteId != SPRITE_NONE && spriteId < MAX_SPRITES && gSprites[spriteId].inUse)
+            DestroySprite(&gSprites[spriteId]);
+        sMenuDataPtr->poopSpriteIds[i] = SPRITE_NONE;
+    }
+}
+
+static void Menu_FreePoopSpriteGfx(void)
+{
+    if (GetSpriteTileStartByTag(POOP_SPRITE_TAG) != 0xFFFF)
+        FreeSpriteTilesByTag(POOP_SPRITE_TAG);
+    if (IndexOfSpritePaletteTag(POOP_SPRITE_PAL_TAG) != 0xFF)
+        FreeSpritePaletteByTag(POOP_SPRITE_PAL_TAG);
+}
+
+static void Menu_RefreshPoopSprites(void)
+{
+    const struct PokegotchiStats *stats;
+    u8 i;
+    u8 poopCount;
+    u16 usedAnchors = 0;
+    s16 petX = 120;
+    s16 petY = 88;
+
+    if (sMenuDataPtr == NULL)
+        return;
+
+    stats = Pokegotchi_GetStats();
+    poopCount = min(stats->poopsOnScreen, HOUSE_POOP_SPRITES);
+    Menu_DestroyPoopSprites();
+
+    if (poopCount == 0)
+    {
+        Menu_ResetPoopLayout();
+        return;
+    }
+
+    if (sMenuDataPtr->petSpriteId != SPRITE_NONE
+     && sMenuDataPtr->petSpriteId < MAX_SPRITES
+     && gSprites[sMenuDataPtr->petSpriteId].inUse)
+    {
+        petX = gSprites[sMenuDataPtr->petSpriteId].x;
+        petY = gSprites[sMenuDataPtr->petSpriteId].y;
+    }
+
+    for (i = 0; i < HOUSE_POOP_SPRITES; i++)
+    {
+        u8 anchorId;
+
+        if (i >= poopCount)
+        {
+            sHousePoopLayout.assignedMask &= ~(1 << i);
+            sHousePoopLayout.flipMask &= ~(1 << i);
+            continue;
+        }
+
+        anchorId = Menu_GetPoopAnchorId(i);
+        if (!(sHousePoopLayout.assignedMask & (1 << i))
+         || anchorId >= HOUSE_FLOOR_ANCHORS
+         || !Menu_IsPoopAnchorAvailable(anchorId, usedAnchors, petX, petY))
+        {
+            sHousePoopLayout.assignedMask &= ~(1 << i);
+            continue;
+        }
+
+        usedAnchors |= 1 << anchorId;
+    }
+
+    for (i = 0; i < poopCount; i++)
+    {
+        u8 candidates[HOUSE_FLOOR_ANCHORS];
+        u8 candidateCount = 0;
+        u8 anchorId;
+        u8 j;
+
+        if (sHousePoopLayout.assignedMask & (1 << i))
+            continue;
+
+        for (j = 0; j < HOUSE_FLOOR_ANCHORS; j++)
+        {
+            if (Menu_IsPoopAnchorAvailable(j, usedAnchors, petX, petY))
+                candidates[candidateCount++] = j;
+        }
+
+        if (candidateCount == 0)
+            continue;
+
+        anchorId = candidates[RandomUniform(RNG_POKEGOTCHI_HOUSE, 0, candidateCount - 1)];
+        Menu_SetPoopAnchorId(i, anchorId);
+        sHousePoopLayout.assignedMask |= 1 << i;
+        if (RandomUniform(RNG_POKEGOTCHI_HOUSE, 0, 1))
+            sHousePoopLayout.flipMask |= 1 << i;
+        else
+            sHousePoopLayout.flipMask &= ~(1 << i);
+        usedAnchors |= 1 << anchorId;
+    }
+
+    if (!Menu_LoadPoopSpriteGfx())
+        return;
+
+    for (i = 0; i < poopCount; i++)
+    {
+        u8 anchorId;
+        u8 spriteId;
+
+        if (!(sHousePoopLayout.assignedMask & (1 << i)))
+            continue;
+
+        anchorId = Menu_GetPoopAnchorId(i);
+        spriteId = CreateSprite(&sPoopSpriteTemplate, sHouseFloorAnchorCoords[anchorId][0], sHouseFloorAnchorCoords[anchorId][1], 1);
+
+        if (spriteId == SPRITE_NONE)
+            continue;
+
+        sMenuDataPtr->poopSpriteIds[i] = spriteId;
+        StartSpriteAnimIfDifferent(&gSprites[spriteId], i % 2);
+        gSprites[spriteId].hFlip = (sHousePoopLayout.flipMask >> i) & 1;
+    }
 }
 
 static const struct PokegotchiFeedFoodItem *Menu_GetFoodItemByKey(u8 inventoryKey)
@@ -822,6 +1224,12 @@ static void Task_MenuWaitFadeIn(u8 taskId)
         {
             gTasks[taskId].data[0] = STATUS_ICON;
             sMenuDataPtr->syncTaskId = CreateTask(Task_MenuSyncPokegotchi, 1);
+            sMenuDataPtr->wanderTaskId = CreateTask(Task_MenuWanderPet, 1);
+            if (sMenuDataPtr->wanderTaskId != TASK_NONE)
+            {
+                gTasks[sMenuDataPtr->wanderTaskId].data[0] = 0;
+                gTasks[sMenuDataPtr->wanderTaskId].data[1] = RandomUniform(RNG_POKEGOTCHI_HOUSE, HOUSE_WANDER_MIN_FRAMES, HOUSE_WANDER_MAX_FRAMES);
+            }
             gTasks[taskId].func = Task_MenuMain;
         }
     }
@@ -833,7 +1241,18 @@ static void Task_MenuSyncPokegotchi(u8 taskId)
     {
         gTasks[taskId].data[0] = 0;
         Pokegotchi_SyncAndSave();
+        Menu_RefreshPoopSprites();
     }
+}
+
+static void Task_MenuWanderPet(u8 taskId)
+{
+    if (++gTasks[taskId].data[0] < gTasks[taskId].data[1])
+        return;
+
+    gTasks[taskId].data[0] = 0;
+    Menu_MovePetToRandomAnchor(TRUE);
+    gTasks[taskId].data[1] = RandomUniform(RNG_POKEGOTCHI_HOUSE, HOUSE_WANDER_MIN_FRAMES, HOUSE_WANDER_MAX_FRAMES);
 }
 
 static void CB2_ReturnToPokegotchiHouseMenu(void)
@@ -913,7 +1332,13 @@ static void Task_MenuMain(u8 taskId)
             DestroyTask(taskId);
             return;
         case CLEAN_ICON:
-            if (!IsSEPlaying())
+            if (Pokegotchi_GetStats()->poopsOnScreen > 0)
+            {
+                Pokegotchi_ClearPoops();
+                Menu_RefreshPoopSprites();
+                PlaySE(SE_SELECT);
+            }
+            else if (!IsSEPlaying())
                 PlaySE(SE_FAILURE);
             break;
         case TOWN_ICON:

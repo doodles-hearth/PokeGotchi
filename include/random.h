@@ -259,6 +259,7 @@ enum RandomTag
     RNG_DEXNAV_RANDOM_EGG_MOVE,
     RNG_RANDOM_BALL,
     RNG_POKEGOTCHI_POOP,
+    RNG_POKEGOTCHI_HOUSE,
 };
 
 #define RandomWeighted(tag, ...) \
