@@ -8,15 +8,30 @@ mapscripts Tamatown_MapScripts {
 script Tamatown_EventScript_Porygon {
 	lockall
 
-	setspeaker("Porygon")
-	msgbox(
-		"Yo, my man, come over here…\p"
-		"Wanna try your luck at the most fun\nway to lose money ever invented?\l"
-		"That's right, PACHINKO!!\p"
-		"A game costs 3 coins.\nI'll give you 15 coins everyday!\p"
-		"What are the coins for? Uhh…\nThey look super neat!"
-	)
-	closemessage
+	if (flag(FLAG_EXPLAINED_PACHINKO)) {
+		playse(SE_LEDGE)
+		applymovement(VAR_LAST_TALKED, moves(jump_in_place_down))
+
+		playmoncry(SPECIES_PORYGON, CRY_MODE_NORMAL)
+
+		setspeaker("Porygon")
+		msgbox(
+			"Yooo, my man's back!\nWanna play {COLOR RED}PACHINKO{COLOR DARK_GRAY}??\p"
+		)
+	} else {
+		setflag(FLAG_EXPLAINED_PACHINKO)
+
+		playmoncry(SPECIES_PORYGON, CRY_MODE_NORMAL)
+		setspeaker("Porygon")
+		msgbox(
+			"Yo, my man, come over here…\p"
+			"Wanna try your luck at the most fun\nway to lose money ever invented?\l"
+			"That's right, {COLOR RED}PACHINKO{COLOR DARK_GRAY}!!\p"
+			"A game costs 3 coins.\nI'll give you 15 coins everyday!\p"
+			"What are the coins for? Uhh…\nThey look super neat!"
+		)
+		closemessage
+	}
 
 	if (!flag(FLAG_RECEIVED_PACHINKO_COINS)) {
 		message(
@@ -39,6 +54,7 @@ script Tamatown_EventScript_Porygon {
 
 	switch(var(VAR_RESULT)) {
 		case 0:
+			playmoncry(SPECIES_PORYGON, CRY_MODE_HIGH_PITCH)
 			setspeaker("Porygon")
 			msgbox(
 				"Heck yeah! Have fun!"
@@ -65,6 +81,7 @@ script Tamatown_EventScript_Porygon {
 			releaseall
 			end
 		default:
+			playmoncry(SPECIES_PORYGON, CRY_MODE_WEAK)
 			setspeaker("Porygon")
 			msgbox(
 				"Aight, aight, can't help ya if you\nhate fun…"
@@ -294,18 +311,31 @@ script Tamatown_EventScript_TrubbishCan {
 script Tamatown_EventScript_Slowpoke {
 	lock
 
-	playmoncry(SPECIES_SLOWPOKE, CRY_MODE_NORMAL)
-	setspeaker("Slowpoke")
-	msgbox(
-		"… … … … … … …\p"
-		"… … … … … … …\p"
-		"We opened up our restaurant\nreeeeecently… Buuuut…\p"
-		"Customers don't tiiiiiiiip…\p"
-		"They say the service is too sloooow…\p"
-		"Can you belieeeeve it?\p"
-		"You look faaaaast enouuuuuugh…\p"
-		"Think you could help us ouuuuut?"
-	)
+	if (flag(FLAG_EXPLAINED_RESTAURANT)) {
+		playmoncry(SPECIES_SLOWPOKE, CRY_MODE_NORMAL)
+		setspeaker("Slowpoke")
+		msgbox(
+			"… … … … … … …\p"
+			"Heeeeeeeeyyyyy…\p"
+			"Think you could help us ouuuuut?"
+		)
+
+	} else {
+		setflag(FLAG_EXPLAINED_RESTAURANT)
+		
+		playmoncry(SPECIES_SLOWPOKE, CRY_MODE_NORMAL)
+		setspeaker("Slowpoke")
+		msgbox(
+			"… … … … … … …\p"
+			"… … … … … … …\p"
+			"We opened up our restaurant\nreeeeecently… Buuuut…\p"
+			"Customers don't tiiiiiiiip…\p"
+			"They say the service is too sloooow…\p"
+			"Can you belieeeeve it?\p"
+			"You look faaaaast enouuuuuugh…\p"
+			"Think you could help us ouuuuut?"
+		)
+	}
 
 	mcdialogueB(
 		"For sure!",
@@ -313,7 +343,7 @@ script Tamatown_EventScript_Slowpoke {
 	)
 
 	if (var(VAR_RESULT) == 0) {
-		playmoncry(SPECIES_SLOWPOKE, CRY_MODE_NORMAL)
+		playmoncry(SPECIES_SLOWPOKE, CRY_MODE_HIGH_PITCH)
 		setspeaker("Slowpoke")
 		msgbox(
 			"… … … … … … …\p"
