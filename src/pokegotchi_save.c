@@ -9,6 +9,7 @@
 #include "random.h"
 #include "save.h"
 #include "test_runner.h"
+#include "event_data.h"
 
 #define POKEGOTCHI_SRAM_SIZE 0x8000
 #define POKEGOTCHI_FLASH_SECTOR_SIZE SECTOR_SIZE
@@ -156,6 +157,9 @@ void PokegotchiSave_ResetToDefaults(void)
     sPokegotchiRuntimeState.playerPartyCount = 1;
     sPokegotchiRuntimeState.optionsSound = OPTIONS_SOUND_MONO;
     sPokegotchiSaveCounter = 0;
+
+    // Flags and shit
+    FlagSet(POKEGOTCHI_FLAG_HIDE_TRUBBISH);
 }
 
 void PokegotchiSave_ClearRuntimeState(void)

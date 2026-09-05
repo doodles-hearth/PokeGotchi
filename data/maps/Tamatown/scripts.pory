@@ -204,106 +204,119 @@ script Tamatown_EventScript_Trashcan {
 script Tamatown_EventScript_TrubbishCan {
 	lock
 
-	msgbox(
-		"It's a trashcan.\p"
-		"…Wait a second…\nDid the trashcan just move?"
-	)
+	if (flag(FLAG_RECEIVED_DAILY_DONUT)) {
+		setspeaker("Trubbish")
+		playmoncry(SPECIES_TRUBBISH, CRY_MODE_NORMAL)
 
-	mcdialogueB(
-		"It did!",
-		"I'm imagining things."
-	)
-
-	if (var(VAR_RESULT) == 0) {
 		msgbox(
-			"What to do?"
+			"Om nom nom nom nom…"
 		)
 
-		mcdialogue(
-			"Kick it.",
-			"Hug it."
+	} else {
+		msgbox(
+			"It's a trashcan.\p"
+			"…Wait a second…\nDid the trashcan just move?"
+		)
+
+		mcdialogueB(
+			"It did!",
+			"I'm imagining things."
 		)
 
 		if (var(VAR_RESULT) == 0) {
-			setvar(VAR_0x8004, 0) // Vertical pan
-			setvar(VAR_0x8005, 3) // Horizontal pan
-			setvar(VAR_0x8006, 4) // Num shakes
-			setvar(VAR_0x8007, 2) // Shake delay
-			special(ShakeScreen)
-			playmoncry(SPECIES_TRUBBISH, CRY_MODE_NORMAL)
-			setspeaker("Trashcan?")
 			msgbox(
-				"WAIT! WAIT! STOP!"
+				"What to do?"
 			)
 
-			waitmoncry
+			mcdialogue(
+				"Kick it.",
+				"Hug it."
+			)
+
+			if (var(VAR_RESULT) == 0) {
+				setvar(VAR_0x8004, 0) // Vertical pan
+				setvar(VAR_0x8005, 3) // Horizontal pan
+				setvar(VAR_0x8006, 4) // Num shakes
+				setvar(VAR_0x8007, 2) // Shake delay
+				special(ShakeScreen)
+				playmoncry(SPECIES_TRUBBISH, CRY_MODE_NORMAL)
+				setspeaker("Trashcan?")
+				msgbox(
+					"WAIT! WAIT! STOP!"
+				)
+
+				waitmoncry
+				closemessage
+
+				playse(SE_PIN)
+				applymovement(LOCALID_PLAYER, moves(emote_exclamation_mark, delay_16 * 6))
+				waitse
+				waitmovement(0)
+
+				clearflag(POKEGOTCHI_FLAG_HIDE_TRUBBISH)
+				addobject(LOCALID_TRUBBISH)
+
+				playse(SE_LEDGE)
+				applymovement(LOCALID_TRUBBISH, moves(jump_in_place_down, delay_16 * 3))
+				waitmovement(0)
+
+				setspeaker("Trubbish")
+				msgbox(
+					"Whew! You almost got me there!\nNo, I wasn't hiding…\p"
+					"I just found this box of barely licked\ndoughnuts!\p"
+					"Look at these glazed beauties\nwhispering “Eat me”…\lI can't resist!\p"
+					"Here, have one, you'll see what I mean!"
+				)
+			} else {
+				// TODO EVA Jamie's half-step
+
+				playse(SE_PIN)
+				applymovement(VAR_LAST_TALKED, moves(emote_heart, delay_16 * 6))
+				waitse
+				waitmovement(0)
+
+				msgbox(
+					"The trashcan looks… happy?"
+				)
+				closemessage
+
+				clearflag(POKEGOTCHI_FLAG_HIDE_TRUBBISH)
+				addobject(LOCALID_TRUBBISH)
+
+				playse(SE_LEDGE)
+				applymovement(LOCALID_TRUBBISH, moves(jump_in_place_down, delay_16 * 3))
+				waitmovement(0)
+
+				playmoncry(SPECIES_TRUBBISH, CRY_MODE_NORMAL)
+				applymovement(LOCALID_TRUBBISH, moves(emote_heart))
+				setspeaker("Trubbish")
+				msgbox(
+					"I-I've never been held with such\nkindness before…\p"
+					"Thanks, buddy.\nI'm happy you don't think I'm trash!\p"
+					"I just found this box of barely licked\ndoughnuts!\p"
+					"Look at these glazed beauties\nwhispering “Eat me”…\lI can't resist!\p"
+					"Here, have one, you'll see what I mean!"
+				)
+			}
+		
+			setflag(FLAG_RECEIVED_DAILY_DONUT)
+
+			setspeaker(NULL)
+			playfanfare(MUS_LEVEL_UP)
+			message(
+				"You got a Doughnut!"
+			)
+			waitfanfare
+			waitmessage
 			closemessage
-
-			playse(SE_PIN)
-			applymovement(LOCALID_PLAYER, moves(emote_exclamation_mark, delay_16 * 6))
-			waitse
-			waitmovement(0)
-
-			clearflag(POKEGOTCHI_FLAG_HIDE_TRUBBISH)
-			addobject(LOCALID_TRUBBISH)
-
-			playse(SE_LEDGE)
-			applymovement(LOCALID_TRUBBISH, moves(jump_in_place_down, delay_16 * 3))
-			waitmovement(0)
-
-			setspeaker("Trubbish")
-			msgbox(
-				"Whew! You almost got me there!\nNo, I wasn't hiding…\p"
-				"I just found this box of barely licked\ndoughnuts!\p"
-				"Look at these glazed beauties\nwhispering “Eat me”…\lI can't resist!\p"
-				"Here, have one, you'll see what I mean!"
-			)
+			setflag(FLAG_REMOVE_TRASHCAN_INTERACTION)
 		} else {
-			// TODO EVA Jamie's half-step
-
-			playse(SE_PIN)
-			applymovement(VAR_LAST_TALKED, moves(emote_heart, delay_16 * 6))
-			waitse
-			waitmovement(0)
-
 			msgbox(
-				"The trashcan looks… happy?"
-			)
-			closemessage
-
-			clearflag(POKEGOTCHI_FLAG_HIDE_TRUBBISH)
-			addobject(LOCALID_TRUBBISH)
-
-			playse(SE_LEDGE)
-			applymovement(LOCALID_TRUBBISH, moves(jump_in_place_down, delay_16 * 3))
-			waitmovement(0)
-
-			setspeaker("Trubbish")
-			msgbox(
-				"I-I've never been held with such\nkindness before…\p"
-				"Thanks, buddy.\nI'm happy you don't think I'm trash!\p"
-				"I just found this box of barely licked\ndoughnuts!\p"
-				"Look at these glazed beauties\nwhispering “Eat me”…\lI can't resist!\p"
-				"Here, have one, you'll see what I mean!"
+				"The trashcan looks saddened."
 			)
 		}
-	
-		setflag(POKEGOTCHI_FLAG_UNLOCKED_SNACK_DOUGHNUT)
-
-		setspeaker(NULL)
-		playfanfare(MUS_LEVEL_UP)
-		message(
-			"You got the Doughnut!"
-		)
-		waitfanfare
 		closemessage
-		setflag(FLAG_REMOVE_TRASHCAN_INTERACTION)
-	} else {
-		msgbox(
-			"The trashcan looks saddened."
-		)
 	}
-	closemessage
 
 	release
 }
@@ -349,7 +362,88 @@ script Tamatown_EventScript_Slowpoke {
 			"… … … … … … …\p"
 			"Yaaaaaaaaaaaaaaaaaaay…"
 		)
-		// TODO minigame
+		
+		callnative(PlayPokegotchiWaiterMinigameHard)
+		waitstate
+
+		setspeaker("Slowpoke")
+
+		if (var(VAR_RESULT) > 20) {
+			playmoncry(SPECIES_SLOWPOKE, CRY_MODE_NORMAL)
+			// buffernumberstring(STR_VAR_2, VAR_RESULT)
+			msgbox(
+				"Thaaaanks for heeeelping ooout…\p"
+				"You served over 20 happy\ncuuuustomers…\lGreaaaaat joooob…\p"
+				"You deserve a meaaaaaaal…\nAnd a saaaaaalaryyyyy…"
+			)
+			closemessage
+
+			message(
+				"You got 3 hot dogs!"
+			)
+			playfanfare(MUS_OBTAIN_ITEM)
+			waitfanfare
+			addpokegotchifood(FEED_FOOD_KEY_HOT_DOG, 3)
+
+			message(
+				"You got 10 coins!"
+			)
+			playfanfare(MUS_OBTAIN_ITEM)
+			waitfanfare
+			addcoins(10)
+		} elif (var(VAR_RESULT) > 10) {
+			playmoncry(SPECIES_SLOWPOKE, CRY_MODE_NORMAL)
+			// buffernumberstring(VAR_RESULT, STR_VAR_1)
+			msgbox(
+				"Thaaaanks for heeeelping ooout…\p"
+				"You served over 10\ncuuuustomers…\lYou did your beeeest…"
+				"You deserve a meaaaaaaal…\nAnd a saaaaaalaryyyyy…"
+			)
+			closemessage
+
+			message(
+				"You got 2 hot dogs!"
+			)
+			playfanfare(MUS_OBTAIN_ITEM)
+			waitfanfare
+			addpokegotchifood(FEED_FOOD_KEY_HOT_DOG, 2)
+
+			message(
+				"You got 5 coins!"
+			)
+			playfanfare(MUS_OBTAIN_ITEM)
+			waitfanfare
+			addcoins(5)
+		} elif (var(VAR_RESULT) > 5) {
+			playmoncry(SPECIES_SLOWPOKE, CRY_MODE_NORMAL)
+			// buffernumberstring(VAR_RESULT, STR_VAR_1)
+			msgbox(
+				"Thaaaanks for heeeelping ooout…\p"
+				"You served a couple\ncuuuustomers…\lOoookaaaaay…\p"
+				"Here's a little sooooomething…"
+			)
+			closemessage
+
+			message(
+				"You got 1 hot dog!"
+			)
+			playfanfare(MUS_OBTAIN_ITEM)
+			waitfanfare
+			addpokegotchifood(FEED_FOOD_KEY_HOT_DOG, 1)
+
+			message(
+				"You got 3 coins!"
+			)
+			playfanfare(MUS_OBTAIN_ITEM)
+			waitfanfare
+			addcoins(3)
+		} else {
+			playmoncry(SPECIES_SLOWPOKE, CRY_MODE_NORMAL)
+			msgbox(
+				"Daaaaaaamn, you're even slower than\nmeeeee…\p"
+				"Oooooh wellllllll…"
+			)
+		}
 	} else {
 		playmoncry(SPECIES_SLOWPOKE, CRY_MODE_FAINT)
 		setspeaker("Slowpoke")
