@@ -6,17 +6,24 @@
 
 #define POKEGOTCHI_STATS_VERSION 1
 #define POKEGOTCHI_STARTING_FOOD_COUNT 10
+#define POKEGOTCHI_SESSION_WOKEN_DURING_SLEEP (1 << 0)
+#define POKEGOTCHI_SESSION_SLEEP_DECAY_PENDING (1 << 1)
 
 static EWRAM_DATA bool8 sPokegotchiSessionStarted = FALSE;
 static EWRAM_DATA struct Time sPokegotchiSessionStart = {0};
+static EWRAM_DATA u8 sPokegotchiSessionFlags = 0;
 static EWRAM_DATA bool8 sPokegotchiUseTestTime = FALSE;
 static EWRAM_DATA struct Time sPokegotchiTestTime = {0};
 
 static void GetCurrentTime(struct Time *time);
 static s32 CompareTimes(const struct Time *left, const struct Time *right);
 static u32 GetMinutesBetween(const struct Time *start, const struct Time *end);
+static bool8 IsTimeInSleepWindow(const struct Time *time);
+static u32 GetSleepMinutesBefore(const struct Time *time);
+static u32 GetSleepMinutesBetween(const struct Time *start, const struct Time *end);
+static u32 GetActiveSleepDecay(const struct Time *start, const struct Time *end, u32 sleepMinutes);
 static u16 ClampStatValue(s32 value);
-static void ApplyDecay(u32 activeMinutes, u32 offlineMinutes);
+static void ApplyDecay(u32 statDecayAmount, u32 poopDecayMinutes);
 static void RestampLastUpdated(const struct Time *time);
 static u8 *GetMutableFoodCountByKey(u8 foodKey);
 static bool8 GetStatField(enum PokegotchiStat stat, u16 **value);
@@ -27,6 +34,7 @@ void Pokegotchi_BeginSession(void)
 {
     GetCurrentTime(&sPokegotchiSessionStart);
     sPokegotchiSessionStarted = TRUE;
+    sPokegotchiSessionFlags = 0;
 }
 
 void Pokegotchi_EnsureInitialized(void)
@@ -35,7 +43,14 @@ void Pokegotchi_EnsureInitialized(void)
     struct PokegotchiStats *stats = &runtime->stats;
 
     if (stats->version == POKEGOTCHI_STATS_VERSION)
+    {
+        if (stats->poopsOnScreen > POKEGOTCHI_MAX_POOPS)
+        {
+            stats->poopsOnScreen = POKEGOTCHI_MAX_POOPS;
+            CommitRuntimeState();
+        }
         return;
+    }
 
     GetCurrentTime(&stats->lastUpdated);
     stats->version = POKEGOTCHI_STATS_VERSION;
@@ -60,9 +75,15 @@ void Pokegotchi_Sync(void)
 {
     struct PokegotchiStats *stats = GetMutableStats();
     struct Time now;
+    struct Time activeStart;
     u32 activeMinutes = 0;
     u32 offlineMinutes = 0;
-    u32 effectiveOfflineMinutes;
+    u32 activeSleepMinutes = 0;
+    u32 offlineSleepMinutes = 0;
+    u32 activeAwakeMinutes;
+    u32 offlineAwakeMinutes;
+    u32 statDecayAmount;
+    u32 poopDecayMinutes;
 
     Pokegotchi_EnsureInitialized();
 
@@ -75,6 +96,7 @@ void Pokegotchi_Sync(void)
     {
         RestampLastUpdated(&now);
         sPokegotchiSessionStart = now;
+        sPokegotchiSessionFlags = 0;
         CommitRuntimeState();
         return;
     }
@@ -85,19 +107,44 @@ void Pokegotchi_Sync(void)
     if (CompareTimes(&stats->lastUpdated, &sPokegotchiSessionStart) < 0)
     {
         offlineMinutes = GetMinutesBetween(&stats->lastUpdated, &sPokegotchiSessionStart);
+        offlineSleepMinutes = GetSleepMinutesBetween(&stats->lastUpdated, &sPokegotchiSessionStart);
+        activeStart = sPokegotchiSessionStart;
         activeMinutes = GetMinutesBetween(&sPokegotchiSessionStart, &now);
     }
     else
     {
+        activeStart = stats->lastUpdated;
         activeMinutes = GetMinutesBetween(&stats->lastUpdated, &now);
     }
 
-    effectiveOfflineMinutes = (offlineMinutes * POKEGOTCHI_OFFLINE_DECAY_PERCENT) / 100;
-    if (activeMinutes + effectiveOfflineMinutes == 0)
+    if (activeMinutes + offlineMinutes == 0)
         return;
 
-    ApplyDecay(activeMinutes, effectiveOfflineMinutes);
+    if (!(sPokegotchiSessionFlags & POKEGOTCHI_SESSION_WOKEN_DURING_SLEEP))
+        activeSleepMinutes = GetSleepMinutesBetween(&activeStart, &now);
+
+    activeSleepMinutes = min(activeSleepMinutes, activeMinutes);
+    offlineSleepMinutes = min(offlineSleepMinutes, offlineMinutes);
+    activeAwakeMinutes = activeMinutes - activeSleepMinutes;
+    offlineAwakeMinutes = offlineMinutes - offlineSleepMinutes;
+
+    statDecayAmount = activeAwakeMinutes * POKEGOTCHI_STAT_DECAY_PER_MINUTE;
+    statDecayAmount += ((offlineAwakeMinutes * POKEGOTCHI_OFFLINE_DECAY_PERCENT) / 100)
+                     * POKEGOTCHI_STAT_DECAY_PER_MINUTE;
+    statDecayAmount += offlineSleepMinutes / 2;
+    if (!(sPokegotchiSessionFlags & POKEGOTCHI_SESSION_WOKEN_DURING_SLEEP))
+        statDecayAmount += GetActiveSleepDecay(&activeStart, &now, activeSleepMinutes);
+
+    poopDecayMinutes = activeAwakeMinutes;
+    poopDecayMinutes += (offlineAwakeMinutes * POKEGOTCHI_OFFLINE_DECAY_PERCENT) / 100;
+
+    ApplyDecay(statDecayAmount, poopDecayMinutes);
     RestampLastUpdated(&now);
+
+    if (!IsTimeInSleepWindow(&now))
+    {
+        sPokegotchiSessionFlags = 0;
+    }
     CommitRuntimeState();
 }
 
@@ -126,6 +173,15 @@ const struct PokegotchiStats *Pokegotchi_GetStats(void)
 {
     Pokegotchi_EnsureInitialized();
     return &PokegotchiSave_GetRuntime()->stats;
+}
+
+bool8 Pokegotchi_IsSleeping(void)
+{
+    struct Time now;
+
+    GetCurrentTime(&now);
+    return IsTimeInSleepWindow(&now)
+        && !(sPokegotchiSessionFlags & POKEGOTCHI_SESSION_WOKEN_DURING_SLEEP);
 }
 
 bool8 Pokegotchi_AddFoodByKey(u8 foodKey, u16 amount)
@@ -181,9 +237,32 @@ void Pokegotchi_ResetStateForTest(void)
 {
     sPokegotchiSessionStarted = FALSE;
     memset(&sPokegotchiSessionStart, 0, sizeof(sPokegotchiSessionStart));
+    sPokegotchiSessionFlags = 0;
     sPokegotchiUseTestTime = FALSE;
     memset(&sPokegotchiTestTime, 0, sizeof(sPokegotchiTestTime));
 }
+
+#if TESTING
+void Pokegotchi_SetWokenDuringSleepForTest(bool8 woken)
+{
+    // Future production callers must sync before waking the pet so elapsed
+    // sleeping time is not retroactively charged at the active-awake rate.
+    if (woken)
+    {
+        sPokegotchiSessionFlags |= POKEGOTCHI_SESSION_WOKEN_DURING_SLEEP;
+        sPokegotchiSessionFlags &= ~POKEGOTCHI_SESSION_SLEEP_DECAY_PENDING;
+    }
+    else
+    {
+        sPokegotchiSessionFlags &= ~POKEGOTCHI_SESSION_WOKEN_DURING_SLEEP;
+    }
+}
+
+u32 Pokegotchi_GetSleepMinutesBetweenForTest(const struct Time *start, const struct Time *end)
+{
+    return GetSleepMinutesBetween(start, end);
+}
+#endif
 
 static void GetCurrentTime(struct Time *time)
 {
@@ -229,6 +308,121 @@ static u32 GetMinutesBetween(const struct Time *start, const struct Time *end)
     return diff.days * HOURS_PER_DAY * MINUTES_PER_HOUR + diff.hours * MINUTES_PER_HOUR + diff.minutes;
 }
 
+static bool8 IsTimeInSleepWindow(const struct Time *time)
+{
+    return time->hours >= POKEGOTCHI_SLEEP_START_HOUR
+        || time->hours < POKEGOTCHI_SLEEP_END_HOUR;
+}
+
+static u32 GetSleepMinutesBefore(const struct Time *time)
+{
+    u32 days = max(0, time->days);
+    u32 minuteOfDay = time->hours * MINUTES_PER_HOUR + time->minutes;
+    u32 sleepMinutes = days * 8 * MINUTES_PER_HOUR;
+
+    if (minuteOfDay < POKEGOTCHI_SLEEP_END_HOUR * MINUTES_PER_HOUR)
+        sleepMinutes += minuteOfDay;
+    else if (minuteOfDay < POKEGOTCHI_SLEEP_START_HOUR * MINUTES_PER_HOUR)
+        sleepMinutes += POKEGOTCHI_SLEEP_END_HOUR * MINUTES_PER_HOUR;
+    else
+        sleepMinutes += POKEGOTCHI_SLEEP_END_HOUR * MINUTES_PER_HOUR
+                      + minuteOfDay - POKEGOTCHI_SLEEP_START_HOUR * MINUTES_PER_HOUR;
+
+    return sleepMinutes;
+}
+
+static u32 GetSleepMinutesBetween(const struct Time *start, const struct Time *end)
+{
+    u32 startSleepMinutes;
+    u32 endSleepMinutes;
+    u32 totalMinutes;
+
+    if (CompareTimes(start, end) >= 0)
+        return 0;
+
+    totalMinutes = GetMinutesBetween(start, end);
+    startSleepMinutes = GetSleepMinutesBefore(start);
+    endSleepMinutes = GetSleepMinutesBefore(end);
+    if (endSleepMinutes <= startSleepMinutes)
+        return 0;
+
+    return min(totalMinutes, endSleepMinutes - startSleepMinutes);
+}
+
+static u32 GetMinutesUntilSleepEnds(const struct Time *time)
+{
+    u32 minuteOfDay = time->hours * MINUTES_PER_HOUR + time->minutes;
+
+    if (time->hours < POKEGOTCHI_SLEEP_END_HOUR)
+        return POKEGOTCHI_SLEEP_END_HOUR * MINUTES_PER_HOUR - minuteOfDay;
+
+    return HOURS_PER_DAY * MINUTES_PER_HOUR - minuteOfDay
+         + POKEGOTCHI_SLEEP_END_HOUR * MINUTES_PER_HOUR;
+}
+
+static u32 GetMinutesSinceSleepStarted(const struct Time *time)
+{
+    u32 minuteOfDay = time->hours * MINUTES_PER_HOUR + time->minutes;
+
+    if (time->hours >= POKEGOTCHI_SLEEP_START_HOUR)
+        return minuteOfDay - POKEGOTCHI_SLEEP_START_HOUR * MINUTES_PER_HOUR;
+
+    return (HOURS_PER_DAY - POKEGOTCHI_SLEEP_START_HOUR) * MINUTES_PER_HOUR + minuteOfDay;
+}
+
+static u32 GetActiveSleepDecay(const struct Time *start, const struct Time *end, u32 sleepMinutes)
+{
+    u32 firstSegmentMinutes = 0;
+    u32 lastSegmentMinutes = 0;
+    u32 middleMinutes;
+    u32 decayAmount = 0;
+    u32 pairedMinutes;
+
+    if (sleepMinutes == 0)
+    {
+        if (GetMinutesBetween(start, end) != 0)
+            sPokegotchiSessionFlags &= ~POKEGOTCHI_SESSION_SLEEP_DECAY_PENDING;
+        return 0;
+    }
+
+    if (IsTimeInSleepWindow(start))
+    {
+        firstSegmentMinutes = min(sleepMinutes, GetMinutesUntilSleepEnds(start));
+        pairedMinutes = firstSegmentMinutes
+                      + !!(sPokegotchiSessionFlags & POKEGOTCHI_SESSION_SLEEP_DECAY_PENDING);
+        decayAmount += pairedMinutes / 2;
+
+        if (firstSegmentMinutes == sleepMinutes && IsTimeInSleepWindow(end))
+        {
+            if (pairedMinutes & 1)
+                sPokegotchiSessionFlags |= POKEGOTCHI_SESSION_SLEEP_DECAY_PENDING;
+            else
+                sPokegotchiSessionFlags &= ~POKEGOTCHI_SESSION_SLEEP_DECAY_PENDING;
+            return decayAmount;
+        }
+
+        sPokegotchiSessionFlags &= ~POKEGOTCHI_SESSION_SLEEP_DECAY_PENDING;
+    }
+
+    if (IsTimeInSleepWindow(end))
+    {
+        lastSegmentMinutes = min(sleepMinutes - firstSegmentMinutes, GetMinutesSinceSleepStarted(end));
+        decayAmount += lastSegmentMinutes / 2;
+        if (lastSegmentMinutes & 1)
+            sPokegotchiSessionFlags |= POKEGOTCHI_SESSION_SLEEP_DECAY_PENDING;
+        else
+            sPokegotchiSessionFlags &= ~POKEGOTCHI_SESSION_SLEEP_DECAY_PENDING;
+    }
+    else
+    {
+        sPokegotchiSessionFlags &= ~POKEGOTCHI_SESSION_SLEEP_DECAY_PENDING;
+    }
+
+    middleMinutes = sleepMinutes - firstSegmentMinutes - lastSegmentMinutes;
+    decayAmount += middleMinutes / 2;
+    return decayAmount;
+}
+
 static u16 ClampStatValue(s32 value)
 {
     if (value < 0)
@@ -238,28 +432,40 @@ static u16 ClampStatValue(s32 value)
     return value;
 }
 
-static void ApplyDecay(u32 activeMinutes, u32 offlineMinutes)
+static void ApplyDecay(u32 statDecayAmount, u32 poopDecayMinutes)
 {
     struct PokegotchiStats *stats = GetMutableStats();
-    u32 totalMinutes = activeMinutes + offlineMinutes;
     u32 i;
-    s32 decayAmount = totalMinutes * POKEGOTCHI_STAT_DECAY_PER_MINUTE;
 
-    stats->food = ClampStatValue(stats->food - decayAmount);
-    stats->fun = ClampStatValue(stats->fun - decayAmount);
-    stats->happy = ClampStatValue(stats->happy - decayAmount);
+    stats->food = ClampStatValue(stats->food - statDecayAmount);
+    stats->fun = ClampStatValue(stats->fun - statDecayAmount);
+    stats->happy = ClampStatValue(stats->happy - statDecayAmount);
 
-    for (i = 0; i < totalMinutes; i++)
+    if (stats->poopsOnScreen >= POKEGOTCHI_MAX_POOPS)
+    {
+        stats->poopsOnScreen = POKEGOTCHI_MAX_POOPS;
+        stats->poop = ClampStatValue(stats->poop - poopDecayMinutes * POKEGOTCHI_STAT_DECAY_PER_MINUTE);
+        return;
+    }
+
+    for (i = 0; i < poopDecayMinutes; i++)
     {
         stats->poop = ClampStatValue(stats->poop - POKEGOTCHI_STAT_DECAY_PER_MINUTE);
         if (stats->poop < POKEGOTCHI_POOP_THRESHOLD
          && RandomUniform(RNG_POKEGOTCHI_POOP, 0, 99) < min(100, POKEGOTCHI_POOP_THRESHOLD - stats->poop))
         {
             stats->poop = POKEGOTCHI_STAT_MAX;
-            if (stats->poopsOnScreen < UINT16_MAX)
-                stats->poopsOnScreen++;
+            stats->poopsOnScreen++;
+            if (stats->poopsOnScreen == POKEGOTCHI_MAX_POOPS)
+            {
+                i++;
+                break;
+            }
         }
     }
+
+    if (i < poopDecayMinutes)
+        stats->poop = ClampStatValue(stats->poop - (poopDecayMinutes - i) * POKEGOTCHI_STAT_DECAY_PER_MINUTE);
 }
 
 static void RestampLastUpdated(const struct Time *time)

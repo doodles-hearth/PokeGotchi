@@ -8,14 +8,26 @@
 #include "test/overworld_script.h"
 #include "test/test.h"
 
-static const struct Time sTime_00_00 = {.days = 0, .hours = 0, .minutes = 0, .seconds = 0};
-static const struct Time sTime_00_01 = {.days = 0, .hours = 0, .minutes = 1, .seconds = 0};
-static const struct Time sTime_00_02 = {.days = 0, .hours = 0, .minutes = 2, .seconds = 0};
-static const struct Time sTime_00_10 = {.days = 0, .hours = 0, .minutes = 10, .seconds = 0};
-static const struct Time sTime_00_16 = {.days = 0, .hours = 0, .minutes = 16, .seconds = 0};
-static const struct Time sTime_00_26 = {.days = 0, .hours = 0, .minutes = 26, .seconds = 0};
-static const struct Time sTime_03_00 = {.days = 0, .hours = 3, .minutes = 0, .seconds = 0};
 static const struct Time sTime_10_00 = {.days = 0, .hours = 10, .minutes = 0, .seconds = 0};
+static const struct Time sTime_10_01 = {.days = 0, .hours = 10, .minutes = 1, .seconds = 0};
+static const struct Time sTime_10_02 = {.days = 0, .hours = 10, .minutes = 2, .seconds = 0};
+static const struct Time sTime_10_10 = {.days = 0, .hours = 10, .minutes = 10, .seconds = 0};
+static const struct Time sTime_10_16 = {.days = 0, .hours = 10, .minutes = 16, .seconds = 0};
+static const struct Time sTime_10_26 = {.days = 0, .hours = 10, .minutes = 26, .seconds = 0};
+static const struct Time sTime_11_50 = {.days = 0, .hours = 11, .minutes = 50, .seconds = 0};
+static const struct Time sTime_13_00 = {.days = 0, .hours = 13, .minutes = 0, .seconds = 0};
+static const struct Time sTime_20_00 = {.days = 0, .hours = 20, .minutes = 0, .seconds = 0};
+static const struct Time sTime_20_59 = {.days = 0, .hours = 20, .minutes = 59, .seconds = 0};
+static const struct Time sTime_21_00 = {.days = 0, .hours = 21, .minutes = 0, .seconds = 0};
+static const struct Time sTime_21_01 = {.days = 0, .hours = 21, .minutes = 1, .seconds = 0};
+static const struct Time sTime_21_02 = {.days = 0, .hours = 21, .minutes = 2, .seconds = 0};
+static const struct Time sTime_21_03 = {.days = 0, .hours = 21, .minutes = 3, .seconds = 0};
+static const struct Time sTime_23_00 = {.days = 0, .hours = 23, .minutes = 0, .seconds = 0};
+static const struct Time sTime_Day1_00_00 = {.days = 1, .hours = 0, .minutes = 0, .seconds = 0};
+static const struct Time sTime_Day1_04_58 = {.days = 1, .hours = 4, .minutes = 58, .seconds = 0};
+static const struct Time sTime_Day1_04_59 = {.days = 1, .hours = 4, .minutes = 59, .seconds = 0};
+static const struct Time sTime_Day1_05_00 = {.days = 1, .hours = 5, .minutes = 0, .seconds = 0};
+static const struct Time sTime_Day2_06_00 = {.days = 2, .hours = 6, .minutes = 0, .seconds = 0};
 static const struct Time sTime_09_00 = {.days = 0, .hours = 9, .minutes = 0, .seconds = 0};
 
 static void ResetPokegotchiTestState(void)
@@ -61,11 +73,11 @@ TEST("(Pokegotchi) One active minute reduces all four meters by two")
     const struct PokegotchiStats *stats;
 
     ResetPokegotchiTestState();
-    Pokegotchi_SetCurrentTimeForTest(&sTime_00_00);
+    Pokegotchi_SetCurrentTimeForTest(&sTime_10_00);
     Pokegotchi_EnsureInitialized();
     Pokegotchi_BeginSession();
 
-    Pokegotchi_SetCurrentTimeForTest(&sTime_00_01);
+    Pokegotchi_SetCurrentTimeForTest(&sTime_10_01);
     Pokegotchi_Sync();
     stats = Pokegotchi_GetStats();
 
@@ -80,10 +92,10 @@ TEST("(Pokegotchi) Offline-only elapsed time uses the reduced scalar")
     const struct PokegotchiStats *stats;
 
     ResetPokegotchiTestState();
-    Pokegotchi_SetCurrentTimeForTest(&sTime_00_00);
+    Pokegotchi_SetCurrentTimeForTest(&sTime_10_00);
     Pokegotchi_EnsureInitialized();
 
-    Pokegotchi_SetCurrentTimeForTest(&sTime_00_02);
+    Pokegotchi_SetCurrentTimeForTest(&sTime_10_02);
     Pokegotchi_Sync();
     stats = Pokegotchi_GetStats();
 
@@ -98,13 +110,13 @@ TEST("(Pokegotchi) Mixed offline and active time splits around session start")
     const struct PokegotchiStats *stats;
 
     ResetPokegotchiTestState();
-    Pokegotchi_SetCurrentTimeForTest(&sTime_00_00);
+    Pokegotchi_SetCurrentTimeForTest(&sTime_10_00);
     Pokegotchi_EnsureInitialized();
 
-    Pokegotchi_SetCurrentTimeForTest(&sTime_00_10);
+    Pokegotchi_SetCurrentTimeForTest(&sTime_10_10);
     Pokegotchi_BeginSession();
 
-    Pokegotchi_SetCurrentTimeForTest(&sTime_00_16);
+    Pokegotchi_SetCurrentTimeForTest(&sTime_10_16);
     Pokegotchi_Sync();
     stats = Pokegotchi_GetStats();
 
@@ -119,11 +131,11 @@ TEST("(Pokegotchi) Long elapsed time clamps food, fun, and happy at zero")
     const struct PokegotchiStats *stats;
 
     ResetPokegotchiTestState();
-    Pokegotchi_SetCurrentTimeForTest(&sTime_00_00);
+    Pokegotchi_SetCurrentTimeForTest(&sTime_10_00);
     Pokegotchi_EnsureInitialized();
     Pokegotchi_BeginSession();
 
-    Pokegotchi_SetCurrentTimeForTest(&sTime_03_00);
+    Pokegotchi_SetCurrentTimeForTest(&sTime_13_00);
     Pokegotchi_Sync();
     stats = Pokegotchi_GetStats();
 
@@ -137,12 +149,12 @@ TEST("(Pokegotchi) Rigged poop RNG resets poop and increments poopsOnScreen")
     const struct PokegotchiStats *stats;
 
     ResetPokegotchiTestState();
-    Pokegotchi_SetCurrentTimeForTest(&sTime_00_00);
+    Pokegotchi_SetCurrentTimeForTest(&sTime_10_00);
     Pokegotchi_EnsureInitialized();
     Pokegotchi_BeginSession();
     SET_RNG(RNG_POKEGOTCHI_POOP, 0);
 
-    Pokegotchi_SetCurrentTimeForTest(&sTime_00_26);
+    Pokegotchi_SetCurrentTimeForTest(&sTime_10_26);
     Pokegotchi_Sync();
     stats = Pokegotchi_GetStats();
 
@@ -169,4 +181,175 @@ TEST("(Pokegotchi) Clock rollback restamps without underflowing stats")
     EXPECT_EQ(stats->poop, 250);
     EXPECT_EQ(stats->lastUpdated.hours, 9);
     EXPECT_EQ(stats->lastUpdated.minutes, 0);
+}
+
+TEST("(Pokegotchi) Sleep starts at 21:00 and ends at 05:00")
+{
+    ResetPokegotchiTestState();
+
+    Pokegotchi_SetCurrentTimeForTest(&sTime_20_59);
+    EXPECT_EQ(Pokegotchi_IsSleeping(), FALSE);
+    Pokegotchi_SetCurrentTimeForTest(&sTime_21_00);
+    EXPECT_EQ(Pokegotchi_IsSleeping(), TRUE);
+    Pokegotchi_SetCurrentTimeForTest(&sTime_Day1_00_00);
+    EXPECT_EQ(Pokegotchi_IsSleeping(), TRUE);
+    Pokegotchi_SetCurrentTimeForTest(&sTime_Day1_04_59);
+    EXPECT_EQ(Pokegotchi_IsSleeping(), TRUE);
+    Pokegotchi_SetCurrentTimeForTest(&sTime_Day1_05_00);
+    EXPECT_EQ(Pokegotchi_IsSleeping(), FALSE);
+}
+
+TEST("(Pokegotchi) Sleep overlap is constant across midnight and complete days")
+{
+    ResetPokegotchiTestState();
+
+    EXPECT_EQ(Pokegotchi_GetSleepMinutesBetweenForTest(&sTime_23_00, &sTime_Day1_00_00), 60);
+    EXPECT_EQ(Pokegotchi_GetSleepMinutesBetweenForTest(&sTime_20_00, &sTime_Day2_06_00), 960);
+}
+
+TEST("(Pokegotchi) Active sleep skips the first minute and reduces one point on the second")
+{
+    const struct PokegotchiStats *stats;
+
+    ResetPokegotchiTestState();
+    Pokegotchi_SetCurrentTimeForTest(&sTime_21_00);
+    Pokegotchi_EnsureInitialized();
+    Pokegotchi_BeginSession();
+
+    Pokegotchi_SetCurrentTimeForTest(&sTime_21_01);
+    Pokegotchi_Sync();
+    stats = Pokegotchi_GetStats();
+    EXPECT_EQ(stats->food, 250);
+    EXPECT_EQ(stats->poop, 250);
+
+    Pokegotchi_SetCurrentTimeForTest(&sTime_21_02);
+    Pokegotchi_Sync();
+    stats = Pokegotchi_GetStats();
+    EXPECT_EQ(stats->food, 249);
+    EXPECT_EQ(stats->fun, 249);
+    EXPECT_EQ(stats->happy, 249);
+    EXPECT_EQ(stats->poop, 250);
+
+    Pokegotchi_SetCurrentTimeForTest(&sTime_21_03);
+    Pokegotchi_Sync();
+    EXPECT_EQ(Pokegotchi_GetStats()->food, 249);
+}
+
+TEST("(Pokegotchi) Offline sleep drops fractional decay on reopen")
+{
+    ResetPokegotchiTestState();
+    Pokegotchi_SetCurrentTimeForTest(&sTime_21_00);
+    Pokegotchi_EnsureInitialized();
+
+    Pokegotchi_SetCurrentTimeForTest(&sTime_21_01);
+    Pokegotchi_Sync();
+    EXPECT_EQ(Pokegotchi_GetStats()->food, 250);
+
+    Pokegotchi_ResetStateForTest();
+    Pokegotchi_SetCurrentTimeForTest(&sTime_21_02);
+    Pokegotchi_Sync();
+    EXPECT_EQ(Pokegotchi_GetStats()->food, 250);
+
+    ResetPokegotchiTestState();
+    Pokegotchi_SetCurrentTimeForTest(&sTime_21_00);
+    Pokegotchi_EnsureInitialized();
+    Pokegotchi_SetCurrentTimeForTest(&sTime_21_03);
+    Pokegotchi_Sync();
+    EXPECT_EQ(Pokegotchi_GetStats()->food, 249);
+}
+
+TEST("(Pokegotchi) Sleep freezes poop decay and generation")
+{
+    const struct PokegotchiStats *stats;
+
+    ResetPokegotchiTestState();
+    Pokegotchi_SetCurrentTimeForTest(&sTime_21_00);
+    Pokegotchi_EnsureInitialized();
+    Pokegotchi_BeginSession();
+    SET_RNG(RNG_POKEGOTCHI_POOP, 0);
+
+    Pokegotchi_SetCurrentTimeForTest(&sTime_23_00);
+    Pokegotchi_Sync();
+    stats = Pokegotchi_GetStats();
+
+    EXPECT_EQ(stats->food, 190);
+    EXPECT_EQ(stats->poop, 250);
+    EXPECT_EQ(stats->poopsOnScreen, 0);
+}
+
+TEST("(Pokegotchi) A woken pet uses regular active decay during sleep time")
+{
+    const struct PokegotchiStats *stats;
+
+    ResetPokegotchiTestState();
+    Pokegotchi_SetCurrentTimeForTest(&sTime_21_00);
+    Pokegotchi_EnsureInitialized();
+    Pokegotchi_BeginSession();
+    Pokegotchi_SetWokenDuringSleepForTest(TRUE);
+
+    EXPECT_EQ(Pokegotchi_IsSleeping(), FALSE);
+    Pokegotchi_SetCurrentTimeForTest(&sTime_21_01);
+    Pokegotchi_Sync();
+    stats = Pokegotchi_GetStats();
+
+    EXPECT_EQ(stats->food, 248);
+    EXPECT_EQ(stats->fun, 248);
+    EXPECT_EQ(stats->happy, 248);
+    EXPECT_EQ(stats->poop, 248);
+}
+
+TEST("(Pokegotchi) Active sleep phase is cleared in the morning")
+{
+    ResetPokegotchiTestState();
+    Pokegotchi_SetCurrentTimeForTest(&sTime_Day1_04_58);
+    Pokegotchi_EnsureInitialized();
+    Pokegotchi_BeginSession();
+
+    Pokegotchi_SetCurrentTimeForTest(&sTime_Day1_04_59);
+    Pokegotchi_Sync();
+    EXPECT_EQ(Pokegotchi_GetStats()->food, 250);
+
+    Pokegotchi_SetCurrentTimeForTest(&sTime_Day1_05_00);
+    Pokegotchi_Sync();
+    EXPECT_EQ(Pokegotchi_GetStats()->food, 249);
+
+    Pokegotchi_SetCurrentTimeForTest(&(struct Time){.days = 1, .hours = 5, .minutes = 1});
+    Pokegotchi_Sync();
+    EXPECT_EQ(Pokegotchi_GetStats()->food, 247);
+}
+
+TEST("(Pokegotchi) Poop generation stops at the maximum of 4")
+{
+    const struct PokegotchiStats *stats;
+
+    ResetPokegotchiTestState();
+    Pokegotchi_SetCurrentTimeForTest(&sTime_10_00);
+    Pokegotchi_EnsureInitialized();
+    Pokegotchi_BeginSession();
+    SET_RNG(RNG_POKEGOTCHI_POOP, 0);
+
+    Pokegotchi_SetCurrentTimeForTest(&sTime_11_50);
+    Pokegotchi_Sync();
+    stats = Pokegotchi_GetStats();
+
+    EXPECT_EQ(stats->poopsOnScreen, POKEGOTCHI_MAX_POOPS);
+    EXPECT_EQ(stats->poop, 238);
+}
+
+TEST("(Pokegotchi) Existing excess poops are clamped and skip generation")
+{
+    struct PokegotchiRuntimeState *runtime;
+
+    ResetPokegotchiTestState();
+    Pokegotchi_SetCurrentTimeForTest(&sTime_10_00);
+    Pokegotchi_EnsureInitialized();
+    runtime = PokegotchiSave_GetRuntimeMutable();
+    runtime->stats.poopsOnScreen = POKEGOTCHI_MAX_POOPS + 3;
+
+    EXPECT_EQ(Pokegotchi_GetStats()->poopsOnScreen, POKEGOTCHI_MAX_POOPS);
+    Pokegotchi_BeginSession();
+    Pokegotchi_SetCurrentTimeForTest(&sTime_10_10);
+    Pokegotchi_Sync();
+    EXPECT_EQ(Pokegotchi_GetStats()->poopsOnScreen, POKEGOTCHI_MAX_POOPS);
+    EXPECT_EQ(Pokegotchi_GetStats()->poop, 230);
 }

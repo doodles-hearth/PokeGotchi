@@ -6,6 +6,8 @@
 #define POKEGOTCHI_SPRITE_TILE_TAG 6000
 #define POKEGOTCHI_SPRITE_PAL_TAG  6001
 #define POKEGOTCHI_SPRITE_SIZE     (64 * 32 / 2)
+#define POKEGOTCHI_FRAME_DURATION 24
+#define POKEGOTCHI_SLEEP_FRAME_DURATION 32
 
 struct PokegotchiEmotionGraphics
 {
@@ -27,14 +29,26 @@ static u8 sActivePokegotchiSpriteId;
 
 static const union AnimCmd sAnim_Pokegotchi[] =
 {
-    ANIMCMD_FRAME(0, 24),
-    ANIMCMD_FRAME(16, 24),
+    ANIMCMD_FRAME(0, POKEGOTCHI_FRAME_DURATION),
+    ANIMCMD_FRAME(16, POKEGOTCHI_FRAME_DURATION),
     ANIMCMD_JUMP(0),
 };
 
 static const union AnimCmd *const sPokegotchiSpriteAnims[] =
 {
     sAnim_Pokegotchi,
+};
+
+static const union AnimCmd sAnim_PokegotchiSleeping[] =
+{
+    ANIMCMD_FRAME(0, POKEGOTCHI_SLEEP_FRAME_DURATION),
+    ANIMCMD_FRAME(16, POKEGOTCHI_SLEEP_FRAME_DURATION),
+    ANIMCMD_JUMP(0),
+};
+
+static const union AnimCmd *const sPokegotchiSleepingSpriteAnims[] =
+{
+    sAnim_PokegotchiSleeping,
 };
 
 static const struct OamData sPokegotchiSpriteOamData =
@@ -99,6 +113,7 @@ u8 CreatePokegotchiSprite(enum Species species, u8 emotion, s16 x, s16 y, u8 sub
     const struct PokegotchiEmotionGraphics *emotionGfx = GetPokegotchiEmotionGraphics(species, emotion);
     struct SpriteSheet spriteSheet;
     struct SpritePalette spritePalette;
+    struct SpriteTemplate spriteTemplate = sPokegotchiSpriteTemplate;
 
     if (emotionGfx == NULL || sPokegotchiSpriteActive)
         return SPRITE_NONE;
@@ -110,6 +125,9 @@ u8 CreatePokegotchiSprite(enum Species species, u8 emotion, s16 x, s16 y, u8 sub
     spritePalette.data = emotionGfx->palette;
     spritePalette.tag = POKEGOTCHI_SPRITE_PAL_TAG;
 
+    if (emotion == POKEGOTCHI_EMOTION_SLEEPING)
+        spriteTemplate.anims = sPokegotchiSleepingSpriteAnims;
+
     if (LoadSpriteSheet(&spriteSheet) == TAG_NONE)
         return SPRITE_NONE;
 
@@ -119,7 +137,7 @@ u8 CreatePokegotchiSprite(enum Species species, u8 emotion, s16 x, s16 y, u8 sub
         return SPRITE_NONE;
     }
 
-    spriteId = CreateSprite(&sPokegotchiSpriteTemplate, x, y, subpriority);
+    spriteId = CreateSprite(&spriteTemplate, x, y, subpriority);
     if (spriteId == MAX_SPRITES)
     {
         FreeSpriteTilesByTag(POKEGOTCHI_SPRITE_TILE_TAG);
