@@ -10,6 +10,8 @@
 #include "data.h"
 #include "decompress.h"
 #include "event_data.h"
+#include "event_object_movement.h"
+#include "field_player_avatar.h"
 #include "field_weather.h"
 #include "gpu_regs.h"
 #include "graphics.h"
@@ -188,6 +190,8 @@ static void Task_MenuPetInteraction(u8 taskId);
 static void Task_MenuEatingScene(u8 taskId);
 static void Task_MenuSyncPokegotchi(u8 taskId);
 static void Task_MenuWanderPet(u8 taskId);
+static void Task_ReturnToPokegotchiHouse(u8 taskId);
+static void CB2_ReturnToFieldAfterFailedHouseOpen(void);
 static void CB2_ReturnToPokegotchiHouseMenu(void);
 static void CB2_OpenPokegotchiFeedMenuFromHouse(void);
 static void CB2_OpenPokegotchiStatusMenuFromHouse(void);
@@ -517,6 +521,41 @@ void OpenPokegotchiHouseEatingScene(u8 foodKey, MainCallback returnCallback)
 void MainCB2_InitPokegotchiHouseMenu(void)
 {
     OpenPokegotchiHouseMenu(CB2_InitPokegotchiBootup);
+}
+
+void ReturnToPokegotchiHouse(struct ScriptContext *ctx)
+{
+    if (ctx != NULL)
+    {
+        FlagClear(FLAG_SAFE_FOLLOWER_MOVEMENT);
+        StopScript(ctx);
+        ScriptContext_Stop();
+        ctx->waitAfterCallNative = TRUE;
+    }
+
+    FreezeObjectEvents();
+    PlayerFreeze();
+    StopPlayerAvatar();
+    LockPlayerFieldControls();
+    FadeScreen(FADE_TO_BLACK, 0);
+    CreateTask(Task_ReturnToPokegotchiHouse, 0);
+}
+
+static void Task_ReturnToPokegotchiHouse(u8 taskId)
+{
+    if (!gPaletteFade.active)
+    {
+        PlayRainStoppingSoundEffect();
+        CleanupOverworldWindowsAndTilemaps();
+        DestroyTask(taskId);
+        OpenPokegotchiHouseMenu(CB2_ReturnToFieldAfterFailedHouseOpen);
+    }
+}
+
+static void CB2_ReturnToFieldAfterFailedHouseOpen(void)
+{
+    ScriptContext_Init();
+    CB2_ReturnToFieldContinueScriptPlayMapMusic();
 }
 
 // This is our main initialization function if you want to call the menu from elsewhere
@@ -1568,7 +1607,7 @@ static UNUSED void CB2_OpenPokegotchiWaiterMinigameFromHouse(void)
 static void CB2_ExitToTamatownFromHouse(void)
 {
     Pokegotchi_SyncAndSave();
-    SetWarpDestination(MAP_GROUP(MAP_TAMATOWN), MAP_NUM(MAP_TAMATOWN), WARP_ID_NONE, 30, 17);
+    SetWarpDestination(MAP_GROUP(MAP_TAMATOWN), MAP_NUM(MAP_TAMATOWN), WARP_ID_NONE, 28, 17);
     gFieldCallback = FieldCB_DefaultWarpExit;
     WarpIntoMap();
     ResetInitialPlayerAvatarState();
