@@ -22,6 +22,10 @@ static const u8 sPokegotchiSpriteGfx_Fomantis_Sleeping[] =
     INCGFX_U8("graphics/pokegotchi_mons/fomantis/sleeping.png", ".4bpp");
 static const u16 sPokegotchiSpritePal_Fomantis_Sleeping[] =
     INCGFX_U16("graphics/pokegotchi_mons/fomantis/sleeping.png", ".gbapal");
+static const u8 sPokegotchiSpriteGfx_Fomantis_Sulking[] =
+    INCGFX_U8("graphics/pokegotchi_mons/fomantis/sulking.png", ".4bpp");
+static const u16 sPokegotchiSpritePal_Fomantis_Sulking[] =
+    INCGFX_U16("graphics/pokegotchi_mons/fomantis/sulking.png", ".gbapal");
 
 static const struct PokegotchiEmotionGraphics sPokegotchiEmotionGfx_Fomantis[POKEGOTCHI_EMOTION_COUNT] =
 {
@@ -54,6 +58,11 @@ static const struct PokegotchiEmotionGraphics sPokegotchiEmotionGfx_Fomantis[POK
     {
         .spriteTiles = sPokegotchiSpriteGfx_Fomantis_Sleeping,
         .palette = sPokegotchiSpritePal_Fomantis_Sleeping,
+    },
+    [POKEGOTCHI_EMOTION_SULKING] =
+    {
+        .spriteTiles = sPokegotchiSpriteGfx_Fomantis_Sulking,
+        .palette = sPokegotchiSpritePal_Fomantis_Sulking,
     },
 };
 

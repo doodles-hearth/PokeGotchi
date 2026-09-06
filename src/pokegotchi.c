@@ -184,6 +184,46 @@ bool8 Pokegotchi_IsSleeping(void)
         && !(sPokegotchiSessionFlags & POKEGOTCHI_SESSION_WOKEN_DURING_SLEEP);
 }
 
+bool8 Pokegotchi_WakeForActivity(void)
+{
+    struct Time now;
+
+    // Account for time before the interaction at the sleeping rate. Setting the
+    // flag first would retroactively charge that time at the active-awake rate.
+    Pokegotchi_Sync();
+    GetCurrentTime(&now);
+    if (!IsTimeInSleepWindow(&now))
+        return FALSE;
+
+    sPokegotchiSessionFlags |= POKEGOTCHI_SESSION_WOKEN_DURING_SLEEP;
+    sPokegotchiSessionFlags &= ~POKEGOTCHI_SESSION_SLEEP_DECAY_PENDING;
+    return TRUE;
+}
+
+enum PokegotchiInteractionReaction Pokegotchi_GetInteractionReaction(const struct PokegotchiStats *stats)
+{
+    if (stats->food == 0 && stats->fun == 0 && stats->happy == 0)
+        return POKEGOTCHI_REACTION_SULKING;
+    if (stats->happy > 150 && (stats->food <= 100 || stats->fun <= 100))
+        return POKEGOTCHI_REACTION_HAPPY_ONCE;
+    if (stats->happy > 150)
+        return POKEGOTCHI_REACTION_HAPPY_TWICE_SUN;
+    if (stats->food == 0 && stats->fun > 0)
+        return POKEGOTCHI_REACTION_ANGRY_TWICE;
+    if (stats->fun == 0 && (stats->food > 0 || stats->happy > 0))
+        return POKEGOTCHI_REACTION_SAD_TWICE;
+    if (stats->food > 150 && stats->fun > 150)
+        return POKEGOTCHI_REACTION_HAPPY_TWICE;
+    if (stats->food > 100 && stats->fun > 100)
+        return POKEGOTCHI_REACTION_HAPPY_ONCE;
+    if (stats->food <= 100 && stats->fun > 100)
+        return POKEGOTCHI_REACTION_ANGRY_ONCE;
+    if (stats->fun <= 100 && stats->food > 100)
+        return POKEGOTCHI_REACTION_SAD_ONCE;
+
+    return POKEGOTCHI_REACTION_SAD_TWICE;
+}
+
 bool8 Pokegotchi_AddFoodByKey(u8 foodKey, u16 amount)
 {
     u8 *count;
@@ -245,8 +285,8 @@ void Pokegotchi_ResetStateForTest(void)
 #if TESTING
 void Pokegotchi_SetWokenDuringSleepForTest(bool8 woken)
 {
-    // Future production callers must sync before waking the pet so elapsed
-    // sleeping time is not retroactively charged at the active-awake rate.
+    // This hook bypasses the production wake function so tests can set either
+    // session state directly without advancing or synchronizing the clock.
     if (woken)
     {
         sPokegotchiSessionFlags |= POKEGOTCHI_SESSION_WOKEN_DURING_SLEEP;

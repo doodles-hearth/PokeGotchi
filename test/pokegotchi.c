@@ -2,9 +2,12 @@
 #include "event_data.h"
 #include "fake_rtc.h"
 #include "load_save.h"
+#include "palette.h"
 #include "pokegotchi.h"
 #include "pokegotchi_save.h"
+#include "pokegotchi_sprites.h"
 #include "script.h"
+#include "sprite.h"
 #include "test/overworld_script.h"
 #include "test/test.h"
 
@@ -36,6 +39,18 @@ static void ResetPokegotchiTestState(void)
     PokegotchiSave_ClearForTest();
     FakeRtc_Reset(); // Potentially using Fake RTC if RTC is not detected later
     Pokegotchi_ResetStateForTest();
+}
+
+static u32 GetPokegotchiSpriteTileChecksum(u8 spriteId)
+{
+    const volatile u8 *tiles = (const volatile u8 *)OBJ_VRAM0
+                             + gSprites[spriteId].sheetTileStart * TILE_SIZE_4BPP;
+    u32 checksum = 0;
+    u32 i;
+
+    for (i = 0; i < 64 * 32 / 2; i++)
+        checksum = checksum * 33 + tiles[i];
+    return checksum;
 }
 
 TEST("(Pokegotchi) EnsureInitialized seeds default stats and food inventory")
@@ -296,6 +311,44 @@ TEST("(Pokegotchi) A woken pet uses regular active decay during sleep time")
     EXPECT_EQ(stats->fun, 248);
     EXPECT_EQ(stats->happy, 248);
     EXPECT_EQ(stats->poop, 248);
+}
+
+TEST("(Pokegotchi) Interaction reactions follow stat priority and boundaries")
+{
+    static const struct
+    {
+        u16 food;
+        u16 fun;
+        u16 happy;
+        enum PokegotchiInteractionReaction reaction;
+    } cases[] =
+    {
+        {  0,   0,   0, POKEGOTCHI_REACTION_SULKING},
+        {  0,  50, 151, POKEGOTCHI_REACTION_HAPPY_ONCE},
+        {100, 151, 151, POKEGOTCHI_REACTION_HAPPY_ONCE},
+        {101, 101, 151, POKEGOTCHI_REACTION_HAPPY_TWICE_SUN},
+        {  0,   1,   0, POKEGOTCHI_REACTION_ANGRY_TWICE},
+        {  1,   0,   0, POKEGOTCHI_REACTION_SAD_TWICE},
+        {151, 151,   0, POKEGOTCHI_REACTION_HAPPY_TWICE},
+        {151, 151, 150, POKEGOTCHI_REACTION_HAPPY_TWICE},
+        {150, 150,   0, POKEGOTCHI_REACTION_HAPPY_ONCE},
+        {100, 101,   0, POKEGOTCHI_REACTION_ANGRY_ONCE},
+        {101, 100,   0, POKEGOTCHI_REACTION_SAD_ONCE},
+        {100, 100,   1, POKEGOTCHI_REACTION_SAD_TWICE},
+    };
+    u32 i;
+
+    for (i = 0; i < ARRAY_COUNT(cases); i++)
+    {
+        struct PokegotchiStats stats =
+        {
+            .food = cases[i].food,
+            .fun = cases[i].fun,
+            .happy = cases[i].happy,
+        };
+
+        EXPECT_EQ(Pokegotchi_GetInteractionReaction(&stats), cases[i].reaction);
+    }
 }
 
 TEST("(Pokegotchi) Active sleep phase is cleared in the morning")

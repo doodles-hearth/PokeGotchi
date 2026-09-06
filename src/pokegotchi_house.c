@@ -56,6 +56,7 @@
 #define MENU_ICONS 4
 #define HOUSE_FLOOR_ANCHORS 13
 #define HOUSE_INITIAL_PET_ANCHOR 2
+#define HOUSE_SULKING_PET_ANCHOR 2
 #define HOUSE_WANDER_MIN_FRAMES (4 * 60)
 #define HOUSE_WANDER_MAX_FRAMES (6 * 60)
 #define HOUSE_PET_CENTER_X 120
@@ -64,6 +65,11 @@
 #define HOUSE_EATING_FOOD_Y 104
 #define HOUSE_EATING_FOOD_FRAME_COUNT 3
 #define HOUSE_POST_EAT_PHASE_FRAMES 48
+#define HOUSE_REACTION_CYCLE_FRAMES (2 * 32)
+#define HOUSE_REACTION_HOLD_FRAMES 60
+#define HOUSE_WAKE_REACTION_FRAMES 24
+#define HOUSE_EMOTICON_X_OFFSET 16
+#define HOUSE_EMOTICON_Y_OFFSET 16
 
 enum HouseEntryMode
 {
@@ -81,6 +87,22 @@ enum HousePetActivity
 {
     HOUSE_PET_ACTIVITY_IDLE,
     HOUSE_PET_ACTIVITY_BUSY,
+    HOUSE_PET_ACTIVITY_SULKING,
+};
+
+enum HouseReactionPhase
+{
+    HOUSE_REACTION_PHASE_ACTIVE,
+    HOUSE_REACTION_PHASE_HOLD,
+    HOUSE_REACTION_PHASE_WAKE,
+    HOUSE_REACTION_PHASE_EMOTICON_ONLY,
+};
+
+struct HouseReaction
+{
+    u8 emotion;
+    u8 loopCount;
+    u8 emoticon;
 };
 
 struct HousePoopLayout
@@ -99,6 +121,7 @@ struct MenuResources
     u8 petSpriteId;
     u8 petEmotion;
     u8 petActivity;
+    u8 emoticonSpriteId;
     u8 foodSpriteId;
     u8 poopSpriteIds[POKEGOTCHI_MAX_POOPS];
     u8 syncTaskId;
@@ -136,6 +159,13 @@ static void Menu_LoadTopIcons(void);
 static void Menu_LoadPetSprite(void);
 static bool8 Menu_SetPetEmotion(u8 emotion);
 static void Menu_UpdatePetSleepState(void);
+static void Menu_UpdatePetConditionState(void);
+static void Menu_EnterSulkingState(void);
+static struct HouseReaction Menu_GetReaction(enum PokegotchiInteractionReaction reaction);
+static void Menu_StartPetInteraction(u8 taskId);
+static void Menu_FinishPetInteraction(u8 taskId);
+static bool8 Menu_CreateEmoticon(u8 emoticon, bool8 wakeAnimation);
+static void Menu_DestroyEmoticon(void);
 static bool8 Menu_CanPetWander(void);
 static void Menu_GetPetSpawnPosition(s16 *x, s16 *y);
 static bool8 Menu_MovePetToRandomAnchor(bool8 requireDifferentAnchor);
@@ -154,6 +184,7 @@ static void Menu_SetSelectedTopIcon(u8 selectedIcon);
 static u8 Menu_GetPostEatEmotionStub(u8 foodKey);
 static void Task_MenuWaitFadeIn(u8 taskId);
 static void Task_MenuMain(u8 taskId);
+static void Task_MenuPetInteraction(u8 taskId);
 static void Task_MenuEatingScene(u8 taskId);
 static void Task_MenuSyncPokegotchi(u8 taskId);
 static void Task_MenuWanderPet(u8 taskId);
@@ -510,6 +541,7 @@ static void Menu_Init(MainCallback callback)
     sMenuDataPtr->petSpriteId = SPRITE_NONE;
     sMenuDataPtr->petEmotion = POKEGOTCHI_EMOTION_COUNT;
     sMenuDataPtr->petActivity = HOUSE_PET_ACTIVITY_IDLE;
+    sMenuDataPtr->emoticonSpriteId = SPRITE_NONE;
     sMenuDataPtr->foodSpriteId = SPRITE_NONE;
     for (i = 0; i < POKEGOTCHI_MAX_POOPS; i++)
         sMenuDataPtr->poopSpriteIds[i] = SPRITE_NONE;
@@ -638,6 +670,7 @@ static void Menu_FreeResources(void)
             sMenuDataPtr->petSpriteId = SPRITE_NONE;
         }
 
+        Menu_DestroyEmoticon();
         Menu_DestroyFoodSprite();
         Menu_DestroyPoopSprites();
 
@@ -769,23 +802,32 @@ static void Menu_LoadTopIcons(void)
 static void Menu_LoadPetSprite(void)
 {
     u8 emotion = POKEGOTCHI_EMOTION_IDLE;
+    bool8 isSulking = Pokegotchi_GetInteractionReaction(Pokegotchi_GetStats()) == POKEGOTCHI_REACTION_SULKING;
 
     if (sHouseEntryMode == HOUSE_ENTRY_EATING_SCENE
      && HasPokegotchiSprite(Pokegotchi_GetPrimarySpecies(), POKEGOTCHI_EMOTION_EATING))
         emotion = POKEGOTCHI_EMOTION_EATING;
-    else if (Pokegotchi_IsSleeping()
+    else if (!isSulking
+          && Pokegotchi_IsSleeping()
           && HasPokegotchiSprite(Pokegotchi_GetPrimarySpecies(), POKEGOTCHI_EMOTION_SLEEPING))
         emotion = POKEGOTCHI_EMOTION_SLEEPING;
 
     if (!Menu_SetPetEmotion(emotion))
         Menu_SetPetEmotion(POKEGOTCHI_EMOTION_IDLE);
+
+    if (sHouseEntryMode == HOUSE_ENTRY_NORMAL && isSulking)
+        Menu_EnterSulkingState();
 }
 
 static void Menu_UpdatePetSleepState(void)
 {
     bool8 isSleeping;
 
-    if (sHouseEntryMode != HOUSE_ENTRY_NORMAL || sMenuDataPtr == NULL)
+    if (sHouseEntryMode != HOUSE_ENTRY_NORMAL
+     || sMenuDataPtr == NULL
+     || (sMenuDataPtr->petActivity == HOUSE_PET_ACTIVITY_BUSY
+      && sMenuDataPtr->petEmotion != POKEGOTCHI_EMOTION_SLEEPING)
+     || sMenuDataPtr->petActivity == HOUSE_PET_ACTIVITY_SULKING)
         return;
 
     isSleeping = Pokegotchi_IsSleeping();
@@ -793,6 +835,109 @@ static void Menu_UpdatePetSleepState(void)
         Menu_SetPetEmotion(POKEGOTCHI_EMOTION_SLEEPING);
     else if (!isSleeping && sMenuDataPtr->petEmotion == POKEGOTCHI_EMOTION_SLEEPING)
         Menu_SetPetEmotion(POKEGOTCHI_EMOTION_IDLE);
+}
+
+static void Menu_UpdatePetConditionState(void)
+{
+    bool8 shouldSulk;
+
+    if (sHouseEntryMode != HOUSE_ENTRY_NORMAL
+     || sMenuDataPtr == NULL
+     || (sMenuDataPtr->petActivity == HOUSE_PET_ACTIVITY_BUSY
+      && sMenuDataPtr->petEmotion != POKEGOTCHI_EMOTION_SLEEPING))
+        return;
+
+    shouldSulk = Pokegotchi_GetInteractionReaction(Pokegotchi_GetStats()) == POKEGOTCHI_REACTION_SULKING;
+    if (shouldSulk)
+    {
+        if (sMenuDataPtr->petActivity != HOUSE_PET_ACTIVITY_SULKING)
+            Menu_EnterSulkingState();
+        return;
+    }
+
+    if (sMenuDataPtr->petActivity == HOUSE_PET_ACTIVITY_SULKING)
+    {
+        if (Pokegotchi_IsSleeping())
+        {
+            if (!Menu_SetPetEmotion(POKEGOTCHI_EMOTION_SLEEPING))
+                Menu_SetPetEmotion(POKEGOTCHI_EMOTION_IDLE);
+        }
+        else
+        {
+            Menu_SetPetEmotion(POKEGOTCHI_EMOTION_IDLE);
+        }
+    }
+}
+
+static void Menu_EnterSulkingState(void)
+{
+    struct Sprite *sprite;
+
+    if (!Menu_SetPetEmotion(POKEGOTCHI_EMOTION_SULKING))
+        return;
+
+    sprite = &gSprites[sMenuDataPtr->petSpriteId];
+    sprite->x = sHouseFloorAnchorCoords[HOUSE_SULKING_PET_ANCHOR][0];
+    sprite->y = sHouseFloorAnchorCoords[HOUSE_SULKING_PET_ANCHOR][1];
+    sMenuDataPtr->petActivity = HOUSE_PET_ACTIVITY_SULKING;
+    Menu_RefreshPoopSprites();
+}
+
+static struct HouseReaction Menu_GetReaction(enum PokegotchiInteractionReaction reaction)
+{
+    static const struct HouseReaction sReactions[] =
+    {
+        [POKEGOTCHI_REACTION_HAPPY_ONCE] = {POKEGOTCHI_EMOTION_HAPPY, 1, POKEGOTCHI_EMOTICON_NONE},
+        [POKEGOTCHI_REACTION_HAPPY_TWICE] = {POKEGOTCHI_EMOTION_HAPPY, 2, POKEGOTCHI_EMOTICON_NONE},
+        [POKEGOTCHI_REACTION_HAPPY_TWICE_SUN] = {POKEGOTCHI_EMOTION_HAPPY, 2, POKEGOTCHI_EMOTICON_SUN},
+        [POKEGOTCHI_REACTION_ANGRY_ONCE] = {POKEGOTCHI_EMOTION_ANGRY, 1, POKEGOTCHI_EMOTICON_NONE},
+        [POKEGOTCHI_REACTION_ANGRY_TWICE] = {POKEGOTCHI_EMOTION_ANGRY, 2, POKEGOTCHI_EMOTICON_ANGER},
+        [POKEGOTCHI_REACTION_SAD_ONCE] = {POKEGOTCHI_EMOTION_SAD, 1, POKEGOTCHI_EMOTICON_NONE},
+        [POKEGOTCHI_REACTION_SAD_TWICE] = {POKEGOTCHI_EMOTION_SAD, 2, POKEGOTCHI_EMOTICON_NONE},
+    };
+
+    if (reaction == POKEGOTCHI_REACTION_SULKING || reaction >= ARRAY_COUNT(sReactions))
+        return (struct HouseReaction){POKEGOTCHI_EMOTION_IDLE, 0, POKEGOTCHI_EMOTICON_NONE};
+    return sReactions[reaction];
+}
+
+static bool8 Menu_CreateEmoticon(u8 emoticon, bool8 wakeAnimation)
+{
+    struct Sprite *petSprite;
+    s16 x;
+    s16 y;
+    u8 spriteId;
+
+    if (sMenuDataPtr == NULL
+     || sMenuDataPtr->petSpriteId == SPRITE_NONE
+     || sMenuDataPtr->petSpriteId >= MAX_SPRITES
+     || !gSprites[sMenuDataPtr->petSpriteId].inUse)
+        return FALSE;
+
+    if (emoticon <= POKEGOTCHI_EMOTICON_NONE || emoticon >= POKEGOTCHI_EMOTICON_COUNT)
+        return FALSE;
+
+    Menu_DestroyEmoticon();
+    petSprite = &gSprites[sMenuDataPtr->petSpriteId];
+    x = petSprite->x + (petSprite->x > DISPLAY_WIDTH / 2 ? -HOUSE_EMOTICON_X_OFFSET : HOUSE_EMOTICON_X_OFFSET);
+    y = petSprite->y - HOUSE_EMOTICON_Y_OFFSET;
+    spriteId = CreatePokegotchiEmoticon(emoticon, x, y, 0, wakeAnimation);
+    if (spriteId == SPRITE_NONE)
+        return FALSE;
+
+    sMenuDataPtr->emoticonSpriteId = spriteId;
+    return TRUE;
+}
+
+static void Menu_DestroyEmoticon(void)
+{
+    if (sMenuDataPtr != NULL
+     && sMenuDataPtr->emoticonSpriteId != SPRITE_NONE
+     && sMenuDataPtr->emoticonSpriteId < MAX_SPRITES)
+        DestroyPokegotchiEmoticon(sMenuDataPtr->emoticonSpriteId);
+
+    if (sMenuDataPtr != NULL)
+        sMenuDataPtr->emoticonSpriteId = SPRITE_NONE;
 }
 
 static void Menu_SetSelectedTopIcon(u8 selectedIcon)
@@ -1235,6 +1380,115 @@ static u8 Menu_GetPostEatEmotionStub(u8 foodKey)
     return POKEGOTCHI_EMOTION_IDLE;
 }
 
+static void Menu_StartPetInteraction(u8 taskId)
+{
+    enum PokegotchiInteractionReaction reactionType;
+    struct HouseReaction reaction;
+
+    Pokegotchi_Sync();
+    Menu_UpdatePetConditionState();
+    if (sMenuDataPtr->petActivity == HOUSE_PET_ACTIVITY_SULKING)
+    {
+        if (Menu_CreateEmoticon(POKEGOTCHI_EMOTICON_ANGER, FALSE))
+        {
+            gTasks[taskId].data[1] = HOUSE_REACTION_PHASE_EMOTICON_ONLY;
+            gTasks[taskId].data[2] = 0;
+            gTasks[taskId].data[3] = HOUSE_REACTION_CYCLE_FRAMES;
+            gTasks[taskId].func = Task_MenuPetInteraction;
+        }
+        return;
+    }
+
+    if (Pokegotchi_IsSleeping())
+    {
+        if (!Pokegotchi_WakeForActivity() || !Menu_SetPetEmotion(POKEGOTCHI_EMOTION_IDLE))
+            return;
+
+        gSprites[sMenuDataPtr->petSpriteId].animPaused = TRUE;
+        sMenuDataPtr->petActivity = HOUSE_PET_ACTIVITY_BUSY;
+        Menu_CreateEmoticon(POKEGOTCHI_EMOTICON_ANGER, TRUE);
+        gTasks[taskId].data[1] = HOUSE_REACTION_PHASE_WAKE;
+        gTasks[taskId].data[2] = 0;
+        gTasks[taskId].data[3] = HOUSE_WAKE_REACTION_FRAMES;
+        gTasks[taskId].func = Task_MenuPetInteraction;
+        return;
+    }
+
+    reactionType = Pokegotchi_GetInteractionReaction(Pokegotchi_GetStats());
+    if (reactionType == POKEGOTCHI_REACTION_SULKING)
+    {
+        Menu_EnterSulkingState();
+        return;
+    }
+
+    reaction = Menu_GetReaction(reactionType);
+    if (reaction.loopCount == 0 || !Menu_SetPetEmotion(reaction.emotion))
+        return;
+
+    Menu_CreateEmoticon(reaction.emoticon, FALSE);
+    gTasks[taskId].data[1] = HOUSE_REACTION_PHASE_ACTIVE;
+    gTasks[taskId].data[2] = 0;
+    gTasks[taskId].data[3] = reaction.loopCount * HOUSE_REACTION_CYCLE_FRAMES;
+    gTasks[taskId].func = Task_MenuPetInteraction;
+}
+
+static void Menu_FinishPetInteraction(u8 taskId)
+{
+    Menu_DestroyEmoticon();
+    if (Pokegotchi_GetInteractionReaction(Pokegotchi_GetStats()) == POKEGOTCHI_REACTION_SULKING)
+    {
+        Menu_EnterSulkingState();
+    }
+    else if (Pokegotchi_IsSleeping())
+    {
+        if (!Menu_SetPetEmotion(POKEGOTCHI_EMOTION_SLEEPING))
+            Menu_SetPetEmotion(POKEGOTCHI_EMOTION_IDLE);
+    }
+    else
+    {
+        Menu_SetPetEmotion(POKEGOTCHI_EMOTION_IDLE);
+    }
+
+    gTasks[taskId].data[1] = 0;
+    gTasks[taskId].data[2] = 0;
+    gTasks[taskId].data[3] = 0;
+    gTasks[taskId].func = Task_MenuMain;
+}
+
+static void Task_MenuPetInteraction(u8 taskId)
+{
+    if (++gTasks[taskId].data[2] < gTasks[taskId].data[3])
+        return;
+
+    if (gTasks[taskId].data[1] == HOUSE_REACTION_PHASE_ACTIVE)
+    {
+        Menu_DestroyEmoticon();
+        if (sMenuDataPtr->petSpriteId != SPRITE_NONE
+         && sMenuDataPtr->petSpriteId < MAX_SPRITES
+         && gSprites[sMenuDataPtr->petSpriteId].inUse)
+        {
+            SeekSpriteAnim(&gSprites[sMenuDataPtr->petSpriteId], 0);
+            gSprites[sMenuDataPtr->petSpriteId].animPaused = TRUE;
+        }
+        gTasks[taskId].data[1] = HOUSE_REACTION_PHASE_HOLD;
+        gTasks[taskId].data[2] = 0;
+        gTasks[taskId].data[3] = HOUSE_REACTION_HOLD_FRAMES;
+        return;
+    }
+
+    if (gTasks[taskId].data[1] == HOUSE_REACTION_PHASE_EMOTICON_ONLY)
+    {
+        Menu_DestroyEmoticon();
+        gTasks[taskId].data[1] = 0;
+        gTasks[taskId].data[2] = 0;
+        gTasks[taskId].data[3] = 0;
+        gTasks[taskId].func = Task_MenuMain;
+        return;
+    }
+
+    Menu_FinishPetInteraction(taskId);
+}
+
 static void Task_MenuWaitFadeIn(u8 taskId)
 {
     if (!gPaletteFade.active)
@@ -1273,12 +1527,16 @@ static void Task_MenuSyncPokegotchi(u8 taskId)
     {
         gTasks[taskId].data[0] = 0;
         Pokegotchi_SyncAndSave();
+        Menu_UpdatePetConditionState();
         Menu_RefreshPoopSprites();
     }
 }
 
 static void Task_MenuWanderPet(u8 taskId)
 {
+    if (!Menu_CanPetWander())
+        return;
+
     if (++gTasks[taskId].data[0] < gTasks[taskId].data[1])
         return;
 
@@ -1332,6 +1590,12 @@ static UNUSED void Task_MenuLeave(u8 taskId)
 static void Task_MenuMain(u8 taskId)
 {
     s16 newSelection = gTasks[taskId].data[0];
+
+    if (JOY_NEW(L_BUTTON | R_BUTTON))
+    {
+        Menu_StartPetInteraction(taskId);
+        return;
+    }
 
     if (JOY_NEW(DPAD_LEFT) && newSelection > STATUS_ICON)
         newSelection--;
