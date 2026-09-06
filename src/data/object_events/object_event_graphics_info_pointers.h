@@ -410,6 +410,10 @@ extern const struct ObjectEventGraphicsInfo gObjectEventGraphicsInfo_PokeGotchi_
 extern const struct ObjectEventGraphicsInfo gObjectEventGraphicsInfo_PokeGotchi_Vanillish;
 extern const struct ObjectEventGraphicsInfo gObjectEventGraphicsInfo_PokeGotchi_IceCream;
 extern const struct ObjectEventGraphicsInfo gObjectEventGraphicsInfo_PokeGotchi_Car;
+extern const struct ObjectEventGraphicsInfo gObjectEventGraphicsInfo_PokeGotchi_Chansey;
+extern const struct ObjectEventGraphicsInfo gObjectEventGraphicsInfo_PokeGotchi_Torchic;
+extern const struct ObjectEventGraphicsInfo gObjectEventGraphicsInfo_PokeGotchi_Lamppost;
+extern const struct ObjectEventGraphicsInfo gObjectEventGraphicsInfo_PokeGotchi_Ditto;
 
 const struct ObjectEventGraphicsInfo *const gObjectEventGraphicsInfoPointers[NUM_OBJ_EVENT_GFX] = {
     // PokeGotchi
@@ -421,6 +425,10 @@ const struct ObjectEventGraphicsInfo *const gObjectEventGraphicsInfoPointers[NUM
     [OBJ_EVENT_GFX_PG_VANILLISH]             = &gObjectEventGraphicsInfo_PokeGotchi_Vanillish,
     [OBJ_EVENT_GFX_PG_ICE_CREAM]             = &gObjectEventGraphicsInfo_PokeGotchi_IceCream,
     [OBJ_EVENT_GFX_PG_CAR]                   = &gObjectEventGraphicsInfo_PokeGotchi_Car,
+    [OBJ_EVENT_GFX_PG_CHANSEY]               = &gObjectEventGraphicsInfo_PokeGotchi_Chansey,
+    [OBJ_EVENT_GFX_PG_TORCHIC]               = &gObjectEventGraphicsInfo_PokeGotchi_Torchic,
+    [OBJ_EVENT_GFX_PG_LAMPPOST]              = &gObjectEventGraphicsInfo_PokeGotchi_Lamppost,
+    [OBJ_EVENT_GFX_PG_DITTO]                 = &gObjectEventGraphicsInfo_PokeGotchi_Ditto,
 
     [OBJ_EVENT_GFX_BRENDAN_NORMAL] =           &gObjectEventGraphicsInfo_BrendanNormal,
     [OBJ_EVENT_GFX_BRENDAN_MACH_BIKE] =        &gObjectEventGraphicsInfo_BrendanMachBike,
