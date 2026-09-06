@@ -842,19 +842,19 @@ static void Menu_LoadPetSprite(void)
 {
     u8 emotion = POKEGOTCHI_EMOTION_IDLE;
     bool8 isSulking = Pokegotchi_GetInteractionReaction(Pokegotchi_GetStats()) == POKEGOTCHI_REACTION_SULKING;
+    bool8 isSleeping = Pokegotchi_IsSleeping();
 
     if (sHouseEntryMode == HOUSE_ENTRY_EATING_SCENE
      && HasPokegotchiSprite(Pokegotchi_GetPrimarySpecies(), POKEGOTCHI_EMOTION_EATING))
         emotion = POKEGOTCHI_EMOTION_EATING;
-    else if (!isSulking
-          && Pokegotchi_IsSleeping()
+    else if (isSleeping
           && HasPokegotchiSprite(Pokegotchi_GetPrimarySpecies(), POKEGOTCHI_EMOTION_SLEEPING))
         emotion = POKEGOTCHI_EMOTION_SLEEPING;
 
     if (!Menu_SetPetEmotion(emotion))
         Menu_SetPetEmotion(POKEGOTCHI_EMOTION_IDLE);
 
-    if (sHouseEntryMode == HOUSE_ENTRY_NORMAL && isSulking)
+    if (sHouseEntryMode == HOUSE_ENTRY_NORMAL && isSulking && !isSleeping)
         Menu_EnterSulkingState();
 }
 
@@ -865,12 +865,11 @@ static void Menu_UpdatePetSleepState(void)
     if (sHouseEntryMode != HOUSE_ENTRY_NORMAL
      || sMenuDataPtr == NULL
      || (sMenuDataPtr->petActivity == HOUSE_PET_ACTIVITY_BUSY
-      && sMenuDataPtr->petEmotion != POKEGOTCHI_EMOTION_SLEEPING)
-     || sMenuDataPtr->petActivity == HOUSE_PET_ACTIVITY_SULKING)
+      && sMenuDataPtr->petEmotion != POKEGOTCHI_EMOTION_SLEEPING))
         return;
 
     isSleeping = Pokegotchi_IsSleeping();
-    if (isSleeping && sMenuDataPtr->petEmotion == POKEGOTCHI_EMOTION_IDLE)
+    if (isSleeping && sMenuDataPtr->petEmotion != POKEGOTCHI_EMOTION_SLEEPING)
         Menu_SetPetEmotion(POKEGOTCHI_EMOTION_SLEEPING);
     else if (!isSleeping && sMenuDataPtr->petEmotion == POKEGOTCHI_EMOTION_SLEEPING)
         Menu_SetPetEmotion(POKEGOTCHI_EMOTION_IDLE);
@@ -886,6 +885,14 @@ static void Menu_UpdatePetConditionState(void)
       && sMenuDataPtr->petEmotion != POKEGOTCHI_EMOTION_SLEEPING))
         return;
 
+    if (Pokegotchi_IsSleeping())
+    {
+        if (sMenuDataPtr->petEmotion != POKEGOTCHI_EMOTION_SLEEPING
+         && !Menu_SetPetEmotion(POKEGOTCHI_EMOTION_SLEEPING))
+            Menu_SetPetEmotion(POKEGOTCHI_EMOTION_IDLE);
+        return;
+    }
+
     shouldSulk = Pokegotchi_GetInteractionReaction(Pokegotchi_GetStats()) == POKEGOTCHI_REACTION_SULKING;
     if (shouldSulk)
     {
@@ -895,17 +902,7 @@ static void Menu_UpdatePetConditionState(void)
     }
 
     if (sMenuDataPtr->petActivity == HOUSE_PET_ACTIVITY_SULKING)
-    {
-        if (Pokegotchi_IsSleeping())
-        {
-            if (!Menu_SetPetEmotion(POKEGOTCHI_EMOTION_SLEEPING))
-                Menu_SetPetEmotion(POKEGOTCHI_EMOTION_IDLE);
-        }
-        else
-        {
-            Menu_SetPetEmotion(POKEGOTCHI_EMOTION_IDLE);
-        }
-    }
+        Menu_SetPetEmotion(POKEGOTCHI_EMOTION_IDLE);
 }
 
 static void Menu_EnterSulkingState(void)
@@ -1425,19 +1422,8 @@ static void Menu_StartPetInteraction(u8 taskId)
     struct HouseReaction reaction;
 
     Pokegotchi_Sync();
-    Menu_UpdatePetConditionState();
-    if (sMenuDataPtr->petActivity == HOUSE_PET_ACTIVITY_SULKING)
-    {
-        if (Menu_CreateEmoticon(POKEGOTCHI_EMOTICON_ANGER, FALSE))
-        {
-            gTasks[taskId].data[1] = HOUSE_REACTION_PHASE_EMOTICON_ONLY;
-            gTasks[taskId].data[2] = 0;
-            gTasks[taskId].data[3] = HOUSE_REACTION_CYCLE_FRAMES;
-            gTasks[taskId].func = Task_MenuPetInteraction;
-        }
-        return;
-    }
-
+    // The sleep state can coexist with the sulking state.
+    // Give waking priority so sulking cannot reject waking.
     if (Pokegotchi_IsSleeping())
     {
         if (!Pokegotchi_WakeForActivity() || !Menu_SetPetEmotion(POKEGOTCHI_EMOTION_IDLE))
@@ -1450,6 +1436,19 @@ static void Menu_StartPetInteraction(u8 taskId)
         gTasks[taskId].data[2] = 0;
         gTasks[taskId].data[3] = HOUSE_WAKE_REACTION_FRAMES;
         gTasks[taskId].func = Task_MenuPetInteraction;
+        return;
+    }
+
+    Menu_UpdatePetConditionState();
+    if (sMenuDataPtr->petActivity == HOUSE_PET_ACTIVITY_SULKING)
+    {
+        if (Menu_CreateEmoticon(POKEGOTCHI_EMOTICON_ANGER, FALSE))
+        {
+            gTasks[taskId].data[1] = HOUSE_REACTION_PHASE_EMOTICON_ONLY;
+            gTasks[taskId].data[2] = 0;
+            gTasks[taskId].data[3] = HOUSE_REACTION_CYCLE_FRAMES;
+            gTasks[taskId].func = Task_MenuPetInteraction;
+        }
         return;
     }
 
