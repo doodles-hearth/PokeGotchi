@@ -1277,6 +1277,14 @@ bool8 MetatileBehavior_IsBookShelf(u8 metatileBehavior)
         return FALSE;
 }
 
+bool8 MetatileBehavior_IsLamppost(u8 metatileBehavior)
+{
+    if (metatileBehavior == MB_LAMPPOST)
+        return TRUE;
+    else
+        return FALSE;
+}
+
 bool8 MetatileBehavior_IsPokeCenterBookShelf(u8 metatileBehavior)
 {
     if (metatileBehavior == MB_POKEMON_CENTER_BOOKSHELF)

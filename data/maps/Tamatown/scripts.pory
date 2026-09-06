@@ -70,7 +70,7 @@ script Tamatown_EventScript_Porygon {
 		message(
 			"You got 15 coins!"
 		)
-		playfanfare(MUS_OBTAIN_ITEM)
+		playfanfare(MUS_LEVEL_UP)
 		waitfanfare
 
 		addcoins(15)
@@ -215,13 +215,21 @@ script Tamatown_EventScript_Tangela {
 
 script Tamatown_EventScript_Sign {
 	msgbox(
-		// TODO
 		"“6 Week Course: How To Manipulate\nYour Human Through Pooping”", MSGBOX_SIGN
 	)
 }
 
 script Tamatown_EventScript_Skitty {
+	lock
+
 	// TODO
+	playmoncry(SPECIES_SKITTY, CRY_MODE_WEAK)
+	setspeaker("Skitty")
+	msgbox(
+		"Meow…\nI lost my ball of yarn…\p"
+		"Would you be so kind as to find me some\nmore yarn?"
+	)
+	release
 }
 
 script Tamatown_EventScript_Trashcan {
@@ -521,7 +529,7 @@ script Tamatown_EventScript_VendingMachine {
 
 	}
 
-	playfanfare(MUS_OBTAIN_ITEM)
+	playfanfare(MUS_LEVEL_UP)
 	waitfanfare
 	waitmessage
 	closemessage
@@ -593,14 +601,14 @@ script Tamatown_EventScript_Slowpoke {
 			message(
 				"You got 3 hot dogs!"
 			)
-			playfanfare(MUS_OBTAIN_ITEM)
+			playfanfare(MUS_LEVEL_UP)
 			waitfanfare
 			addpokegotchifood(FEED_FOOD_KEY_HOT_DOG, 3)
 
 			message(
 				"You got 10 coins!"
 			)
-			playfanfare(MUS_OBTAIN_ITEM)
+			playfanfare(MUS_LEVEL_UP)
 			waitfanfare
 			addcoins(10)
 		} elif (var(VAR_RESULT) > 10) {
@@ -616,14 +624,14 @@ script Tamatown_EventScript_Slowpoke {
 			message(
 				"You got 2 hot dogs!"
 			)
-			playfanfare(MUS_OBTAIN_ITEM)
+			playfanfare(MUS_LEVEL_UP)
 			waitfanfare
 			addpokegotchifood(FEED_FOOD_KEY_HOT_DOG, 2)
 
 			message(
 				"You got 5 coins!"
 			)
-			playfanfare(MUS_OBTAIN_ITEM)
+			playfanfare(MUS_LEVEL_UP)
 			waitfanfare
 			addcoins(5)
 		} elif (var(VAR_RESULT) > 5) {
@@ -639,14 +647,14 @@ script Tamatown_EventScript_Slowpoke {
 			message(
 				"You got 1 hot dog!"
 			)
-			playfanfare(MUS_OBTAIN_ITEM)
+			playfanfare(MUS_LEVEL_UP)
 			waitfanfare
 			addpokegotchifood(FEED_FOOD_KEY_HOT_DOG, 1)
 
 			message(
 				"You got 3 coins!"
 			)
-			playfanfare(MUS_OBTAIN_ITEM)
+			playfanfare(MUS_LEVEL_UP)
 			waitfanfare
 			addcoins(3)
 		} else {
@@ -686,7 +694,7 @@ script Tamatown_EventScript_Vanillish {
 		message(
 			"You got an Ice Cream!\nIs this what freedom tastes like?"
 		)
-		playfanfare(MUS_OBTAIN_ITEM)
+		playfanfare(MUS_LEVEL_UP)
 		waitfanfare
 		waitmessage
 		closemessage
@@ -724,6 +732,264 @@ script Tamatown_EventScript_Vanillish {
 		
 		setobjectxyperm(VAR_LAST_TALKED, 33, 20)
 		setobjectxyperm(LOCALID_CAR, 23, 20)
+	}
+
+	release
+}
+
+script Tamatown_EventScript_Chansey {
+	lock
+	if (flag(POKEGOTCHI_FLAG_UNLOCKED_MEAL_EGG)) {
+		setspeaker("Chansey")
+		playmoncry(SPECIES_CHANSEY, CRY_MODE_NORMAL)
+		msgbox(
+			"Do you feel big and strong yet,\nsweetie?"
+		)
+		closemessage
+	} else {
+		setspeaker("Chansey")
+		playmoncry(SPECIES_CHANSEY, CRY_MODE_NORMAL)
+		msgbox(
+			"Hiiii there honey pie! Are you lost?\nOh, you're just out for a stroll?\l"
+			"Sorry, I thought you were a child!\p"
+			"I bet other Pokémon would take you\nmore seriously if you evolved.\p"
+			"Maybe holding this will help you\nbecome big and strong!"
+		)
+		closemessage
+
+		addpokegotchifood(FEED_FOOD_KEY_EGG, 1)
+		message(
+			"You got a Lucky Egg!\nYum…"
+		)
+		playfanfare(MUS_LEVEL_UP)
+		waitfanfare
+		waitmessage
+		closemessage
+
+		setflag(POKEGOTCHI_FLAG_UNLOCKED_MEAL_EGG)
+	}
+
+	release
+}
+
+script Tamatown_EventScript_Mailbox {
+	lock
+
+	msgbox(
+		"Use this letterbox to send mail to\nother players!\p"
+		"jk lol, every vanilla feature was\nnuked out of existence and we still\lran out of time to finish this game,\l"
+		"ha ha ha ha ha…\p"
+		"(cries)"
+	)
+	closemessage
+
+	release
+}
+
+script Tamatown_EventScript_Hydrant {
+	lock
+
+	msgbox(
+		"It's a fire hydrant.\nFor hydrating fire."
+	)
+	closemessage
+
+	release
+}
+
+script Tamatown_EventScript_HydrantTorchic {
+	if (flag(POKEGOTCHI_FLAG_HYDRATED_TORCHIC)) {
+		call(Tamatown_EventScript_Hydrant)
+	} else {
+		lock
+
+		msgbox(
+			"It's a fire hydrant.\nFor hydrating fire.\p"
+			"… … …Hydrate Torchic?"
+		)
+
+		mcdialogueB(
+			"Hydrate away",
+			"Maybe not"
+		)
+		closemessage
+
+		if (var(VAR_RESULT) == 0) {
+			playse(SE_M_GIGA_DRAIN)
+			setvar(VAR_0x8004, 3) // Vertical pan
+			setvar(VAR_0x8005, 0) // Horizontal pan
+			setvar(VAR_0x8006, 8) // Num shakes
+			setvar(VAR_0x8007, 2) // Shake delay
+			special(ShakeScreen)
+			waitstate
+			waitse
+
+			delay(48)
+
+			msgbox(
+				"Torchic looks wetter now."
+			)
+			closemessage
+
+			setflag(POKEGOTCHI_FLAG_HYDRATED_TORCHIC)
+		}
+
+		release
+	}
+}
+
+script Tamatown_EventScript_Torchic {
+	lock
+
+	if (flag(POKEGOTCHI_FLAG_FRNTR_POSTER_TORCHIC)) {
+		playmoncry(SPECIES_TORCHIC, CRY_MODE_NORMAL)
+		setspeaker("Torchic")
+		msgbox(
+			"I wish I were a water type, then I'd be\nhydrated as hell!"
+		)
+		closemessage
+	} elif (flag(POKEGOTCHI_FLAG_HYDRATED_TORCHIC)) {
+		playmoncry(SPECIES_TORCHIC, CRY_MODE_HIGH_PITCH)
+		setspeaker("Torchic")
+		msgbox(
+			"… … …Oh wow, I feel so refreshed!\p"
+			"Thank you, little bug!\nDon't worry, I won't eat you!\p"
+			"Here's a little something to thank\nyou!"
+		)
+		closemessage
+
+		message(
+			"You got a neat poster for your room!"
+		)
+		playfanfare(MUS_LEVEL_UP)
+		waitfanfare
+		waitmessage
+		setflag(POKEGOTCHI_FLAG_FRNTR_POSTER_TORCHIC)
+		
+	} else {
+		playmoncry(SPECIES_TORCHIC, CRY_MODE_FAINT)
+		setspeaker("Torchic")
+		msgbox(
+			"I'm so thirsty…"
+		)
+		closemessage
+	}
+
+	release
+}
+
+script Tamatown_EventScript_StepInPoop {
+	lock
+	playmoncry(SPECIES_GRIMER, CRY_MODE_NORMAL)
+	release
+}
+
+script Tamatown_EventScript_HotDogs {
+	lock
+	msgbox(
+		"Hmmm, hot dogs…\n(Wonder what the sausage is made of…)"
+	)
+	closemessage
+	release
+}
+
+script Debugpoop {
+	lock
+	mosaicmorph(LOCALID_DITTO, OBJ_EVENT_GFX_PG_DITTO)
+	playmoncry(SPECIES_DITTO, CRY_MODE_NORMAL)
+	waitse
+	mosaicmorph(LOCALID_DITTO, OBJ_EVENT_GFX_PG_LAMPPOST)
+	release
+}
+
+script Tamatown_EventScript_DittoLamppost {
+	lock
+
+	if (flag(POKEGOTCHI_FLAG_FRNTR_DITTO)) {
+		mosaicmorph(LOCALID_DITTO, OBJ_EVENT_GFX_PG_DITTO)
+		playmoncry(SPECIES_DITTO, CRY_MODE_NORMAL)
+		waitse
+		mosaicmorph(LOCALID_DITTO, OBJ_EVENT_GFX_PG_LAMPPOST)
+	} else {
+		msgbox(
+			"… … …\p"
+			"You feel like this lamppost is\nstaring at you…"
+		)
+
+		mcdialogueB(
+			"Boop it",
+			"Leave it be"
+		)
+		closemessage
+
+		delay(32)
+
+		if (var(VAR_RESULT) == 0) {
+			if (var(VAR_FACING) == DIR_WEST) {
+				applymovement(LOCALID_PLAYER, moves(
+					quarter_step_left, lock_facing_direction, quarter_step_right, unlock_facing_direction
+				))
+			} elif (var(VAR_FACING) == DIR_EAST){
+				applymovement(LOCALID_PLAYER, moves(
+					quarter_step_right, lock_facing_direction, quarter_step_left, unlock_facing_direction
+				))
+			} elif (var(VAR_FACING) == DIR_SOUTH){
+				applymovement(LOCALID_PLAYER, moves(
+					quarter_step_down, lock_facing_direction, quarter_step_up, unlock_facing_direction
+				))
+			} else {
+				applymovement(LOCALID_PLAYER, moves(
+					quarter_step_up, lock_facing_direction, quarter_step_down, unlock_facing_direction
+				))
+			}
+
+			msgbox(
+				"Boop!"
+			)
+			closemessage
+
+			playse(SE_PIN)
+			applymovement(VAR_LAST_TALKED, moves(emote_exclamation_mark))
+			waitmovement(0)
+			waitse
+			playse(SE_LEDGE)
+			applymovement(VAR_LAST_TALKED, moves(lock_facing_direction, jump_in_place_down, unlock_facing_direction))
+			waitmovement(0)
+			waitse
+
+			delay(32)
+			mosaicmorph(LOCALID_DITTO, OBJ_EVENT_GFX_PG_DITTO)
+
+			playse(SE_PIN)
+			applymovement(LOCALID_PLAYER, moves(emote_exclamation_mark))
+			waitse
+			waitmovementall
+
+			delay(32)
+
+			playmoncry(SPECIES_DITTO, CRY_MODE_NORMAL)
+			setspeaker("Ditto")
+			msgbox(
+				"Please don't tell anyone.\nI like being a lamppost!\p"
+				"I'll give you a cool plushie if you\nkeep this a secret."
+			)
+			closemessage
+
+			message(
+				"You got a Ditto plushie for your room!"
+			)
+			playfanfare(MUS_LEVEL_UP)
+			waitfanfare
+			waitmessage
+			closemessage
+
+			setflag(POKEGOTCHI_FLAG_FRNTR_DITTO)
+
+			delay(16)
+
+			mosaicmorph(LOCALID_DITTO, OBJ_EVENT_GFX_PG_LAMPPOST)
+			delay(16)
+		}	
 	}
 
 	release

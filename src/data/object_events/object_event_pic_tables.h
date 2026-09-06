@@ -32,6 +32,22 @@ static const struct SpriteFrameImage sPicTable_PokeGotchi_IceCream[] = {
     obj_frame_tiles(gObjectEventPic_PokeGotchi_IceCream),
 };
 
+static const struct SpriteFrameImage sPicTable_PokeGotchi_Chansey[] = {
+    overworld_ascending_frames(gObjectEventPic_PokeGotchi_Chansey, 2, 4),
+};
+
+static const struct SpriteFrameImage sPicTable_PokeGotchi_Torchic[] = {
+    overworld_ascending_frames(gObjectEventPic_PokeGotchi_Torchic, 2, 4),
+};
+
+static const struct SpriteFrameImage sPicTable_PokeGotchi_Ditto[] = {
+    overworld_ascending_frames(gObjectEventPic_PokeGotchi_Ditto, 2, 4),
+};
+
+static const struct SpriteFrameImage sPicTable_PokeGotchi_Lamppost[] = {
+    obj_frame_tiles(gObjectEventPic_PokeGotchi_Lamppost),
+};
+
 // End of PokéGotchi
 
 static const struct SpriteFrameImage sPicTable_BrendanNormal[] = {

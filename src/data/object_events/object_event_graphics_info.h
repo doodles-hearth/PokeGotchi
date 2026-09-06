@@ -124,6 +124,60 @@ const struct ObjectEventGraphicsInfo gObjectEventGraphicsInfo_PokeGotchi_Vanilli
     .images = sPicTable_PokeGotchi_Vanillish,
 };
 
+const struct ObjectEventGraphicsInfo gObjectEventGraphicsInfo_PokeGotchi_Chansey = {
+    .tileTag = TAG_NONE,
+    .paletteTag = OBJ_EVENT_PAL_TAG_POKEGOTCHI,
+    .reflectionPaletteTag = OBJ_EVENT_PAL_TAG_BRIDGE_REFLECTION,
+    .size = 512,
+    .width = 16,
+    .height = 32,
+    .paletteSlot = PALSLOT_NPC_4,
+    .shadowSize = SHADOW_SIZE_M,
+    .inanimate = FALSE,
+    .compressed = FALSE,
+    .tracks = TRACKS_FOOT,
+    .oam = &gObjectEventBaseOam_16x32,
+    .subspriteTables = sOamTables_16x32,
+    .anims = sAnimTable_Standard,
+    .images = sPicTable_PokeGotchi_Chansey,
+};
+
+const struct ObjectEventGraphicsInfo gObjectEventGraphicsInfo_PokeGotchi_Torchic = {
+    .tileTag = TAG_NONE,
+    .paletteTag = OBJ_EVENT_PAL_TAG_POKEGOTCHI,
+    .reflectionPaletteTag = OBJ_EVENT_PAL_TAG_BRIDGE_REFLECTION,
+    .size = 512,
+    .width = 16,
+    .height = 32,
+    .paletteSlot = PALSLOT_NPC_4,
+    .shadowSize = SHADOW_SIZE_M,
+    .inanimate = FALSE,
+    .compressed = FALSE,
+    .tracks = TRACKS_FOOT,
+    .oam = &gObjectEventBaseOam_16x32,
+    .subspriteTables = sOamTables_16x32,
+    .anims = sAnimTable_Standard,
+    .images = sPicTable_PokeGotchi_Torchic,
+};
+
+const struct ObjectEventGraphicsInfo gObjectEventGraphicsInfo_PokeGotchi_Ditto = {
+    .tileTag = TAG_NONE,
+    .paletteTag = OBJ_EVENT_PAL_TAG_POKEGOTCHI,
+    .reflectionPaletteTag = OBJ_EVENT_PAL_TAG_BRIDGE_REFLECTION,
+    .size = 512,
+    .width = 16,
+    .height = 32,
+    .paletteSlot = PALSLOT_NPC_4,
+    .shadowSize = SHADOW_SIZE_M,
+    .inanimate = FALSE,
+    .compressed = FALSE,
+    .tracks = TRACKS_FOOT,
+    .oam = &gObjectEventBaseOam_16x32,
+    .subspriteTables = sOamTables_16x32,
+    .anims = sAnimTable_Standard,
+    .images = sPicTable_PokeGotchi_Ditto,
+};
+
 const struct ObjectEventGraphicsInfo gObjectEventGraphicsInfo_PokeGotchi_IceCream = {
     .tileTag = TAG_NONE,
     .paletteTag = OBJ_EVENT_PAL_TAG_POKEGOTCHI,
@@ -140,6 +194,24 @@ const struct ObjectEventGraphicsInfo gObjectEventGraphicsInfo_PokeGotchi_IceCrea
     .subspriteTables = sOamTables_16x16,
     .anims = sAnimTable_Inanimate,
     .images = sPicTable_PokeGotchi_IceCream,
+};
+
+const struct ObjectEventGraphicsInfo gObjectEventGraphicsInfo_PokeGotchi_Lamppost = {
+    .tileTag = TAG_NONE,
+    .paletteTag = OBJ_EVENT_PAL_TAG_POKEGOTCHI,
+    .reflectionPaletteTag = OBJ_EVENT_PAL_TAG_NONE,
+    .size = 512,
+    .width = 32,
+    .height = 32,
+    .paletteSlot = PALSLOT_NPC_SPECIAL,
+    .shadowSize = SHADOW_SIZE_M,
+    .inanimate = TRUE,
+    .compressed = FALSE,
+    .tracks = TRACKS_NONE,
+    .oam = &gObjectEventBaseOam_32x32,
+    .subspriteTables = sOamTables_32x32,
+    .anims = sAnimTable_Inanimate,
+    .images = sPicTable_PokeGotchi_Lamppost,
 };
 
 const struct ObjectEventGraphicsInfo gObjectEventGraphicsInfo_PokeGotchi_Car = {

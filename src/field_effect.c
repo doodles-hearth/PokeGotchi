@@ -1555,7 +1555,7 @@ static u16 GetOriginalGraphicsId(u8 localId, u32 mapGroup, u32 mapNum)
         return GetPlayerAvatarGraphicsIdByCurrentState();
     if (localId == OBJ_EVENT_ID_FOLLOWER)
     {
-        u32 species;
+        enum Species species;
         bool32 shiny, female;
         GetFollowerInfo(&species, &shiny, &female);
         return GetGraphicsIdForMon(species, shiny, female);
