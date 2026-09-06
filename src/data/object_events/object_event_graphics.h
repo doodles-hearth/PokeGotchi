@@ -5,6 +5,10 @@ const u32 gObjectEventPic_PokeGotchi_Trubbish[] = INCGFX_U32("graphics/object_ev
 const u32 gObjectEventPic_PokeGotchi_Slowpoke[] = INCGFX_U32("graphics/object_events/pics/pokegotchi/slowpoke.png", ".4bpp", "-mwidth 2 -mheight 2");
 const u32 gObjectEventPic_PokeGotchi_Skitty[] = INCGFX_U32("graphics/object_events/pics/pokegotchi/skitty.png", ".4bpp", "-mwidth 2 -mheight 4");
 const u32 gObjectEventPic_PokeGotchi_Tangela[] = INCGFX_U32("graphics/object_events/pics/pokegotchi/tangela.png", ".4bpp", "-mwidth 2 -mheight 4");
+const u32 gObjectEventPic_PokeGotchi_Vanillish[] = INCGFX_U32("graphics/object_events/pics/pokegotchi/vanillish.png", ".4bpp", "-mwidth 2 -mheight 4");
+const u32 gObjectEventPic_PokeGotchi_IceCream[] = INCGFX_U32("graphics/object_events/pics/pokegotchi/ice_cream.png", ".4bpp", "-mwidth 2 -mheight 2");
+const u32 gObjectEventPic_PokeGotchi_Car[] = INCGFX_U32("graphics/object_events/pics/pokegotchi/car.png", ".4bpp");
+
 
 const u16 gObjectEventPal_PokeGotchi[] = INCGFX_U16("graphics/object_events/pics/people/brendan/walking.png", ".gbapal");
 
