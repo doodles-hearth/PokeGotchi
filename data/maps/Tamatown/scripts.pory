@@ -2,7 +2,40 @@ const FLAG_REMOVE_TRASHCAN_INTERACTION = FLAG_TEMP_1
 const FLAG_REMOVE_TREE_INTERACTION = FLAG_TEMP_2
 
 mapscripts Tamatown_MapScripts {
-	
+	MAP_SCRIPT_ON_TRANSITION {
+		if (flag(POKEGOTCHI_FLAG_VANILLISH_DIED)) {
+			setobjectxyperm(LOCALID_VANILLISH, 33, 20)
+			setobjectxyperm(LOCALID_CAR, 23, 20)
+			setobjectmovementtype(LOCALID_VANILLISH, MOVEMENT_TYPE_FACE_UP)
+		}
+	}
+}
+
+script Tamatown_EventScript_Arcade {
+	lock
+
+	showcoinsbox(20, 0)
+
+	msgbox(
+		"Play {COLOR RED}Pachinko{COLOR DARK_GRAY}?\p"
+	)
+
+	mcdialogueB(
+		"Play",
+		"Don't play"
+	)
+
+	closemessage
+	hidecoinsbox
+
+	playbgm(MUS_TRICK_HOUSE, FALSE)
+	delay(32)
+	callnative(PlayPachinko)
+	waitstate
+	savebgm(MUS_DUMMY)
+	fadedefaultbgm
+
+	release
 }
 
 script Tamatown_EventScript_Porygon {
@@ -124,11 +157,10 @@ script Tamatown_EventScript_Tangela {
 
 		delay(24)
 
-		// TODO EVA Jamie shake
 		playse(SE_FU_ZAKU)
-		// applymovement(VAR_LAST_TALKED, moves())
+		applymovement(VAR_LAST_TALKED, moves(shake_vertical))
 		waitse
-		// waitmovement(0)
+		waitmovement(0)
 
 		msgbox(
 			"The tree moved impatiently."
@@ -143,11 +175,10 @@ script Tamatown_EventScript_Tangela {
 
 		delay(24)
 
-		// TODO EVA Jamie shake
 		playse(SE_FU_ZAKU)
-		// applymovement(VAR_LAST_TALKED, moves())
+		applymovement(VAR_LAST_TALKED, moves(shake_vertical))
 		waitse
-		// waitmovement(0)
+		waitmovement(0)
 
 		setspeaker("Tree")
 		msgbox(
@@ -204,7 +235,7 @@ script Tamatown_EventScript_Trashcan {
 script Tamatown_EventScript_TrubbishCan {
 	lock
 
-	if (flag(FLAG_RECEIVED_DAILY_DONUT)) {
+	if (flag(POKEGOTCHI_FLAG_UNLOCKED_SNACK_DOUGHNUT)) {
 		setspeaker("Trubbish")
 		playmoncry(SPECIES_TRUBBISH, CRY_MODE_NORMAL)
 
@@ -236,7 +267,7 @@ script Tamatown_EventScript_TrubbishCan {
 			if (var(VAR_RESULT) == 0) {
 				setvar(VAR_0x8004, 0) // Vertical pan
 				setvar(VAR_0x8005, 3) // Horizontal pan
-				setvar(VAR_0x8006, 4) // Num shakes
+				setvar(VAR_0x8006, 8) // Num shakes
 				setvar(VAR_0x8007, 2) // Shake delay
 				special(ShakeScreen)
 				playmoncry(SPECIES_TRUBBISH, CRY_MODE_NORMAL)
@@ -267,13 +298,28 @@ script Tamatown_EventScript_TrubbishCan {
 					"Look at these glazed beauties\nwhispering “Eat me”…\lI can't resist!\p"
 					"Here, have one, you'll see what I mean!"
 				)
+				// Hugging trashcan
 			} else {
-				// TODO EVA Jamie's half-step
+				if (var(VAR_FACING) == DIR_WEST) {
+					applymovement(LOCALID_PLAYER, moves(
+						quarter_step_left,
+						delay_16 * 2,
+						lock_facing_direction,
+						quarter_step_right,
+						unlock_facing_direction
+					))
+				} else {
+					applymovement(LOCALID_PLAYER, moves(
+						quarter_step_up,
+						delay_16 * 2,
+						lock_facing_direction,
+						quarter_step_down,
+						unlock_facing_direction
+					))
+				}
 
-				playse(SE_PIN)
-				applymovement(VAR_LAST_TALKED, moves(emote_heart, delay_16 * 6))
-				waitse
-				waitmovement(0)
+				waitmovementall
+				delay(32)
 
 				msgbox(
 					"The trashcan looks… happy?"
@@ -300,6 +346,7 @@ script Tamatown_EventScript_TrubbishCan {
 			}
 		
 			setflag(FLAG_RECEIVED_DAILY_DONUT)
+			setflag(POKEGOTCHI_FLAG_UNLOCKED_SNACK_DOUGHNUT)
 
 			setspeaker(NULL)
 			playfanfare(MUS_LEVEL_UP)
@@ -317,6 +364,167 @@ script Tamatown_EventScript_TrubbishCan {
 		}
 		closemessage
 	}
+
+	release
+}
+
+script Tamatown_EventScript_VendingMachine {
+	lock
+
+	playmoncry(SPECIES_ROTOM, CRY_MODE_NORMAL)
+	setspeaker("Vending machine")
+
+	if (
+		!flag(POKEGOTCHI_FLAG_UNLOCKED_MEAL_HOT_DOG) &&
+		!flag(POKEGOTCHI_FLAG_UNLOCKED_MEAL_POKEBLOCK) &&
+		!flag(POKEGOTCHI_FLAG_UNLOCKED_MEAL_EGG) &&
+		!flag(POKEGOTCHI_FLAG_UNLOCKED_SNACK_DOUGHNUT) &&
+		!flag(POKEGOTCHI_FLAG_UNLOCKED_SNACK_ICE_CREAM) &&
+		!flag(POKEGOTCHI_FLAG_UNLOCKED_SNACK_3)
+	) {
+		msgbox(
+			"BZZT. This is your friendly\nneighborhood vending machine system.\p"
+			"I don't have anything for you right\nnow, but I'll be restocked soon!\l(I hope…)"
+		)
+		closemessage
+		release
+		end
+	}
+
+	msgbox(
+		"BZZT. This is your friendly\nneighborhood vending machine system.\p"
+		"Would you like to purchase anything?"
+	)
+
+	if (flag(POKEGOTCHI_FLAG_UNLOCKED_MEAL_HOT_DOG)) {
+		dynmultipush("Hot Dog{CLEAR_TO 0x4c}¥3", 0)
+	}
+	if (flag(POKEGOTCHI_FLAG_UNLOCKED_MEAL_POKEBLOCK)) {
+		dynmultipush("PokéBlock{CLEAR_TO 0x4c}¥3", 1)
+	}
+	if (flag(POKEGOTCHI_FLAG_UNLOCKED_MEAL_EGG)) {
+		dynmultipush("Sunny Side Up{CLEAR_TO 0x4c}¥3", 2)
+	}
+	if (flag(POKEGOTCHI_FLAG_UNLOCKED_SNACK_DOUGHNUT)) {
+		dynmultipush("Doughnut{CLEAR_TO 0x4c}¥3", 3)
+	}
+	if (flag(POKEGOTCHI_FLAG_UNLOCKED_SNACK_ICE_CREAM)) {
+		dynmultipush("Ice Cream{CLEAR_TO 0x4c}¥3", 4)
+	}
+	if (flag(POKEGOTCHI_FLAG_UNLOCKED_SNACK_3)) {
+		dynmultipush("Snack 4{CLEAR_TO 0x4c}¥3", 5) // TODO EVA
+	}
+	dynmultipush("No, thanks", 6)
+	showcoinsbox(20, 0)
+	dynmultistack(0, 0, FALSE, 10, FALSE, 0, NULL)
+
+	hidecoinsbox
+
+	if (var(VAR_RESULT) == 6 || var(VAR_RESULT) == MULTI_B_PRESSED) {
+		playmoncry(SPECIES_ROTOM, CRY_MODE_WEAK)
+		setspeaker("Vending machine")
+		msgbox(
+			"Aw…\nUh, I mean, BZZT BZZT…"
+		)
+		closemessage
+		release
+		end
+	}
+
+	checkcoins(VAR_0x8000)
+	if (var(VAR_0x8000) < 3) {
+		playmoncry(SPECIES_ROTOM, CRY_MODE_WEAK)
+		setspeaker("Vending machine")
+		msgbox(
+			"BZZT BZZT!\nYou don't have enough cash, buddy…"
+		)
+		closemessage
+		release
+		end
+	}
+
+	playmoncry(SPECIES_ROTOM, CRY_MODE_HIGH_PITCH)
+	setspeaker("Vending machine")
+
+	switch(var(VAR_RESULT)) {
+		case 0:
+			msgbox(
+				"Yay!! I mean, BZZT.\n"
+				"One Hot Dog, coming up!"
+			)
+			closemessage
+			playse(SE_VEND)
+			waitse
+			delay(32)
+			message("You got a Hot Dog!")
+			addpokegotchifood(FEED_FOOD_KEY_HOT_DOG, 1)
+
+		case 1:
+			msgbox(
+				"Yay!! I mean, BZZT.\n"
+				"One PokéBlock, coming up!"
+			)
+			closemessage
+			playse(SE_VEND)
+			waitse
+			delay(32)
+			message("You got a PokéBlock!")
+			addpokegotchifood(FEED_FOOD_KEY_POKEBLOCK, 1)
+
+		case 2:
+			msgbox(
+				"Yay!! I mean, BZZT.\n"
+				"One Sunny Side Up, coming up!"
+			)
+			closemessage
+			playse(SE_VEND)
+			waitse
+			delay(32)
+			message("You got a Sunny Side Up!")
+			addpokegotchifood(FEED_FOOD_KEY_EGG, 1)
+
+		case 3:
+			msgbox(
+				"Yay!! I mean, BZZT.\n"
+				"One Doughnut, coming up!"
+			)
+			closemessage
+			playse(SE_VEND)
+			waitse
+			delay(32)
+			message("You got a Doughnut!")
+			addpokegotchifood(FEED_FOOD_KEY_DONUT, 1)
+
+		case 4:
+			msgbox(
+				"Yay!! I mean, BZZT.\n"
+				"One Ice Cream, coming up!"
+			)
+			closemessage
+			playse(SE_VEND)
+			waitse
+			delay(32)
+			message("You got an Ice Cream!")
+			addpokegotchifood(FEED_FOOD_KEY_ICE_CREAM, 1)
+
+		case 5:
+			msgbox(
+				"Yay!! I mean, BZZT.\n"
+				"One ???, coming up!"
+			)
+			closemessage
+			playse(SE_VEND)
+			waitse
+			delay(32)
+			message("You got a ???!") // TODO EVA
+			addpokegotchifood(FEED_FOOD_KEY_SNACK_4, 1)
+
+	}
+
+	playfanfare(MUS_OBTAIN_ITEM)
+	waitfanfare
+	waitmessage
+	closemessage
 
 	release
 }
@@ -363,8 +571,12 @@ script Tamatown_EventScript_Slowpoke {
 			"Yaaaaaaaaaaaaaaaaaaay…"
 		)
 		
+		playbgm(MUS_POKE_MART, FALSE)
+		delay(32)
 		callnative(PlayPokegotchiWaiterMinigameHard)
 		waitstate
+		savebgm(MUS_DUMMY)
+		fadedefaultbgm
 
 		setspeaker("Slowpoke")
 
@@ -444,6 +656,10 @@ script Tamatown_EventScript_Slowpoke {
 				"Oooooh wellllllll…"
 			)
 		}
+
+		if (var(VAR_RESULT) > 5) {
+			setflag(POKEGOTCHI_FLAG_UNLOCKED_MEAL_HOT_DOG)
+		}
 	} else {
 		playmoncry(SPECIES_SLOWPOKE, CRY_MODE_FAINT)
 		setspeaker("Slowpoke")
@@ -455,6 +671,60 @@ script Tamatown_EventScript_Slowpoke {
 	}
 
 	closemessage
+
+	release
+}
+
+script Tamatown_EventScript_Vanillish {
+	lock
+
+	if (flag(POKEGOTCHI_FLAG_VANILLISH_DIED)) {
+		setflag(POKEGOTCHI_FLAG_UNLOCKED_SNACK_ICE_CREAM)
+		setflag(POKEGOTCHI_FLAG_HIDE_ICE_CREAM)
+		removeobject(VAR_LAST_TALKED)
+		addpokegotchifood(FEED_FOOD_KEY_ICE_CREAM, 1)
+		message(
+			"You got an Ice Cream!\nIs this what freedom tastes like?"
+		)
+		playfanfare(MUS_OBTAIN_ITEM)
+		waitfanfare
+		waitmessage
+		closemessage
+
+	} else {
+		playmoncry(SPECIES_VANILLISH, CRY_MODE_NORMAL)
+		setspeaker("Vanillish")
+		msgbox(
+			"Who decides I can only cross the\nstreet on the Zebstrika crossing?\p"
+			"Shuck the law! Shuck the police!\p"
+			"This is what freedom tastes like,\nbaby!!"
+		)
+		closemessage
+
+		applymovement(VAR_LAST_TALKED, moves(
+			walk_slow_down
+		))
+
+		clearflag(POKEGOTCHI_FLAG_HIDE_CAR)
+		addobject(LOCALID_CAR)
+		playse(SE_SHIP)
+		applymovement(LOCALID_CAR, moves(
+			walk_faster_left * 22
+		))
+		applymovement(LOCALID_PLAYER, moves(face_down))
+		delay(44)
+		playse(SE_BALLOON_YELLOW)
+		setflag(POKEGOTCHI_FLAG_VANILLISH_DIED)
+		removeobject(VAR_LAST_TALKED)
+		clearflag(POKEGOTCHI_FLAG_HIDE_ICE_CREAM)
+		addobject(LOCALID_ICE_CREAM)
+
+		waitmovementall
+		delay(48)
+		
+		setobjectxyperm(VAR_LAST_TALKED, 33, 20)
+		setobjectxyperm(LOCALID_CAR, 23, 20)
+	}
 
 	release
 }

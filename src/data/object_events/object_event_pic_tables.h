@@ -20,6 +20,18 @@ static const struct SpriteFrameImage sPicTable_PokeGotchi_Tangela[] = {
     overworld_ascending_frames(gObjectEventPic_PokeGotchi_Tangela, 2, 4),
 };
 
+static const struct SpriteFrameImage sPicTable_PokeGotchi_Vanillish[] = {
+    overworld_ascending_frames(gObjectEventPic_PokeGotchi_Vanillish, 2, 4),
+};
+
+static const struct SpriteFrameImage sPicTable_PokeGotchi_Car[] = {
+    obj_frame_tiles(gObjectEventPic_PokeGotchi_Car),
+};
+
+static const struct SpriteFrameImage sPicTable_PokeGotchi_IceCream[] = {
+    obj_frame_tiles(gObjectEventPic_PokeGotchi_IceCream),
+};
+
 // End of PokéGotchi
 
 static const struct SpriteFrameImage sPicTable_BrendanNormal[] = {

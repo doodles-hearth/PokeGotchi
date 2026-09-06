@@ -160,6 +160,8 @@ void PokegotchiSave_ResetToDefaults(void)
 
     // Flags and shit
     FlagSet(POKEGOTCHI_FLAG_HIDE_TRUBBISH);
+    FlagSet(POKEGOTCHI_FLAG_HIDE_ICE_CREAM);
+    FlagSet(POKEGOTCHI_FLAG_HIDE_CAR);
 }
 
 void PokegotchiSave_ClearRuntimeState(void)
