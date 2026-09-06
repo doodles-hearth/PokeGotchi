@@ -347,6 +347,8 @@ static void SerializeRuntimeState(struct PokegotchiPersistedSave *dst, u32 saveC
     dst->payloadSize = sizeof(dst->payload);
     dst->saveCounter = saveCounter;
     dst->payload.playerPartyCount = sPokegotchiRuntimeState.playerPartyCount;
+    dst->payload.dailyFlagsInitialized = sPokegotchiRuntimeState.dailyFlagsInitialized;
+    dst->payload.dailyFlagsDay = sPokegotchiRuntimeState.dailyFlagsDay;
     memcpy(dst->payload.playerParty,
            sPokegotchiRuntimeState.playerParty,
            sizeof(dst->payload.playerParty));
@@ -363,6 +365,9 @@ static void SerializeRuntimeState(struct PokegotchiPersistedSave *dst, u32 saveC
     memcpy(dst->payload.flags,
            sPokegotchiRuntimeState.flags,
            sizeof(dst->payload.flags));
+    memcpy(dst->payload.dailyFlags,
+           sPokegotchiRuntimeState.dailyFlags,
+           sizeof(dst->payload.dailyFlags));
     dst->checksum = Crc32B((const u8 *)&dst->payload, sizeof(dst->payload));
 }
 
@@ -370,6 +375,8 @@ static void DeserializeRuntimeState(const struct PokegotchiPersistedSave *src)
 {
     CpuFill16(0, &sPokegotchiRuntimeState, sizeof(sPokegotchiRuntimeState));
     sPokegotchiRuntimeState.playerPartyCount = src->payload.playerPartyCount;
+    sPokegotchiRuntimeState.dailyFlagsInitialized = src->payload.dailyFlagsInitialized;
+    sPokegotchiRuntimeState.dailyFlagsDay = src->payload.dailyFlagsDay;
     memcpy(sPokegotchiRuntimeState.playerParty,
            src->payload.playerParty,
            sizeof(sPokegotchiRuntimeState.playerParty));
@@ -386,6 +393,9 @@ static void DeserializeRuntimeState(const struct PokegotchiPersistedSave *src)
     memcpy(sPokegotchiRuntimeState.flags,
            src->payload.flags,
            sizeof(sPokegotchiRuntimeState.flags));
+    memcpy(sPokegotchiRuntimeState.dailyFlags,
+           src->payload.dailyFlags,
+           sizeof(sPokegotchiRuntimeState.dailyFlags));
 }
 
 static volatile u8 *GetSramMemoryBase(void)

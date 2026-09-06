@@ -1587,15 +1587,23 @@
 // Daily Flags
 // These flags are cleared once per day
 // The start and end are byte-aligned because the flags are cleared in byte increments
+#if TESTING
+#define POKEGOTCHI_DAILY_FLAG_04                    0x923
+#endif
+
 #define DAILY_FLAGS_START                           (FLAG_UNUSED_0x91F + (8 - FLAG_UNUSED_0x91F % 8))
-#define FLAG_RECEIVED_PACHINKO_COINS                (DAILY_FLAGS_START + 0x0)  // Unused Flag
-#define FLAG_DAILY_CONTEST_LOBBY_RECEIVED_BERRY     (DAILY_FLAGS_START + 0x1)
-#define FLAG_DAILY_SECRET_BASE                      (DAILY_FLAGS_START + 0x2)
+#define POKEGOTCHI_DAILY_FLAGS_START                DAILY_FLAGS_START
+#define FLAG_RECEIVED_PACHINKO_COINS                (DAILY_FLAGS_START + 0x0)
+#define FLAG_UNUSED_0x922                           (DAILY_FLAGS_START + 0x1) // Unused Flag
+#define FLAG_UNUSED_0x923                           (DAILY_FLAGS_START + 0x2) // Unused Flag
 #define FLAG_RECEIVED_DAILY_DONUT                   (DAILY_FLAGS_START + 0x3)
 #define FLAG_UNUSED_0x924                           (DAILY_FLAGS_START + 0x4)  // Unused Flag
 #define FLAG_UNUSED_0x925                           (DAILY_FLAGS_START + 0x5)  // Unused Flag
 #define FLAG_UNUSED_0x926                           (DAILY_FLAGS_START + 0x6)  // Unused Flag
 #define FLAG_UNUSED_0x927                           (DAILY_FLAGS_START + 0x7)  // Unused Flag
+#define POKEGOTCHI_DAILY_FLAGS_END                  FLAG_UNUSED_0x927
+#define NUM_POKEGOTCHI_DAILY_FLAGS                  (POKEGOTCHI_DAILY_FLAGS_END - POKEGOTCHI_DAILY_FLAGS_START + 1)
+#define POKEGOTCHI_DAILY_FLAG_BYTES                 (NUM_POKEGOTCHI_DAILY_FLAGS / 8)
 #define FLAG_UNUSED_0x928                           (DAILY_FLAGS_START + 0x8)  // Unused Flag
 #define FLAG_UNUSED_0x929                           (DAILY_FLAGS_START + 0x9)  // Unused Flag
 #define FLAG_DAILY_PICKED_LOTO_TICKET               (DAILY_FLAGS_START + 0xA)
@@ -1607,10 +1615,10 @@
 #define FLAG_DAILY_FLOWER_SHOP_RECEIVED_BERRY       (DAILY_FLAGS_START + 0x10)
 #define FLAG_DAILY_BERRY_MASTERS_WIFE               (DAILY_FLAGS_START + 0x11)
 #define FLAG_DAILY_SOOTOPOLIS_RECEIVED_BERRY        (DAILY_FLAGS_START + 0x12)
-#define FLAG_UNUSED_0x933                           (DAILY_FLAGS_START + 0x13) // Unused Flag
+#define FLAG_DAILY_SECRET_BASE                      (DAILY_FLAGS_START + 0x13)
 #define FLAG_DAILY_APPRENTICE_LEAVES                (DAILY_FLAGS_START + 0x14)
+#define FLAG_DAILY_CONTEST_LOBBY_RECEIVED_BERRY     (DAILY_FLAGS_START + 0x15)
 
-#define FLAG_UNUSED_0x935                           (DAILY_FLAGS_START + 0x15) // Unused Flag
 #define FLAG_UNUSED_0x936                           (DAILY_FLAGS_START + 0x16) // Unused Flag
 #define FLAG_UNUSED_0x937                           (DAILY_FLAGS_START + 0x17) // Unused Flag
 #define FLAG_UNUSED_0x938                           (DAILY_FLAGS_START + 0x18) // Unused Flag

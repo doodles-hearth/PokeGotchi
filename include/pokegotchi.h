@@ -34,6 +34,7 @@ enum PokegotchiInteractionReaction
 };
 
 void Pokegotchi_BeginSession(void);
+void Pokegotchi_UpdateDailyFlags(void);
 void Pokegotchi_EnsureInitialized(void);
 void Pokegotchi_Sync(void);
 void Pokegotchi_SyncAndSave(void);

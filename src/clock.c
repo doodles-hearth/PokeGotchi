@@ -10,6 +10,7 @@
 #include "mass_outbreak.h"
 #include "overworld.h"
 #include "pokerus.h"
+#include "pokegotchi.h"
 #include "random.h"
 #include "rtc.h"
 #include "time_events.h"
@@ -31,6 +32,8 @@ void InitTimeBasedEvents(void)
 
 void DoTimeBasedEvents(void)
 {
+    Pokegotchi_UpdateDailyFlags();
+
     if (FlagGet(FLAG_SYS_CLOCK_SET) && !InPokemonCenter())
     {
         RtcCalcLocalTime();

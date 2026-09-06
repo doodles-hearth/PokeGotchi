@@ -31,6 +31,7 @@ static const struct Time sTime_Day1_04_58 = {.days = 1, .hours = 4, .minutes = 5
 static const struct Time sTime_Day1_04_59 = {.days = 1, .hours = 4, .minutes = 59, .seconds = 0};
 static const struct Time sTime_Day1_05_00 = {.days = 1, .hours = 5, .minutes = 0, .seconds = 0};
 static const struct Time sTime_Day2_06_00 = {.days = 2, .hours = 6, .minutes = 0, .seconds = 0};
+static const struct Time sTime_Day4_06_00 = {.days = 4, .hours = 6, .minutes = 0, .seconds = 0};
 static const struct Time sTime_09_00 = {.days = 0, .hours = 9, .minutes = 0, .seconds = 0};
 
 static void ResetPokegotchiTestState(void)
@@ -69,6 +70,60 @@ TEST("(Pokegotchi) EnsureInitialized seeds default stats and food inventory")
     EXPECT_EQ(runtime->food.iceCream, 0);
     EXPECT_EQ(runtime->food.donut, 0);
     EXPECT_EQ(runtime->food.snack4, 0);
+}
+
+TEST("(Pokegotchi) Daily flags initialize and remain set on the same day")
+{
+    const struct PokegotchiRuntimeState *runtime;
+
+    ResetPokegotchiTestState();
+    Pokegotchi_SetCurrentTimeForTest(&sTime_Day1_00_00);
+    Pokegotchi_UpdateDailyFlags();
+    runtime = PokegotchiSave_GetRuntime();
+
+    EXPECT(runtime->dailyFlagsInitialized);
+    EXPECT_EQ(runtime->dailyFlagsDay, 1);
+    EXPECT_EQ(runtime->dailyFlags[0], 0);
+
+    FlagSet(POKEGOTCHI_DAILY_FLAGS_START);
+    FlagSet(POKEGOTCHI_DAILY_FLAGS_END);
+    Pokegotchi_UpdateDailyFlags();
+
+    EXPECT(FlagGet(POKEGOTCHI_DAILY_FLAGS_START));
+    EXPECT(FlagGet(POKEGOTCHI_DAILY_FLAGS_END));
+    EXPECT_EQ(runtime->dailyFlagsDay, 1);
+}
+
+TEST("(Pokegotchi) Daily flags reset across forward day changes and persist")
+{
+    const struct PokegotchiRuntimeState *runtime;
+
+    ResetPokegotchiTestState();
+    Pokegotchi_SetCurrentTimeForTest(&sTime_Day1_00_00);
+    Pokegotchi_UpdateDailyFlags();
+    FlagSet(POKEGOTCHI_DAILY_FLAGS_START);
+    FlagSet(POKEGOTCHI_DAILY_FLAGS_END);
+
+    Pokegotchi_SetCurrentTimeForTest(&sTime_Day2_06_00);
+    Pokegotchi_UpdateDailyFlags();
+    runtime = PokegotchiSave_GetRuntime();
+
+    EXPECT_EQ(runtime->dailyFlagsDay, 2);
+    EXPECT_EQ(runtime->dailyFlags[0], 0);
+
+    FlagSet(POKEGOTCHI_DAILY_FLAGS_START + 3);
+    Pokegotchi_SetCurrentTimeForTest(&sTime_Day4_06_00);
+    Pokegotchi_UpdateDailyFlags();
+
+    EXPECT_EQ(runtime->dailyFlagsDay, 4);
+    EXPECT_EQ(runtime->dailyFlags[0], 0);
+
+    PokegotchiSave_ClearRuntimeState();
+    EXPECT_EQ(PokegotchiSave_InitOrLoad(), TRUE);
+    runtime = PokegotchiSave_GetRuntime();
+    EXPECT(runtime->dailyFlagsInitialized);
+    EXPECT_EQ(runtime->dailyFlagsDay, 4);
+    EXPECT_EQ(runtime->dailyFlags[0], 0);
 }
 
 TEST("(Pokegotchi) One active minute reduces all four meters by two")

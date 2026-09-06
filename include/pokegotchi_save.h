@@ -11,7 +11,8 @@
 struct PokegotchiRuntimeState
 {
     u8 playerPartyCount;
-    u8 filler[3];
+    bool8 dailyFlagsInitialized;
+    u16 dailyFlagsDay;
     struct Pokemon playerParty[PARTY_SIZE];
     struct PokegotchiFood food;
     struct PokegotchiStats stats;
@@ -20,12 +21,14 @@ struct PokegotchiRuntimeState
     u8 playerGender;
     u8 optionsSound;
     u8 flags[POKEGOTCHI_FLAG_BYTES];
+    u8 dailyFlags[POKEGOTCHI_DAILY_FLAG_BYTES];
 };
 
 struct PokegotchiPersistedPayload
 {
     u8 playerPartyCount;
-    u8 filler[3];
+    bool8 dailyFlagsInitialized;
+    u16 dailyFlagsDay;
     struct Pokemon playerParty[PARTY_SIZE];
     struct PokegotchiFood food;
     struct PokegotchiStats stats;
@@ -34,6 +37,7 @@ struct PokegotchiPersistedPayload
     u8 playerGender;
     u8 optionsSound;
     u8 flags[POKEGOTCHI_FLAG_BYTES];
+    u8 dailyFlags[POKEGOTCHI_DAILY_FLAG_BYTES];
 };
 
 struct PokegotchiPersistedSave

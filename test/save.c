@@ -21,6 +21,13 @@ static void ExpectPokegotchiFlagsCleared(void)
     EXPECT_EQ(PokegotchiSave_GetRuntime()->flags[2], 0);
 }
 
+static void ExpectPokegotchiDefaultFlags(void)
+{
+    EXPECT(FlagGet(POKEGOTCHI_FLAG_HIDE_TRUBBISH));
+    EXPECT(FlagGet(POKEGOTCHI_FLAG_HIDE_ICE_CREAM));
+    EXPECT(FlagGet(POKEGOTCHI_FLAG_HIDE_CAR));
+}
+
 static void ResetSaveTestStateWithBackend(bool32 flashPresent)
 {
     gFlashMemoryPresent = flashPresent;
@@ -64,7 +71,8 @@ TEST("(Pokegotchi) Blank SRAM boot initializes defaults")
     EXPECT_EQ(runtime->stats.version, 1);
     EXPECT_EQ(runtime->playerPartyCount, 1);
     EXPECT_EQ((u32)runtime->optionsSound, OPTIONS_SOUND_MONO);
-    ExpectPokegotchiFlagsCleared();
+    ExpectPokegotchiDefaultFlags();
+    EXPECT_EQ(runtime->dailyFlags[0], 0);
 }
 
 TEST("(Pokegotchi) Blank flash boot initializes defaults")
@@ -90,7 +98,8 @@ TEST("(Pokegotchi) Blank flash boot initializes defaults")
     EXPECT_EQ(runtime->stats.version, 1);
     EXPECT_EQ(runtime->playerPartyCount, 1);
     EXPECT_EQ((u32)runtime->optionsSound, OPTIONS_SOUND_MONO);
-    ExpectPokegotchiFlagsCleared();
+    ExpectPokegotchiDefaultFlags();
+    EXPECT_EQ(runtime->dailyFlags[0], 0);
 }
 
 TEST("(Pokegotchi) SRAM save round-trip preserves runtime payload")
@@ -134,6 +143,9 @@ TEST("(Pokegotchi) SRAM save round-trip preserves runtime payload")
     runtime->flags[0] = (1 << 0) | (1 << 5);
     runtime->flags[1] = (1 << 1);
     runtime->flags[2] = (1 << 7);
+    runtime->dailyFlagsInitialized = TRUE;
+    runtime->dailyFlagsDay = 4;
+    runtime->dailyFlags[0] = (1 << 0) | (1 << 7);
 
     SetMonData(&mon, MON_DATA_SPECIES, &(u16){SPECIES_BULBASAUR});
     SetMonData(&mon, MON_DATA_LEVEL, &(u8){12});
@@ -177,6 +189,9 @@ TEST("(Pokegotchi) SRAM save round-trip preserves runtime payload")
     EXPECT_EQ(loaded->flags[0], (1 << 0) | (1 << 5));
     EXPECT_EQ(loaded->flags[1], (1 << 1));
     EXPECT_EQ(loaded->flags[2], (1 << 7));
+    EXPECT(loaded->dailyFlagsInitialized);
+    EXPECT_EQ(loaded->dailyFlagsDay, 4);
+    EXPECT_EQ(loaded->dailyFlags[0], (1 << 0) | (1 << 7));
     EXPECT_EQ(GetMonData(&loadedMon, MON_DATA_SPECIES), SPECIES_BULBASAUR);
     EXPECT_EQ(GetMonData(&loadedMon, MON_DATA_LEVEL), 12);
 }
@@ -222,6 +237,9 @@ TEST("(Pokegotchi) Flash save round-trip preserves runtime payload")
     runtime->flags[0] = (1 << 2);
     runtime->flags[1] = (1 << 4) | (1 << 7);
     runtime->flags[2] = (1 << 3);
+    runtime->dailyFlagsInitialized = TRUE;
+    runtime->dailyFlagsDay = 8;
+    runtime->dailyFlags[0] = (1 << 2) | (1 << 6);
 
     SetMonData(&mon, MON_DATA_SPECIES, &(u16){SPECIES_CHARMANDER});
     SetMonData(&mon, MON_DATA_LEVEL, &(u8){16});
@@ -265,6 +283,9 @@ TEST("(Pokegotchi) Flash save round-trip preserves runtime payload")
     EXPECT_EQ(loaded->flags[0], (1 << 2));
     EXPECT_EQ(loaded->flags[1], (1 << 4) | (1 << 7));
     EXPECT_EQ(loaded->flags[2], (1 << 3));
+    EXPECT(loaded->dailyFlagsInitialized);
+    EXPECT_EQ(loaded->dailyFlagsDay, 8);
+    EXPECT_EQ(loaded->dailyFlags[0], (1 << 2) | (1 << 6));
     EXPECT_EQ(GetMonData(&loadedMon, MON_DATA_SPECIES), SPECIES_CHARMANDER);
     EXPECT_EQ(GetMonData(&loadedMon, MON_DATA_LEVEL), 16);
 }
@@ -459,6 +480,55 @@ TEST("(Pokegotchi) Flag functions route reserved IDs into Pokegotchi saves")
     EXPECT_EQ(runtime->flags[2], 0);
 }
 
+TEST("(Pokegotchi) Daily flag functions route the first daily byte into Pokegotchi saves")
+{
+    struct PokegotchiRuntimeState *runtime;
+
+    ResetSaveTestState();
+    runtime = PokegotchiSave_GetRuntimeMutable();
+
+    EXPECT_EQ(gSaveBlock1Ptr->flags[POKEGOTCHI_DAILY_FLAGS_START / 8], 0);
+    FlagSet(POKEGOTCHI_DAILY_FLAGS_START);
+    FlagSet(POKEGOTCHI_DAILY_FLAGS_START + 3);
+    FlagSet(POKEGOTCHI_DAILY_FLAGS_END);
+
+    EXPECT(FlagGet(POKEGOTCHI_DAILY_FLAGS_START));
+    EXPECT(FlagGet(POKEGOTCHI_DAILY_FLAGS_START + 3));
+    EXPECT(FlagGet(POKEGOTCHI_DAILY_FLAGS_END));
+    EXPECT_EQ(runtime->dailyFlags[0], (1 << 0) | (1 << 3) | (1 << 7));
+    EXPECT_EQ(gSaveBlock1Ptr->flags[POKEGOTCHI_DAILY_FLAGS_START / 8], 0);
+
+    FlagToggle(POKEGOTCHI_DAILY_FLAGS_START + 3);
+    EXPECT(!FlagGet(POKEGOTCHI_DAILY_FLAGS_START + 3));
+
+    FlagClear(POKEGOTCHI_DAILY_FLAGS_END);
+    EXPECT(!FlagGet(POKEGOTCHI_DAILY_FLAGS_END));
+    EXPECT_EQ(runtime->dailyFlags[0], 1 << 0);
+
+    FlagSet(POKEGOTCHI_DAILY_FLAGS_END + 1);
+    EXPECT(FlagGet(POKEGOTCHI_DAILY_FLAGS_END + 1));
+    EXPECT_EQ(runtime->dailyFlags[0], 1 << 0);
+    EXPECT_EQ(gSaveBlock1Ptr->flags[(POKEGOTCHI_DAILY_FLAGS_END + 1) / 8], 1 << 0);
+}
+
+TEST("(Pokegotchi) ClearDailyFlags clears custom and vanilla daily flags only")
+{
+    ResetSaveTestState();
+
+    FlagSet(POKEGOTCHI_FLAG_01);
+    FlagSet(POKEGOTCHI_DAILY_FLAGS_START);
+    FlagSet(POKEGOTCHI_DAILY_FLAGS_END);
+    FlagSet(POKEGOTCHI_DAILY_FLAGS_END + 1);
+
+    ClearDailyFlags();
+
+    EXPECT(FlagGet(POKEGOTCHI_FLAG_01));
+    EXPECT(!FlagGet(POKEGOTCHI_DAILY_FLAGS_START));
+    EXPECT(!FlagGet(POKEGOTCHI_DAILY_FLAGS_END));
+    EXPECT(!FlagGet(POKEGOTCHI_DAILY_FLAGS_END + 1));
+    EXPECT_EQ(PokegotchiSave_GetRuntime()->dailyFlags[0], 0);
+}
+
 TEST("(Pokegotchi) Script flag commands use Pokegotchi storage")
 {
     ResetSaveTestState();
@@ -489,6 +559,38 @@ TEST("(Pokegotchi) Script flag commands use Pokegotchi storage")
     EXPECT_EQ(VarGet(VAR_TEMP_1), 3);
     EXPECT(!FlagGet(POKEGOTCHI_FLAG_03));
     ExpectPokegotchiFlagsCleared();
+}
+
+TEST("(Pokegotchi) Script flag commands use Pokegotchi daily storage")
+{
+    ResetSaveTestState();
+    VarSet(VAR_TEMP_0, 0);
+    VarSet(VAR_TEMP_1, 0);
+
+    RUN_OVERWORLD_SCRIPT(
+        setflag POKEGOTCHI_DAILY_FLAG_04;
+        checkflag POKEGOTCHI_DAILY_FLAG_04;
+        goto_if_eq DailyFlagWasSet;
+        setvar VAR_TEMP_0, 1;
+        end;
+
+      DailyFlagWasSet:
+        setvar VAR_TEMP_0, 2;
+        clearflag POKEGOTCHI_DAILY_FLAG_04;
+        checkflag POKEGOTCHI_DAILY_FLAG_04;
+        goto_if_eq DailyFlagStillSet;
+        setvar VAR_TEMP_1, 3;
+        end;
+
+      DailyFlagStillSet:
+        setvar VAR_TEMP_1, 4;
+        end;
+    );
+
+    EXPECT_EQ(VarGet(VAR_TEMP_0), 2);
+    EXPECT_EQ(VarGet(VAR_TEMP_1), 3);
+    EXPECT(!FlagGet(FLAG_RECEIVED_DAILY_DONUT));
+    EXPECT_EQ(PokegotchiSave_GetRuntime()->dailyFlags[0], 0);
 }
 
 TEST("(Pokegotchi) SRAM persists Pokegotchi flags and keeps the older slot on corruption")

@@ -29,12 +29,22 @@ static u8 *GetMutableFoodCountByKey(u8 foodKey);
 static bool8 GetStatField(enum PokegotchiStat stat, u16 **value);
 static struct PokegotchiStats *GetMutableStats(void);
 static void CommitRuntimeState(void);
+static void UpdateDailyFlagsForTime(const struct Time *time);
 
 void Pokegotchi_BeginSession(void)
 {
     GetCurrentTime(&sPokegotchiSessionStart);
+    UpdateDailyFlagsForTime(&sPokegotchiSessionStart);
     sPokegotchiSessionStarted = TRUE;
     sPokegotchiSessionFlags = 0;
+}
+
+void Pokegotchi_UpdateDailyFlags(void)
+{
+    struct Time now;
+
+    GetCurrentTime(&now);
+    UpdateDailyFlagsForTime(&now);
 }
 
 void Pokegotchi_EnsureInitialized(void)
@@ -91,6 +101,7 @@ void Pokegotchi_Sync(void)
         Pokegotchi_BeginSession();
 
     GetCurrentTime(&now);
+    UpdateDailyFlagsForTime(&now);
 
     if (CompareTimes(&now, &stats->lastUpdated) < 0)
     {
@@ -567,6 +578,25 @@ static bool8 GetStatField(enum PokegotchiStat stat, u16 **value)
 static struct PokegotchiStats *GetMutableStats(void)
 {
     return &PokegotchiSave_GetRuntimeMutable()->stats;
+}
+
+static void UpdateDailyFlagsForTime(const struct Time *time)
+{
+    struct PokegotchiRuntimeState *runtime = PokegotchiSave_GetRuntimeMutable();
+
+    if (!runtime->dailyFlagsInitialized)
+    {
+        memset(runtime->dailyFlags, 0, sizeof(runtime->dailyFlags));
+        runtime->dailyFlagsDay = time->days;
+        runtime->dailyFlagsInitialized = TRUE;
+        CommitRuntimeState();
+    }
+    else if (runtime->dailyFlagsDay != time->days && runtime->dailyFlagsDay <= time->days)
+    {
+        memset(runtime->dailyFlags, 0, sizeof(runtime->dailyFlags));
+        runtime->dailyFlagsDay = time->days;
+        CommitRuntimeState();
+    }
 }
 
 static void CommitRuntimeState(void)

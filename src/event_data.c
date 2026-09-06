@@ -42,10 +42,17 @@ static bool8 IsPokegotchiFlag(u16 id)
     return id >= POKEGOTCHI_FLAGS_START && id <= POKEGOTCHI_FLAGS_END;
 }
 
+static bool8 IsPokegotchiDailyFlag(u16 id)
+{
+    return id >= POKEGOTCHI_DAILY_FLAGS_START && id <= POKEGOTCHI_DAILY_FLAGS_END;
+}
+
 static u8 GetFlagBitIndex(u16 id)
 {
     if (IsPokegotchiFlag(id))
         return (id - POKEGOTCHI_FLAGS_START) & 7;
+    if (IsPokegotchiDailyFlag(id))
+        return (id - POKEGOTCHI_DAILY_FLAGS_START) & 7;
 
     return id & 7;
 }
@@ -83,6 +90,7 @@ void ClearTempFieldEventData(void)
 void ClearDailyFlags(void)
 {
     memset(&gSaveBlock1Ptr->flags[DAILY_FLAGS_START / 8], 0, DAILY_FLAGS_SIZE);
+    memset(PokegotchiSave_GetRuntimeMutable()->dailyFlags, 0, POKEGOTCHI_DAILY_FLAG_BYTES);
 }
 
 void DisableNationalPokedex(void)
@@ -224,6 +232,8 @@ u8 *GetFlagPointer(u16 id)
         return NULL;
     else if (IsPokegotchiFlag(id))
         return &PokegotchiSave_GetRuntimeMutable()->flags[(id - POKEGOTCHI_FLAGS_START) / 8];
+    else if (IsPokegotchiDailyFlag(id))
+        return &PokegotchiSave_GetRuntimeMutable()->dailyFlags[(id - POKEGOTCHI_DAILY_FLAGS_START) / 8];
     else if (id < SPECIAL_FLAGS_START)
         return &gSaveBlock1Ptr->flags[id / 8];
 #if TESTING
