@@ -160,7 +160,7 @@ static void Task_MenuWanderPet(u8 taskId);
 static void CB2_ReturnToPokegotchiHouseMenu(void);
 static void CB2_OpenPokegotchiFeedMenuFromHouse(void);
 static void CB2_OpenPokegotchiStatusMenuFromHouse(void);
-static void CB2_OpenPokegotchiWaiterMinigameFromHouse(void);
+static UNUSED void CB2_OpenPokegotchiWaiterMinigameFromHouse(void);
 static void CB2_ExitToTamatownFromHouse(void);
 
 //==========CONST=DATA==========//
@@ -1302,7 +1302,7 @@ static void CB2_OpenPokegotchiStatusMenuFromHouse(void)
     OpenPokegotchiStatusMenu(CB2_ReturnToPokegotchiHouseMenu);
 }
 
-static void CB2_OpenPokegotchiWaiterMinigameFromHouse(void)
+static UNUSED void CB2_OpenPokegotchiWaiterMinigameFromHouse(void)
 {
     OpenPokegotchiWaiterMinigame(sHouseMenuExitCallback, sHouseWaiterMinigameDifficulty);
 }
@@ -1381,24 +1381,7 @@ static void Task_MenuMain(u8 taskId)
                 PlaySE(SE_FAILURE);
             break;
         case TOWN_ICON:
-        #ifndef RELEASE
-            if (JOY_HELD(R_BUTTON))
-            {
-                sHouseMenuExitCallback = sMenuDataPtr->savedCallback;
-                sHouseWaiterMinigameDifficulty = POKEGOTCHI_WAITER_MINIGAME_EASY;
-                sMenuDataPtr->savedCallback = CB2_OpenPokegotchiWaiterMinigameFromHouse;
-            }
-            else if (JOY_HELD(L_BUTTON))
-            {
-                sHouseMenuExitCallback = sMenuDataPtr->savedCallback;
-                sHouseWaiterMinigameDifficulty = POKEGOTCHI_WAITER_MINIGAME_HARD;
-                sMenuDataPtr->savedCallback = CB2_OpenPokegotchiWaiterMinigameFromHouse;
-            }
-            else
-        #endif
-            {
-                sMenuDataPtr->savedCallback = CB2_ExitToTamatownFromHouse;
-            }
+            sMenuDataPtr->savedCallback = CB2_ExitToTamatownFromHouse;
             PlaySE(SE_SELECT);
             Menu_FadeAndBail();
             DestroyTask(taskId);

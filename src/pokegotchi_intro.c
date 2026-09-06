@@ -204,6 +204,7 @@ void CB2_InitPokegotchiBootup(void)
     PokegotchiSave_InitOrLoad();
     Pokegotchi_EnsureInitialized();
     SetPokemonCryStereo(PokegotchiSave_GetRuntime()->optionsSound);
+    gSaveBlock2Ptr->optionsTextSpeed = OPTIONS_TEXT_SPEED_FAST;
     InitHeap(gHeap, HEAP_SIZE);
     Pokegotchi_BeginSession();
 }
