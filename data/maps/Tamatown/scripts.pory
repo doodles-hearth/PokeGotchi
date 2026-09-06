@@ -11,6 +11,26 @@ mapscripts Tamatown_MapScripts {
 	}
 }
 
+script Tamatown_EventScript_House {
+	lock
+	msgbox(
+		"Go home?"
+	)
+
+	mcdialogueB(
+		"Yes",
+		"No"
+	)
+
+	switch(var(VAR_RESULT)) {
+		case 0:
+			callnative(ReturnToPokegotchiHouse)
+		default: 
+			closemessage
+			release
+	}
+}
+
 script Tamatown_EventScript_Arcade {
 	lock
 

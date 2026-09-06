@@ -31,6 +31,7 @@
 #include "party_menu.h"
 #include "pokedex.h"
 #include "pokenav.h"
+#include "pokegotchi_house.h"
 #include "safari_zone.h"
 #include "save.h"
 #include "scanline_effect.h"
@@ -614,14 +615,7 @@ void Task_ShowStartMenu(u8 taskId)
 
 void ShowStartMenu(void)
 {
-    if (!IsOverworldLinkActive())
-    {
-        FreezeObjectEvents();
-        PlayerFreeze();
-        StopPlayerAvatar();
-    }
-    CreateStartMenuTask(Task_ShowStartMenu);
-    LockPlayerFieldControls();
+    ReturnToPokegotchiHouse(NULL);
 }
 
 static bool8 HandleStartMenuInput(void)
