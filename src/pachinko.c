@@ -305,8 +305,8 @@ static const u32 sCoverBgGfx[] = INCGFX_U32("graphics/pinball/bg_cover_tiles.png
 static const u16 sCoverBgPalette[] = INCGFX_U16("graphics/pinball/bg_cover_tiles.png", ".gbapal");
 static const u16 sCovergTilemap[] = INCBIN_U16("graphics/pinball/bg_tilemap_cover.bin");
 
-static const u32 sBallPokeballGfx[] = INCGFX_U32("graphics/pinball/ball_pokeball.png", ".4bpp.smol");
-static const u16 sBallPokeballPalette[] = INCGFX_U16("graphics/pinball/ball_pokeball.png", ".gbapal");
+static const u32 sBallPokeballGfx[] = INCGFX_U32("graphics/pinball/pokegotchi/ball_pokeball.png", ".4bpp.smol");
+static const u16 sBallPokeballPalette[] = INCGFX_U16("graphics/pinball/pokegotchi/ball_pokeball.png", ".gbapal");
 static const u16 sFlipperPalette[] = INCGFX_U16("graphics/pinball/flipper.png", ".gbapal");
 
 static const u8 sFlipperCollisionRadii[] = INCBIN_U8("data/pinball/flipper_radii.bin");

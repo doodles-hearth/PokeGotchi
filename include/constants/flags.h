@@ -62,15 +62,15 @@
 #define POKEGOTCHI_FLAGS_START                      0x20
 #define POKEGOTCHI_FLAG_HIDE_TRUBBISH               0x20
 #define POKEGOTCHI_FLAG_UNLOCKED_MEAL_HOT_DOG       0x21
-#define POKEGOTCHI_FLAG_UNLOCKED_MEAL_2             0x22
-#define POKEGOTCHI_FLAG_UNLOCKED_MEAL_3             0x23
+#define POKEGOTCHI_FLAG_UNLOCKED_MEAL_POKEBLOCK             0x22
+#define POKEGOTCHI_FLAG_UNLOCKED_MEAL_EGG             0x23
 #define POKEGOTCHI_FLAG_UNLOCKED_SNACK_DOUGHNUT     0x24
 #define POKEGOTCHI_FLAG_UNLOCKED_SNACK_ICE_CREAM    0x25
 #define POKEGOTCHI_FLAG_UNLOCKED_SNACK_3            0x26
 #define POKEGOTCHI_FLAG_FOUND_TANGELA               0x27
-#define POKEGOTCHI_FLAG_09      0x28
-#define POKEGOTCHI_FLAG_10      0x29
-#define POKEGOTCHI_FLAG_11      0x2A
+#define POKEGOTCHI_FLAG_VANILLISH_DIED      0x28
+#define POKEGOTCHI_FLAG_HIDE_CAR      0x29
+#define POKEGOTCHI_FLAG_HIDE_ICE_CREAM      0x2A
 #define POKEGOTCHI_FLAG_12      0x2B
 #define POKEGOTCHI_FLAG_13      0x2C
 #define POKEGOTCHI_FLAG_14      0x2D
@@ -1515,11 +1515,11 @@
 #define FLAG_ARRIVED_AT_NAVEL_ROCK                  (SYSTEM_FLAGS + 0x81)
 #define FLAG_LANDMARK_TRAINER_HILL                  (SYSTEM_FLAGS + 0x82)
 
-#define FLAG_UNUSED_0x8E3                           (SYSTEM_FLAGS + 0x83) // Unused Flag
+#define FLAG_EXPLAINED_PACHINKO                     (SYSTEM_FLAGS + 0x83)
 
 #define FLAG_RECEIVED_POKEDEX_FROM_BIRCH            (SYSTEM_FLAGS + 0x84)
 
-#define FLAG_UNUSED_0x8E5                           (SYSTEM_FLAGS + 0x85) // Unused Flag
+#define FLAG_EXPLAINED_RESTAURANT                   (SYSTEM_FLAGS + 0x85)
 #define FLAG_UNUSED_0x8E6                           (SYSTEM_FLAGS + 0x86) // Unused Flag
 #define FLAG_UNUSED_0x8E7                           (SYSTEM_FLAGS + 0x87) // Unused Flag
 #define FLAG_UNUSED_0x8E8                           (SYSTEM_FLAGS + 0x88) // Unused Flag
@@ -1586,7 +1586,7 @@
 #define FLAG_RECEIVED_PACHINKO_COINS                (DAILY_FLAGS_START + 0x0)  // Unused Flag
 #define FLAG_DAILY_CONTEST_LOBBY_RECEIVED_BERRY     (DAILY_FLAGS_START + 0x1)
 #define FLAG_DAILY_SECRET_BASE                      (DAILY_FLAGS_START + 0x2)
-#define FLAG_UNUSED_0x923                           (DAILY_FLAGS_START + 0x3)  // Unused Flag
+#define FLAG_RECEIVED_DAILY_DONUT                   (DAILY_FLAGS_START + 0x3)
 #define FLAG_UNUSED_0x924                           (DAILY_FLAGS_START + 0x4)  // Unused Flag
 #define FLAG_UNUSED_0x925                           (DAILY_FLAGS_START + 0x5)  // Unused Flag
 #define FLAG_UNUSED_0x926                           (DAILY_FLAGS_START + 0x6)  // Unused Flag
