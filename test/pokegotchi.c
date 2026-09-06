@@ -41,18 +41,6 @@ static void ResetPokegotchiTestState(void)
     Pokegotchi_ResetStateForTest();
 }
 
-static u32 GetPokegotchiSpriteTileChecksum(u8 spriteId)
-{
-    const volatile u8 *tiles = (const volatile u8 *)OBJ_VRAM0
-                             + gSprites[spriteId].sheetTileStart * TILE_SIZE_4BPP;
-    u32 checksum = 0;
-    u32 i;
-
-    for (i = 0; i < 64 * 32 / 2; i++)
-        checksum = checksum * 33 + tiles[i];
-    return checksum;
-}
-
 TEST("(Pokegotchi) EnsureInitialized seeds default stats and food inventory")
 {
     const struct PokegotchiStats *stats;
