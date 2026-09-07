@@ -4,9 +4,12 @@ const FLAG_REMOVE_TREE_INTERACTION = FLAG_TEMP_2
 mapscripts Tamatown_MapScripts {
 	MAP_SCRIPT_ON_TRANSITION {
 		if (flag(POKEGOTCHI_FLAG_VANILLISH_DIED)) {
-			setobjectxyperm(LOCALID_VANILLISH, 33, 20)
+			setobjectxyperm(LOCALID_ICE_CREAM, 33, 20)
 			setobjectxyperm(LOCALID_CAR, 23, 20)
-			setobjectmovementtype(LOCALID_VANILLISH, MOVEMENT_TYPE_FACE_UP)
+		}
+
+		if (flag(POKEGOTCHI_FLAG_FRNTR_RUG)) {
+			setobjectxyperm(LOCALID_SKITTY, 45, 27)
 		}
 	}
 }
@@ -60,8 +63,8 @@ script Tamatown_EventScript_Arcade {
 
 script Tamatown_EventScript_Porygon {
 	lockall
-
-	if (flag(POKEGOTCHI_FLAG_SKITTY_FOLLOWING)) {
+	checkfollowernpc
+		if (var(VAR_RESULT)) {
 		setspeaker("Skitty")
 		applymovement(LOCALID_SKITTY, moves(shake_horizontal))
 		playmoncry(SPECIES_SKITTY, CRY_MODE_NORMAL)
@@ -168,8 +171,73 @@ script Tamatown_EventScript_Tree {
 
 script Tamatown_EventScript_Tangela {
 	lock
+	checkfollowernpc
+	if (var(VAR_RESULT)) {
+		playse(SE_PIN)
+		applymovement(LOCALID_SKITTY, moves(emote_exclamation_mark))
+		waitmovementall
+		waitse
+		playse(SE_LEDGE)
+		applymovement(LOCALID_SKITTY, moves(jump_in_place_down))
+		waitse
+		waitmovementall
+		playmoncry(SPECIES_SKITTY, CRY_MODE_HIGH_PITCH)
+		setspeaker("Skitty")
+		msgbox(
+			"A ball! A ball of yarn! Meow!!"
+		)
+		closemessage
+
+		playse(SE_PIN)
+		applymovement(LOCALID_TANGELA, moves(emote_exclamation_mark))
+		waitmovementall
+		waitse
+		applymovement(LOCALID_TANGELA, moves(shake_horizontal * 3))
+		playmoncry(SPECIES_TANGELA, CRY_MODE_WEAK)
+		setspeaker("Tangela")
+		msgbox(
+			"I-I'm not a ball of yarn!\nI'm a tree!"
+		)
+		closemessage
+
+		playmoncry(SPECIES_SKITTY, CRY_MODE_HIGH_PITCH)
+		setspeaker("Skitty")
+		msgbox(
+			"Thank you, you odd little bug.\p"
+			"I'll give you one of my crafting\nprojects in return!"
+		)
+		closemessage
+
+		playfanfare(MUS_LEVEL_UP)
+		message(
+			"You got a cute crochet rug for your\nroom!"
+		)
+		waitfanfare
+		waitmessage
+		setflag(POKEGOTCHI_FLAG_FRNTR_RUG)
+
+		destroyfollowernpc
+		fadescreen(FADE_TO_BLACK)
+		delay(32)
+		setobjectxyperm(LOCALID_SKITTY, 45, 27)
+		fadescreen(FADE_FROM_BLACK)
+
+		release
+		end
+	}
 
 	if (flag(POKEGOTCHI_FLAG_FOUND_TANGELA)) {
+		if (flag(POKEGOTCHI_FLAG_FRNTR_RUG)) {
+			playmoncry(SPECIES_TANGELA, CRY_MODE_WEAK)
+			setspeaker("Tangela")
+			msgbox(
+				"It's hard to hide in plain sight\nwith this one playing with my vines…"
+			)
+			waitmoncry
+			release
+			end
+		}
+
 		playmoncry(SPECIES_TANGELA, CRY_MODE_NORMAL)
 		setspeaker("Tangela")
 		msgbox(
@@ -252,14 +320,26 @@ script Tamatown_EventScript_Sign {
 	)
 }
 
+script Tamatown_EventScript_SkittyFollowing {
+	lock
+	playmoncry(SPECIES_SKITTY, CRY_MODE_NORMAL)
+	setspeaker("Skitty")
+	msgbox(
+		"I want a ball of yarn!\nMeow!"
+	)
+	waitmoncry
+	release
+	end
+}
+
 script Tamatown_EventScript_Skitty {
 	lock
 
-	if (flag(POKEGOTCHI_FLAG_SKITTY_FOLLOWING)) {
-		playmoncry(SPECIES_SKITTY, CRY_MODE_NORMAL)
+	if (flag(POKEGOTCHI_FLAG_FRNTR_RUG)) {
+		playmoncry(SPECIES_SKITTY, CRY_MODE_HIGH_PITCH)
 		setspeaker("Skitty")
 		msgbox(
-			"I want a ball of yarn!\nMeow!"
+			"Meow meow meow!\nYarn yarn yarn!"
 		)
 		waitmoncry
 		release
@@ -283,10 +363,9 @@ script Tamatown_EventScript_Skitty {
 
 	if (var(VAR_RESULT) == 0) {
 		playmoncry(SPECIES_SKITTY, CRY_MODE_WEAK)
-		setfollowernpc(LOCALID_SKITTY, FOLLOWER_NPC_FLAG_CLEAR_ON_WHITE_OUT)
+		// TODO does not work
+		setfollowernpc(LOCALID_SKITTY, FOLLOWER_NPC_FLAG_ALL, Tamatown_EventScript_SkittyFollowing)
 		waitmoncry
-
-		setflag(POKEGOTCHI_FLAG_SKITTY_FOLLOWING)
 	} else {
 		playmoncry(SPECIES_SKITTY, CRY_MODE_WEAK)
 		setspeaker("Skitty")
@@ -312,7 +391,8 @@ script Tamatown_EventScript_TrubbishCan {
 	lock
 
 	if (flag(POKEGOTCHI_FLAG_UNLOCKED_SNACK_DOUGHNUT)) {
-		if (flag(POKEGOTCHI_FLAG_SKITTY_FOLLOWING)) {
+		checkfollowernpc
+		if (var(VAR_RESULT)) {
 			setspeaker("Trubbish")
 			playmoncry(SPECIES_TRUBBISH, CRY_MODE_NORMAL)
 			msgbox(
@@ -927,6 +1007,18 @@ script Tamatown_EventScript_HydrantTorchic {
 
 script Tamatown_EventScript_Torchic {
 	lock
+		checkfollowernpc
+		if (var(VAR_RESULT)) {
+		setspeaker("Torchic")
+		playmoncry(SPECIES_TORCHIC, CRY_MODE_ENCOUNTER)
+		msgbox(
+			"I taut I taw a puddy-tat!\nG-get it away from me!"
+		)
+
+		closemessage
+		release
+		end
+	}
 
 	if (flag(POKEGOTCHI_FLAG_FRNTR_POSTER_TORCHIC)) {
 		playmoncry(SPECIES_TORCHIC, CRY_MODE_NORMAL)
