@@ -63,6 +63,8 @@
 #define HOUSE_WANDER_MAX_FRAMES (6 * 60)
 #define HOUSE_PET_CENTER_X 120
 #define HOUSE_PET_CENTER_Y 88
+#define HOUSE_BED_SLEEP_X 48
+#define HOUSE_BED_SLEEP_Y 96
 #define HOUSE_EATING_FOOD_X 88
 #define HOUSE_EATING_FOOD_Y 104
 #define HOUSE_EATING_FOOD_FRAME_COUNT 3
@@ -1065,8 +1067,16 @@ static bool8 Menu_SetPetEmotion(u8 emotion)
 
     if (emotion == POKEGOTCHI_EMOTION_SLEEPING)
     {
-        x = HOUSE_PET_CENTER_X;
-        y = HOUSE_PET_CENTER_Y;
+        if (FlagGet(POKEGOTCHI_FLAG_FRNTR_BED))
+        {
+            x = HOUSE_BED_SLEEP_X;
+            y = HOUSE_BED_SLEEP_Y;
+        }
+        else
+        {
+            x = HOUSE_PET_CENTER_X;
+            y = HOUSE_PET_CENTER_Y;
+        }
     }
 
     spriteId = CreatePokegotchiSprite(species, emotion, x, y, 0);
