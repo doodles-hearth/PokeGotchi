@@ -61,6 +61,19 @@ script Tamatown_EventScript_Arcade {
 script Tamatown_EventScript_Porygon {
 	lockall
 
+	if (flag(POKEGOTCHI_FLAG_SKITTY_FOLLOWING)) {
+		setspeaker("Skitty")
+		applymovement(LOCALID_SKITTY, moves(shake_horizontal))
+		playmoncry(SPECIES_SKITTY, CRY_MODE_NORMAL)
+		msgbox(
+			"Porygon is such a nerd!\nI don't want a virtual ball of yarn!"
+		)
+
+		closemessage
+		release
+		end
+	}
+
 	if (flag(FLAG_EXPLAINED_PACHINKO)) {
 		playse(SE_LEDGE)
 		applymovement(VAR_LAST_TALKED, moves(jump_in_place_down))
@@ -242,13 +255,48 @@ script Tamatown_EventScript_Sign {
 script Tamatown_EventScript_Skitty {
 	lock
 
-	// TODO
+	if (flag(POKEGOTCHI_FLAG_SKITTY_FOLLOWING)) {
+		playmoncry(SPECIES_SKITTY, CRY_MODE_NORMAL)
+		setspeaker("Skitty")
+		msgbox(
+			"I want a ball of yarn!\nMeow!"
+		)
+		waitmoncry
+		release
+		end
+	}
+
 	playmoncry(SPECIES_SKITTY, CRY_MODE_WEAK)
 	setspeaker("Skitty")
 	msgbox(
 		"Meow…\nI lost my ball of yarn…\p"
-		"Would you be so kind as to find me some\nmore yarn?"
+		"Would you be so kind as to find me some\nmore yarn?\p"
+		"Take me with you!"
 	)
+
+	mcdialogueB(
+		"Alright",
+		"No"
+	)
+
+	closemessage
+
+	if (var(VAR_RESULT) == 0) {
+		playmoncry(SPECIES_SKITTY, CRY_MODE_WEAK)
+		setfollowernpc(LOCALID_SKITTY, FOLLOWER_NPC_FLAG_CLEAR_ON_WHITE_OUT)
+		waitmoncry
+
+		setflag(POKEGOTCHI_FLAG_SKITTY_FOLLOWING)
+	} else {
+		playmoncry(SPECIES_SKITTY, CRY_MODE_WEAK)
+		setspeaker("Skitty")
+		msgbox(
+			"Alright… Meow…"
+		)
+		waitmoncry
+		closemessage
+	}
+
 	release
 }
 
@@ -264,6 +312,25 @@ script Tamatown_EventScript_TrubbishCan {
 	lock
 
 	if (flag(POKEGOTCHI_FLAG_UNLOCKED_SNACK_DOUGHNUT)) {
+		if (flag(POKEGOTCHI_FLAG_SKITTY_FOLLOWING)) {
+			setspeaker("Trubbish")
+			playmoncry(SPECIES_TRUBBISH, CRY_MODE_NORMAL)
+			msgbox(
+				"Is this cat edible?"
+			)
+
+			setspeaker("Skitty")
+			applymovement(LOCALID_SKITTY, moves(emote_exclamation_mark))
+			playmoncry(SPECIES_SKITTY, CRY_MODE_ENCOUNTER)
+			msgbox(
+				"Fshhhh!!!"
+			)
+
+			closemessage
+			release
+			end
+		}
+
 		setspeaker("Trubbish")
 		playmoncry(SPECIES_TRUBBISH, CRY_MODE_NORMAL)
 
@@ -929,7 +996,8 @@ script Tamatown_EventScript_DittoLamppost {
 		mosaicmorph(LOCALID_DITTO, OBJ_EVENT_GFX_PG_DITTO)
 		playmoncry(SPECIES_DITTO, CRY_MODE_NORMAL)
 		waitse
-		mosaicmorph(LOCALID_DITTO, OBJ_EVENT_GFX_PG_LAMPPOST)
+		mosaicmorph(LOCALID_DITTO)
+		delay(1)
 	} else {
 		msgbox(
 			"… … …\p"
@@ -1007,7 +1075,7 @@ script Tamatown_EventScript_DittoLamppost {
 
 			delay(16)
 
-			mosaicmorph(LOCALID_DITTO, OBJ_EVENT_GFX_PG_LAMPPOST)
+			mosaicmorph(LOCALID_DITTO)
 			delay(16)
 		}	
 	}

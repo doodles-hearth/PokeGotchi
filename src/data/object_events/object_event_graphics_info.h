@@ -169,12 +169,12 @@ const struct ObjectEventGraphicsInfo gObjectEventGraphicsInfo_PokeGotchi_Ditto =
     .height = 32,
     .paletteSlot = PALSLOT_NPC_4,
     .shadowSize = SHADOW_SIZE_M,
-    .inanimate = FALSE,
+    .inanimate = TRUE,
     .compressed = FALSE,
     .tracks = TRACKS_FOOT,
     .oam = &gObjectEventBaseOam_16x32,
     .subspriteTables = sOamTables_16x32,
-    .anims = sAnimTable_Standard,
+    .anims = sAnimTable_Inanimate,
     .images = sPicTable_PokeGotchi_Ditto,
 };
 

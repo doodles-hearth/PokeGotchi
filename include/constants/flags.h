@@ -83,7 +83,7 @@
 #define POKEGOTCHI_FLAG_FRNTR_BED                   0x2F
 #define POKEGOTCHI_FLAG_FRNTR_DITTO                 0x30
 #define POKEGOTCHI_FLAG_HYDRATED_TORCHIC            0x31
-#define POKEGOTCHI_FLAG_19      0x32
+#define POKEGOTCHI_FLAG_SKITTY_FOLLOWING            0x32
 #define POKEGOTCHI_FLAG_20      0x33
 #define POKEGOTCHI_FLAG_21      0x34
 #define POKEGOTCHI_FLAG_22      0x35
