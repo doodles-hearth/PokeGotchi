@@ -29,3 +29,7 @@ EventScript_Blueprint::
 EventScript_Lamppost::
 	msgbox Text_Lamppost, MSGBOX_SIGN
 	end
+
+EventScript_Print::
+	msgbox Text_Print, MSGBOX_SIGN
+	end

@@ -582,6 +582,7 @@ extern const u8 EventScript_PictureBookShelf[];
 extern const u8 EventScript_BookShelf[];
 extern const u8 EventScript_PokemonCenterBookShelf[];
 extern const u8 EventScript_Lamppost[];
+extern const u8 EventScript_Print[];
 extern const u8 EventScript_Vase[];
 extern const u8 EventScript_EmptyTrashCan[];
 extern const u8 EventScript_ShopShelf[];

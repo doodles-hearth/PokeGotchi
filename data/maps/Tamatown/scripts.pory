@@ -1,7 +1,13 @@
 const FLAG_REMOVE_TRASHCAN_INTERACTION = FLAG_TEMP_1
 const FLAG_REMOVE_TREE_INTERACTION = FLAG_TEMP_2
+const LOCALID_SKITTY_FOLLOWER = OBJ_EVENT_ID_NPC_FOLLOWER
 
 mapscripts Tamatown_MapScripts {
+	MAP_SCRIPT_ON_LOAD {
+		if (flag(POKEGOTCHI_FLAG_FRNTR_POSTER_TREECKO)) {
+			setmetatile(29, 8, METATILE_Tamatown_BrickWall, TRUE)
+		}
+	}
 	MAP_SCRIPT_ON_TRANSITION {
 		if (flag(POKEGOTCHI_FLAG_VANILLISH_DIED)) {
 			setobjectxyperm(LOCALID_ICE_CREAM, 33, 20)
@@ -66,10 +72,10 @@ script Tamatown_EventScript_Porygon {
 	checkfollowernpc
 		if (var(VAR_RESULT)) {
 		setspeaker("Skitty")
-		applymovement(LOCALID_SKITTY, moves(shake_horizontal))
+		applymovement(LOCALID_SKITTY_FOLLOWER, moves(shake_horizontal))
 		playmoncry(SPECIES_SKITTY, CRY_MODE_NORMAL)
 		msgbox(
-			"Porygon is such a nerd!\nI don't want a virtual ball of yarn!"
+			"Porygon is a nerd!\nI don't want a virtual ball of yarn!"
 		)
 
 		closemessage
@@ -173,12 +179,13 @@ script Tamatown_EventScript_Tangela {
 	lock
 	checkfollowernpc
 	if (var(VAR_RESULT)) {
+		waitse
 		playse(SE_PIN)
-		applymovement(LOCALID_SKITTY, moves(emote_exclamation_mark))
+		applymovement(LOCALID_SKITTY_FOLLOWER, moves(emote_exclamation_mark))
 		waitmovementall
 		waitse
 		playse(SE_LEDGE)
-		applymovement(LOCALID_SKITTY, moves(jump_in_place_down))
+		applymovement(LOCALID_SKITTY_FOLLOWER, moves(jump_in_place_down))
 		waitse
 		waitmovementall
 		playmoncry(SPECIES_SKITTY, CRY_MODE_HIGH_PITCH)
@@ -192,7 +199,7 @@ script Tamatown_EventScript_Tangela {
 		applymovement(LOCALID_TANGELA, moves(emote_exclamation_mark))
 		waitmovementall
 		waitse
-		applymovement(LOCALID_TANGELA, moves(shake_horizontal * 3))
+		applymovement(LOCALID_TANGELA, moves(shake_horizontal * 2))
 		playmoncry(SPECIES_TANGELA, CRY_MODE_WEAK)
 		setspeaker("Tangela")
 		msgbox(
@@ -200,11 +207,17 @@ script Tamatown_EventScript_Tangela {
 		)
 		closemessage
 
+		playse(SE_LEDGE)
+		applymovement(LOCALID_SKITTY_FOLLOWER, moves(jump_in_place_down))
+		facefollowernpc
+		waitse
+		waitmovementall
+
 		playmoncry(SPECIES_SKITTY, CRY_MODE_HIGH_PITCH)
 		setspeaker("Skitty")
 		msgbox(
-			"Thank you, you odd little bug.\p"
-			"I'll give you one of my crafting\nprojects in return!"
+			"Thank you, odd little bug.\p"
+			"Here! one of my crafting\nprojects in return!"
 		)
 		closemessage
 
@@ -216,10 +229,13 @@ script Tamatown_EventScript_Tangela {
 		waitmessage
 		setflag(POKEGOTCHI_FLAG_FRNTR_RUG)
 
-		destroyfollowernpc
 		fadescreen(FADE_TO_BLACK)
-		delay(32)
+		destroyfollowernpc
+		clearflag(POKEGOTCHI_FLAG_SKITTY_FOLLOWING)
+		addobject(LOCALID_SKITTY)
 		setobjectxyperm(LOCALID_SKITTY, 45, 27)
+		special(DrawWholeMapView)
+		delay(32)
 		fadescreen(FADE_FROM_BLACK)
 
 		release
@@ -234,6 +250,12 @@ script Tamatown_EventScript_Tangela {
 				"It's hard to hide in plain sight\nwith this one playing with my vines…"
 			)
 			waitmoncry
+
+			playmoncry(SPECIES_SKITTY, CRY_MODE_NORMAL)
+			applymovement(LOCALID_SKITTY, moves(jump_in_place_down, emote_heart))
+			waitmoncry
+			waitmovementall
+
 			release
 			end
 		}
@@ -350,7 +372,7 @@ script Tamatown_EventScript_Skitty {
 	setspeaker("Skitty")
 	msgbox(
 		"Meow…\nI lost my ball of yarn…\p"
-		"Would you be so kind as to find me some\nmore yarn?\p"
+		"You!{PAUSE 8} Bug!{PAUSE 8} Find me more yarn!\n"
 		"Take me with you!"
 	)
 
@@ -363,7 +385,6 @@ script Tamatown_EventScript_Skitty {
 
 	if (var(VAR_RESULT) == 0) {
 		playmoncry(SPECIES_SKITTY, CRY_MODE_WEAK)
-		// TODO does not work
 		setfollowernpc(LOCALID_SKITTY, FOLLOWER_NPC_FLAG_ALL, Tamatown_EventScript_SkittyFollowing)
 		waitmoncry
 	} else {
@@ -400,10 +421,10 @@ script Tamatown_EventScript_TrubbishCan {
 			)
 
 			setspeaker("Skitty")
-			applymovement(LOCALID_SKITTY, moves(emote_exclamation_mark))
+			applymovement(LOCALID_SKITTY_FOLLOWER, moves(emote_exclamation_mark))
 			playmoncry(SPECIES_SKITTY, CRY_MODE_ENCOUNTER)
 			msgbox(
-				"Fshhhh!!!"
+				"Fshhhh!!! Do not eat cat!!"
 			)
 
 			closemessage
@@ -1136,7 +1157,7 @@ script Tamatown_EventScript_DittoLamppost {
 			closemessage
 
 			message(
-				"You got a Ditto plushie for your room!"
+				"You got a cute plushie for your room!"
 			)
 			playfanfare(MUS_LEVEL_UP)
 			waitfanfare
@@ -1150,6 +1171,45 @@ script Tamatown_EventScript_DittoLamppost {
 			mosaicmorph(LOCALID_DITTO)
 			delay(16)
 		}	
+	}
+
+	release
+}
+
+script Tamatown_EventScript_TreeckoPrint {
+	lock
+
+	msgbox(
+		"What a pretty poster!"
+	)
+
+	mcdialogueB(
+		"Grab it",
+		"Leave it"
+	)
+	closemessage
+
+	if (var(VAR_RESULT) == 0) {
+		playse(SE_CONTEST_CONDITION_LOSE)
+		setmetatile(29, 8, METATILE_Tamatown_BrickWall, TRUE)
+		special(DrawWholeMapView)
+		removeobject(VAR_LAST_TALKED)
+		waitse
+		delay(32)
+
+		message(
+			"You got a neat poster for your room!"
+		)
+		playfanfare(MUS_LEVEL_UP)
+		waitfanfare
+		waitmessage
+		setflag(POKEGOTCHI_FLAG_FRNTR_POSTER_TREECKO)
+		closemessage
+	} else {
+		msgbox(
+			"Right, what if the cops see you?"
+		)
+		closemessage
 	}
 
 	release

@@ -28,3 +28,6 @@ Text_Blueprint:
 
 Text_Lamppost:
 	.string "LÄMP…\nI want you, LÄMP…$"
+
+Text_Print:
+	.string "A casual act of vandalism.$"
