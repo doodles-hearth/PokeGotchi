@@ -107,6 +107,16 @@ struct HouseReaction
     u8 emoticon;
 };
 
+struct HouseFurniture
+{
+    const u16 *tilemap;
+    u16 flag;
+    u8 x;
+    u8 y;
+    u8 width;
+    u8 height;
+};
+
 struct HousePoopLayout
 {
     u16 anchorIds;
@@ -156,6 +166,7 @@ static bool8 Menu_DoGfxSetup(void);
 static bool8 Menu_InitBgs(void);
 static void Menu_FadeAndBail(void);
 static bool8 Menu_LoadGraphics(void);
+static void Menu_ApplyUnlockedFurniture(void);
 static void Menu_InitWindows(void);
 static void Menu_LoadTopIcons(void);
 static void Menu_LoadPetSprite(void);
@@ -239,6 +250,22 @@ static const struct WindowTemplate sMenuWindowTemplates[] =
 static const u32 sMenuTiles[]   = INCBIN_U32("graphics/pokegotchi_house_ui/room_tiles.4bpp.lz");
 static const u32 sMenuTilemap[] = INCBIN_U32("graphics/pokegotchi_house_ui/room_tilemap.bin.lz");
 static const u16 sMenuPalette[] = INCGFX_U16("graphics/pokegotchi_house_ui/room_tiles.png", ".gbapal");
+static const u16 sMenuTreeckoPosterTilemap[] = INCBIN_U16("graphics/pokegotchi_house_ui/room_treecko.bin");
+static const u16 sMenuTorchicPosterTilemap[] = INCBIN_U16("graphics/pokegotchi_house_ui/room_torchic.bin");
+static const u16 sMenuMudkipPosterTilemap[] = INCBIN_U16("graphics/pokegotchi_house_ui/room_mudskip.bin");
+static const u16 sMenuBedTilemap[] = INCBIN_U16("graphics/pokegotchi_house_ui/room_bed.bin");
+static const u16 sMenuCarpetTilemap[] = INCBIN_U16("graphics/pokegotchi_house_ui/room_carpet.bin");
+static const u16 sMenuDittoTilemap[] = INCBIN_U16("graphics/pokegotchi_house_ui/room_ditto.bin");
+
+static const struct HouseFurniture sHouseFurniture[] =
+{
+    {sMenuTreeckoPosterTilemap, POKEGOTCHI_FLAG_FRNTR_POSTER_TREECKO,  9,  5,  3, 4},
+    {sMenuTorchicPosterTilemap, POKEGOTCHI_FLAG_FRNTR_POSTER_TORCHIC, 12,  5,  2, 4},
+    {sMenuMudkipPosterTilemap,  POKEGOTCHI_FLAG_FRNTR_POSTER_MUDKIP,  14,  5,  3, 4},
+    {sMenuBedTilemap,           POKEGOTCHI_FLAG_FRNTR_BED,             4,  9,  4, 7},
+    {sMenuCarpetTilemap,        POKEGOTCHI_FLAG_FRNTR_RUG,            10, 12, 10, 6},
+    {sMenuDittoTilemap,         POKEGOTCHI_FLAG_FRNTR_DITTO,          22, 10,  2, 2},
+};
 
 enum Colors
 {
@@ -790,6 +817,7 @@ static bool8 Menu_LoadGraphics(void)
         if (FreeTempTileDataBuffersIfPossible() != TRUE)
         {
             DecompressDataWithHeaderWram(sMenuTilemap, sBg1TilemapBuffer);
+            Menu_ApplyUnlockedFurniture();
             sMenuDataPtr->gfxLoadState++;
         }
         break;
@@ -802,6 +830,27 @@ static bool8 Menu_LoadGraphics(void)
         return TRUE;
     }
     return FALSE;
+}
+
+static void Menu_ApplyUnlockedFurniture(void)
+{
+    u32 i;
+
+    for (i = 0; i < ARRAY_COUNT(sHouseFurniture); i++)
+    {
+        const struct HouseFurniture *furniture = &sHouseFurniture[i];
+
+        if (FlagGet(furniture->flag))
+        {
+            CopyToBgTilemapBufferRect_ChangePalette(1,
+                                                    furniture->tilemap,
+                                                    furniture->x,
+                                                    furniture->y,
+                                                    furniture->width,
+                                                    furniture->height,
+                                                    0);
+        }
+    }
 }
 
 static void Menu_InitWindows(void)
