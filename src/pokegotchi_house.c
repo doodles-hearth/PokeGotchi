@@ -690,7 +690,7 @@ static bool8 Menu_DoGfxSetup(void)
         gMain.state++;
         break;
     case 5:
-        m4aSongNumStart(MUS_FORTREE);
+        m4aSongNumStartOrChange(MUS_FORTREE);
         Menu_LoadTopIcons();
         Menu_LoadPetSprite();
         Menu_RefreshPoopSprites();

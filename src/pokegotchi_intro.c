@@ -229,6 +229,7 @@ static void Task_LoadIntro(u8 taskId)
     PokegotchiIntro_InitGraphics();
     PokegotchiIntro_LoadGraphics();
     PokegotchiIntro_CreateLogos();
+    m4aSongNumStartOrChange(MUS_CONTEST_RESULTS);
     BeginNormalPaletteFade(PALETTES_ALL, 0, 16, 0, RGB_BLACK);
     ResetSerial();
     gTasks[taskId].func = Task_FadeInIntro;
