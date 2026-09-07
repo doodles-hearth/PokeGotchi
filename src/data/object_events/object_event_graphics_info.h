@@ -88,6 +88,42 @@ const struct ObjectEventGraphicsInfo gObjectEventGraphicsInfo_PokeGotchi_Skitty 
     .images = sPicTable_PokeGotchi_Skitty,
 };
 
+const struct ObjectEventGraphicsInfo gObjectEventGraphicsInfo_PokeGotchi_Hypno = {
+    .tileTag = TAG_NONE,
+    .paletteTag = OBJ_EVENT_PAL_TAG_POKEGOTCHI,
+    .reflectionPaletteTag = OBJ_EVENT_PAL_TAG_BRIDGE_REFLECTION,
+    .size = 512,
+    .width = 16,
+    .height = 32,
+    .paletteSlot = PALSLOT_NPC_4,
+    .shadowSize = SHADOW_SIZE_M,
+    .inanimate = FALSE,
+    .compressed = FALSE,
+    .tracks = TRACKS_FOOT,
+    .oam = &gObjectEventBaseOam_16x32,
+    .subspriteTables = sOamTables_16x32,
+    .anims = sAnimTable_Standard,
+    .images = sPicTable_PokeGotchi_Hypno,
+};
+
+const struct ObjectEventGraphicsInfo gObjectEventGraphicsInfo_PokeGotchi_Shuckle = {
+    .tileTag = TAG_NONE,
+    .paletteTag = OBJ_EVENT_PAL_TAG_POKEGOTCHI,
+    .reflectionPaletteTag = OBJ_EVENT_PAL_TAG_BRIDGE_REFLECTION,
+    .size = 512,
+    .width = 16,
+    .height = 32,
+    .paletteSlot = PALSLOT_NPC_4,
+    .shadowSize = SHADOW_SIZE_M,
+    .inanimate = FALSE,
+    .compressed = FALSE,
+    .tracks = TRACKS_FOOT,
+    .oam = &gObjectEventBaseOam_16x32,
+    .subspriteTables = sOamTables_16x32,
+    .anims = sAnimTable_Standard,
+    .images = sPicTable_PokeGotchi_Shuckle,
+};
+
 const struct ObjectEventGraphicsInfo gObjectEventGraphicsInfo_PokeGotchi_Tangela = {
     .tileTag = TAG_NONE,
     .paletteTag = OBJ_EVENT_PAL_TAG_POKEGOTCHI,

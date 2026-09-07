@@ -262,7 +262,7 @@ struct PokegotchiFood
     u8 pecha;
     u8 iceCream;
     u8 donut;
-    u8 snack4;
+    u8 juice;
 };
 
 struct PokegotchiStats

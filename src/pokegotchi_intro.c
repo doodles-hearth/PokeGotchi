@@ -275,7 +275,10 @@ static void Task_SlideLogos(u8 taskId)
 static void Task_Wait(u8 taskId)
 {
     if (gMain.newKeys != 0)
+    {
+        PlayCry_ByMode(SPECIES_CHIMECHO, 0, CRY_MODE_NORMAL);
         PokegotchiIntro_StartFadeOut(taskId);
+    }
 }
 
 static void Task_FadeOutIntro(u8 taskId)

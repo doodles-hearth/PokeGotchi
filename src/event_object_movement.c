@@ -3134,6 +3134,9 @@ static void ObjectEventSetGraphics(struct ObjectEvent *objectEvent, const struct
     sprite->y += 16 + sprite->centerToCornerVecY;
     if (objectEvent->trackedByCamera)
         CameraObjectReset();
+    
+    if (graphicsInfo->tileTag == TAG_NONE && !sprite->usingSheet)
+        RequestSpriteFrameImageCopy(0, sprite->oam.tileNum, sprite->images);
 }
 
 void ObjectEventSetGraphicsId(struct ObjectEvent *objectEvent, u16 graphicsId)

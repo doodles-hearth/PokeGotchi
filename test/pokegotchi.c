@@ -69,7 +69,7 @@ TEST("(Pokegotchi) EnsureInitialized seeds default stats and food inventory")
     EXPECT_EQ(runtime->food.pecha, 10);
     EXPECT_EQ(runtime->food.iceCream, 0);
     EXPECT_EQ(runtime->food.donut, 0);
-    EXPECT_EQ(runtime->food.snack4, 0);
+    EXPECT_EQ(runtime->food.juice, 0);
 }
 
 TEST("(Pokegotchi) Daily flags initialize and remain set on the same day")

@@ -77,7 +77,7 @@ void Pokegotchi_EnsureInitialized(void)
     runtime->food.pecha = POKEGOTCHI_STARTING_FOOD_COUNT;
     runtime->food.iceCream = 0;
     runtime->food.donut = 0;
-    runtime->food.snack4 = 0;
+    runtime->food.juice = 0;
     CommitRuntimeState();
 }
 
@@ -544,8 +544,8 @@ static u8 *GetMutableFoodCountByKey(u8 foodKey)
         return &food->iceCream;
     case FEED_FOOD_KEY_DONUT:
         return &food->donut;
-    case FEED_FOOD_KEY_SNACK_4:
-        return &food->snack4;
+    case FEED_FOOD_KEY_JUICE:
+        return &food->juice;
     case FEED_FOOD_KEY_NONE:
     default:
         return NULL;

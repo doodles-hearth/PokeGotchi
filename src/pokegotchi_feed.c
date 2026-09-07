@@ -152,8 +152,7 @@ const u8 gPokegotchiFeedFoodEggSpriteGfx[] = INCGFX_U8("graphics/pokegotchi_feed
 const u8 gPokegotchiFeedFoodPechaSpriteGfx[] = INCGFX_U8("graphics/pokegotchi_feed_ui/food/snacks/pecha.png", ".4bpp");
 const u8 gPokegotchiFeedFoodIceCreamSpriteGfx[] = INCGFX_U8("graphics/pokegotchi_feed_ui/food/snacks/ice_cream.png", ".4bpp");
 const u8 gPokegotchiFeedFoodDonutSpriteGfx[] = INCGFX_U8("graphics/pokegotchi_feed_ui/food/snacks/donut.png", ".4bpp");
-// TODO
-const u8 gPokegotchiFeedFoodSnack4SpriteGfx[] = INCGFX_U8("graphics/pokegotchi_feed_ui/food/snacks/pecha.png", ".4bpp");
+const u8 gPokegotchiFeedFoodJuiceSpriteGfx[] = INCGFX_U8("graphics/pokegotchi_feed_ui/food/snacks/juice.png", ".4bpp");
 const u16 gPokegotchiPalette[] = INCGFX_U16("graphics/pokegotchi_feed_ui/food/snacks/pecha.png", ".gbapal");
 
 const struct PokegotchiFeedFoodItem gPokegotchiFeedFoodItems[FEED_FOOD_SLOT_COUNT] =
@@ -224,10 +223,10 @@ const struct PokegotchiFeedFoodItem gPokegotchiFeedFoodItems[FEED_FOOD_SLOT_COUN
     {
         .category = FEED_FOOD_CATEGORY_SNACK,
         .slot = 3,
-        .inventoryKey = FEED_FOOD_KEY_SNACK_4,
-        .tileTag = FEED_FOOD_TILE_TAG_SNACK_4,
+        .inventoryKey = FEED_FOOD_KEY_JUICE,
+        .tileTag = FEED_FOOD_TILE_TAG_JUICE,
         .paletteTag = FEED_FOOD_PAL_TAG,
-        .spriteTiles = gPokegotchiFeedFoodSnack4SpriteGfx,
+        .spriteTiles = gPokegotchiFeedFoodJuiceSpriteGfx,
         .palette = gPokegotchiPalette,
     },
 };
@@ -271,7 +270,7 @@ static const struct PokegotchiFoodEffect sPokegotchiFoodEffects[] =
         .fun = 45,
     },
     {
-        .inventoryKey = FEED_FOOD_KEY_SNACK_4,
+        .inventoryKey = FEED_FOOD_KEY_JUICE,
         .food = 20,
         .fun = 50,
     },
@@ -740,8 +739,8 @@ static u8 Menu_GetFoodCount(u8 inventoryKey)
         return runtime->food.iceCream;
     case FEED_FOOD_KEY_DONUT:
         return runtime->food.donut;
-    case FEED_FOOD_KEY_SNACK_4:
-        return runtime->food.snack4;
+    case FEED_FOOD_KEY_JUICE:
+        return runtime->food.juice;
     case FEED_FOOD_KEY_NONE:
     default:
         return 0;
@@ -834,8 +833,8 @@ static bool8 Menu_ConsumeFoodByKey(u8 inventoryKey)
     case FEED_FOOD_KEY_DONUT:
         count = &runtime->food.donut;
         break;
-    case FEED_FOOD_KEY_SNACK_4:
-        count = &runtime->food.snack4;
+    case FEED_FOOD_KEY_JUICE:
+        count = &runtime->food.juice;
         break;
     case FEED_FOOD_KEY_NONE:
     default:

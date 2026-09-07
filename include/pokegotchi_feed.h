@@ -25,7 +25,7 @@ enum
     FEED_FOOD_TILE_TAG_PECHA,
     FEED_FOOD_TILE_TAG_ICE_CREAM,
     FEED_FOOD_TILE_TAG_DONUT,
-    FEED_FOOD_TILE_TAG_SNACK_4,
+    FEED_FOOD_TILE_TAG_JUICE,
 
     FEED_FOOD_PAL_TAG = 7200,
 };
@@ -48,7 +48,7 @@ extern const u8 gPokegotchiFeedFoodEggSpriteGfx[];
 extern const u8 gPokegotchiFeedFoodPechaSpriteGfx[];
 extern const u8 gPokegotchiFeedFoodIceCreamSpriteGfx[];
 extern const u8 gPokegotchiFeedFoodDonutSpriteGfx[];
-extern const u8 gPokegotchiFeedFoodSnack4SpriteGfx[];
+extern const u8 gPokegotchiFeedFoodJuiceSpriteGfx[];
 
 extern const u16 gPokegotchiPalette[];
 extern const struct PokegotchiFeedFoodItem gPokegotchiFeedFoodItems[FEED_FOOD_SLOT_COUNT];

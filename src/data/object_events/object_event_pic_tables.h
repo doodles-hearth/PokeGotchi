@@ -16,6 +16,14 @@ static const struct SpriteFrameImage sPicTable_PokeGotchi_Skitty[] = {
     overworld_ascending_frames(gObjectEventPic_PokeGotchi_Skitty, 2, 4),
 };
 
+static const struct SpriteFrameImage sPicTable_PokeGotchi_Hypno[] = {
+    overworld_ascending_frames(gObjectEventPic_PokeGotchi_Hypno, 2, 4),
+};
+
+static const struct SpriteFrameImage sPicTable_PokeGotchi_Shuckle[] = {
+    overworld_ascending_frames(gObjectEventPic_PokeGotchi_Shuckle, 2, 4),
+};
+
 static const struct SpriteFrameImage sPicTable_PokeGotchi_Tangela[] = {
     overworld_ascending_frames(gObjectEventPic_PokeGotchi_Tangela, 2, 4),
 };

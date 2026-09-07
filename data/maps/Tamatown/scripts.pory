@@ -70,7 +70,7 @@ script Tamatown_EventScript_Arcade {
 script Tamatown_EventScript_Porygon {
 	lockall
 	checkfollowernpc
-		if (var(VAR_RESULT)) {
+	if (var(VAR_RESULT)) {
 		setspeaker("Skitty")
 		applymovement(LOCALID_SKITTY_FOLLOWER, moves(shake_horizontal))
 		playmoncry(SPECIES_SKITTY, CRY_MODE_NORMAL)
@@ -102,7 +102,7 @@ script Tamatown_EventScript_Porygon {
 			"Yo, my man, come over here…\p"
 			"Wanna try your luck at the most fun\nway to lose money ever invented?\l"
 			"That's right, {COLOR RED}PACHINKO{COLOR DARK_GRAY}!!\p"
-			"A game costs 3 coins.\nI'll give you 15 coins everyday!\p"
+			"A game costs 3 coins.\nI'll give you {COLOR RED}15 coins{COLOR DARK_GRAY} everyday!\p"
 			"What are the coins for? Uhh…\nThey look super neat!"
 		)
 		closemessage
@@ -110,7 +110,7 @@ script Tamatown_EventScript_Porygon {
 
 	if (!flag(FLAG_RECEIVED_PACHINKO_COINS)) {
 		message(
-			"You got 15 coins!"
+			"You got {COLOR RED}15 coins{COLOR DARK_GRAY}!"
 		)
 		playfanfare(MUS_LEVEL_UP)
 		waitfanfare
@@ -124,7 +124,7 @@ script Tamatown_EventScript_Porygon {
 
 	mcdialogueB(
 		"I wanna play!",
-		"Nah."
+		"Nah"
 	)	
 
 	switch(var(VAR_RESULT)) {
@@ -223,10 +223,11 @@ script Tamatown_EventScript_Tangela {
 
 		playfanfare(MUS_LEVEL_UP)
 		message(
-			"You got a cute crochet rug for your\nroom!"
+			"You got a cute {COLOR RED}Crochet Rug{COLOR DARK_GRAY} for your\nroom!"
 		)
 		waitfanfare
 		waitmessage
+		waitbuttonpress
 		setflag(POKEGOTCHI_FLAG_FRNTR_RUG)
 
 		fadescreen(FADE_TO_BLACK)
@@ -447,7 +448,7 @@ script Tamatown_EventScript_TrubbishCan {
 
 		mcdialogueB(
 			"It did!",
-			"I'm imagining things."
+			"I'm imagining things"
 		)
 
 		if (var(VAR_RESULT) == 0) {
@@ -547,10 +548,11 @@ script Tamatown_EventScript_TrubbishCan {
 			setspeaker(NULL)
 			playfanfare(MUS_LEVEL_UP)
 			message(
-				"You got a Doughnut!"
+				"You got a {COLOR RED}Doughnut{COLOR DARK_GRAY}!"
 			)
 			waitfanfare
 			waitmessage
+			waitbuttonpress
 			closemessage
 			setflag(FLAG_REMOVE_TRASHCAN_INTERACTION)
 		} else {
@@ -576,27 +578,26 @@ script Tamatown_EventScript_VendingMachine {
 		!flag(POKEGOTCHI_FLAG_UNLOCKED_MEAL_EGG) &&
 		!flag(POKEGOTCHI_FLAG_UNLOCKED_SNACK_DOUGHNUT) &&
 		!flag(POKEGOTCHI_FLAG_UNLOCKED_SNACK_ICE_CREAM) &&
-		!flag(POKEGOTCHI_FLAG_UNLOCKED_SNACK_3)
+		!flag(POKEGOTCHI_FLAG_UNLOCKED_SNACK_JUICE)
 	) {
 		msgbox(
 			"BZZT. This is your friendly\nneighborhood vending machine system.\p"
-			"I don't have anything for you right\nnow, but I'll be restocked soon!\l(I hope…)"
+			"I don't have much right now, but I'm\noften restocked!"
 		)
-		closemessage
-		release
-		end
+		setflag(POKEGOTCHI_FLAG_UNLOCKED_MEAL_POKEBLOCK)
+
+	} else {
+		msgbox(
+			"BZZT. This is your friendly\nneighborhood vending machine system.\p"
+			"Would you like to purchase anything?"
+		)
 	}
 
-	msgbox(
-		"BZZT. This is your friendly\nneighborhood vending machine system.\p"
-		"Would you like to purchase anything?"
-	)
-
-	if (flag(POKEGOTCHI_FLAG_UNLOCKED_MEAL_HOT_DOG)) {
-		dynmultipush("Hot Dog{CLEAR_TO 0x4c}¥3", 0)
-	}
 	if (flag(POKEGOTCHI_FLAG_UNLOCKED_MEAL_POKEBLOCK)) {
 		dynmultipush("PokéBlock{CLEAR_TO 0x4c}¥3", 1)
+	}
+	if (flag(POKEGOTCHI_FLAG_UNLOCKED_MEAL_HOT_DOG)) {
+		dynmultipush("Hot Dog{CLEAR_TO 0x4c}¥3", 0)
 	}
 	if (flag(POKEGOTCHI_FLAG_UNLOCKED_MEAL_EGG)) {
 		dynmultipush("Sunny Side Up{CLEAR_TO 0x4c}¥3", 2)
@@ -607,16 +608,16 @@ script Tamatown_EventScript_VendingMachine {
 	if (flag(POKEGOTCHI_FLAG_UNLOCKED_SNACK_ICE_CREAM)) {
 		dynmultipush("Ice Cream{CLEAR_TO 0x4c}¥3", 4)
 	}
-	if (flag(POKEGOTCHI_FLAG_UNLOCKED_SNACK_3)) {
-		dynmultipush("Snack 4{CLEAR_TO 0x4c}¥3", 5) // TODO EVA
+	if (flag(POKEGOTCHI_FLAG_UNLOCKED_SNACK_JUICE)) {
+		dynmultipush("Shuckle Juice{CLEAR_TO 0x4c}¥3", 5) // TODO EVA
 	}
 	dynmultipush("No, thanks", 6)
 	showcoinsbox(20, 0)
 	dynmultistack(0, 0, FALSE, 10, FALSE, 0, NULL)
 
-	hidecoinsbox
-
 	if (var(VAR_RESULT) == 6 || var(VAR_RESULT) == MULTI_B_PRESSED) {
+		hidecoinsbox
+
 		playmoncry(SPECIES_ROTOM, CRY_MODE_WEAK)
 		setspeaker("Vending machine")
 		msgbox(
@@ -629,6 +630,8 @@ script Tamatown_EventScript_VendingMachine {
 
 	checkcoins(VAR_0x8000)
 	if (var(VAR_0x8000) < 3) {
+		hidecoinsbox
+
 		playmoncry(SPECIES_ROTOM, CRY_MODE_WEAK)
 		setspeaker("Vending machine")
 		msgbox(
@@ -646,81 +649,95 @@ script Tamatown_EventScript_VendingMachine {
 		case 0:
 			msgbox(
 				"Yay!! I mean, BZZT.\n"
-				"One Hot Dog, coming up!"
+				"One {COLOR RED}Hot Dog{COLOR DARK_GRAY}, coming up!"
 			)
 			closemessage
+			removecoins(3)
+			updatecoinsbox
 			playse(SE_VEND)
 			waitse
 			delay(32)
-			message("You got a Hot Dog!")
+			message("You got a {COLOR RED}Hot Dog{COLOR DARK_GRAY}!")
 			addpokegotchifood(FEED_FOOD_KEY_HOT_DOG, 1)
 
 		case 1:
 			msgbox(
 				"Yay!! I mean, BZZT.\n"
-				"One PokéBlock, coming up!"
+				"One {COLOR RED}PokéBlock{COLOR DARK_GRAY}, coming up!"
 			)
 			closemessage
+			removecoins(3)
+			updatecoinsbox
 			playse(SE_VEND)
 			waitse
 			delay(32)
-			message("You got a PokéBlock!")
+			message("You got a {COLOR RED}PokéBlock{COLOR DARK_GRAY}!")
 			addpokegotchifood(FEED_FOOD_KEY_POKEBLOCK, 1)
 
 		case 2:
 			msgbox(
 				"Yay!! I mean, BZZT.\n"
-				"One Sunny Side Up, coming up!"
+				"One {COLOR RED}Sunny Side Up{COLOR DARK_GRAY}, coming up!"
 			)
 			closemessage
+			removecoins(3)
+			updatecoinsbox
 			playse(SE_VEND)
 			waitse
 			delay(32)
-			message("You got a Sunny Side Up!")
+			message("You got a {COLOR RED}Sunny Side Up{COLOR DARK_GRAY}!")
 			addpokegotchifood(FEED_FOOD_KEY_EGG, 1)
 
 		case 3:
 			msgbox(
 				"Yay!! I mean, BZZT.\n"
-				"One Doughnut, coming up!"
+				"One {COLOR RED}Doughnut{COLOR DARK_GRAY}, coming up!"
 			)
 			closemessage
+			removecoins(3)
+			updatecoinsbox
 			playse(SE_VEND)
 			waitse
 			delay(32)
-			message("You got a Doughnut!")
+			message("You got a {COLOR RED}Doughnut{COLOR DARK_GRAY}!")
 			addpokegotchifood(FEED_FOOD_KEY_DONUT, 1)
 
 		case 4:
 			msgbox(
 				"Yay!! I mean, BZZT.\n"
-				"One Ice Cream, coming up!"
+				"One {COLOR RED}Ice Cream{COLOR DARK_GRAY}, coming up!"
 			)
 			closemessage
+			removecoins(3)
+			updatecoinsbox
 			playse(SE_VEND)
 			waitse
 			delay(32)
-			message("You got an Ice Cream!")
+			message("You got an {COLOR RED}Ice Cream{COLOR DARK_GRAY}!")
 			addpokegotchifood(FEED_FOOD_KEY_ICE_CREAM, 1)
 
 		case 5:
 			msgbox(
 				"Yay!! I mean, BZZT.\n"
-				"One ???, coming up!"
+				"One {COLOR RED}Shuckle Juice{COLOR DARK_GRAY}, coming up!"
 			)
 			closemessage
+			removecoins(3)
+			updatecoinsbox
 			playse(SE_VEND)
 			waitse
 			delay(32)
-			message("You got a ???!") // TODO EVA
-			addpokegotchifood(FEED_FOOD_KEY_SNACK_4, 1)
+			message("You got a box of {COLOR RED}Shuckle Juice{COLOR DARK_GRAY}!")
+			addpokegotchifood(FEED_FOOD_KEY_JUICE, 1)
 
 	}
 
 	playfanfare(MUS_LEVEL_UP)
 	waitfanfare
 	waitmessage
+	waitbuttonpress
 	closemessage
+	hidecoinsbox
 
 	release
 }
@@ -734,7 +751,7 @@ script Tamatown_EventScript_Slowpoke {
 		msgbox(
 			"… … … … … … …\p"
 			"Heeeeeeeeyyyyy…\p"
-			"Think you could help us ouuuuut?"
+			"Think you could help us out\ntodaaaaay?"
 		)
 
 	} else {
@@ -783,12 +800,12 @@ script Tamatown_EventScript_Slowpoke {
 			msgbox(
 				"Thaaaanks for heeeelping ooout…\p"
 				"You served {STR_VAR_1} happy\ncuuuustomers…\lGreaaaaat joooob…\p"
-				"That's {STR_VAR_2} cooooins for youuuuu…\nAnd you deserve a meaaaaaaal…"
+				"That's {COLOR RED}{STR_VAR_2} cooooins{COLOR DARK_GRAY} for youuuuu…\nAnd you deserve a meaaaaaaal…"
 			)
 			closemessage
 
 			message(
-				"You got 3 hot dogs!"
+				"You got 3 {COLOR RED}Hot Dogs{COLOR DARK_GRAY}!"
 			)
 			playfanfare(MUS_LEVEL_UP)
 			waitfanfare
@@ -798,12 +815,12 @@ script Tamatown_EventScript_Slowpoke {
 			msgbox(
 				"Thaaaanks for heeeelping ooout…\p"
 				"You served {STR_VAR_1}\ncuuuustomers…\lYou did your beeeest…\p"
-				"That's {STR_VAR_2} cooooins for youuuuu…\nAnd you deserve a meaaaaaaal…"
+				"That's {COLOR RED}{STR_VAR_2} cooooins{COLOR DARK_GRAY} for youuuuu…\nAnd you deserve a meaaaaaaal…"
 			)
 			closemessage
 
 			message(
-				"You got 2 hot dogs!"
+				"You got 2 {COLOR RED}Hot Dogs{COLOR DARK_GRAY}!"
 			)
 			playfanfare(MUS_LEVEL_UP)
 			waitfanfare
@@ -813,12 +830,12 @@ script Tamatown_EventScript_Slowpoke {
 			msgbox(
 				"Thaaaanks for heeeelping ooout…\p"
 				"You served {STR_VAR_1}\ncuuuustomers…\lOoookaaaaay…\p"
-				"That's {STR_VAR_2} cooooins for youuuuu…\nAnd a little sooooomething…"
+				"That's {COLOR RED}{STR_VAR_2} cooooins{COLOR DARK_GRAY} for youuuuu…\nAnd a little sooooomething…"
 			)
 			closemessage
 
 			message(
-				"You got 1 hot dog!"
+				"You got 1 {COLOR RED}Hot Dog{COLOR DARK_GRAY}!"
 			)
 			playfanfare(MUS_LEVEL_UP)
 			waitfanfare
@@ -827,7 +844,7 @@ script Tamatown_EventScript_Slowpoke {
 			playmoncry(SPECIES_SLOWPOKE, CRY_MODE_NORMAL)
 			msgbox(
 				"You served {STR_VAR_1}\ncuuuustomers…\p"
-				"That's {STR_VAR_2} cooooins for youuuuu…\p"
+				"That's {COLOR RED}{STR_VAR_2} cooooins{COLOR DARK_GRAY} for youuuuu…\p"
 				"Daaaaaaamn, you're even slower than\nmeeeee…\p"
 				"Oooooh wellllllll…"
 			)
@@ -865,6 +882,7 @@ script Tamatown_EventScript_Vanillish {
 		playfanfare(MUS_LEVEL_UP)
 		waitfanfare
 		waitmessage
+		waitbuttonpress
 		closemessage
 
 	} else {
@@ -927,11 +945,12 @@ script Tamatown_EventScript_Chansey {
 
 		addpokegotchifood(FEED_FOOD_KEY_EGG, 1)
 		message(
-			"You got a Lucky Egg!\nYum…"
+			"You got a {COLOR RED}Lucky Egg{COLOR DARK_GRAY}!\nYum…"
 		)
 		playfanfare(MUS_LEVEL_UP)
 		waitfanfare
 		waitmessage
+		waitbuttonpress
 		closemessage
 
 		setflag(POKEGOTCHI_FLAG_UNLOCKED_MEAL_EGG)
@@ -944,7 +963,7 @@ script Tamatown_EventScript_Mailbox {
 	lock
 
 	msgbox(
-		"Use this letterbox to send mail to\nother players!\p"
+		"Use this {COLOR RED}letterbox{COLOR DARK_GRAY} to send mail to\nother players!\p"
 		"jk lol, every vanilla feature was\nnuked out of existence and we still\lran out of time to finish this game,\l"
 		"ha ha ha ha ha…\p"
 		"(cries)"
@@ -958,7 +977,7 @@ script Tamatown_EventScript_Hydrant {
 	lock
 
 	msgbox(
-		"It's a fire hydrant.\nFor hydrating fire."
+		"It's a {COLOR RED}fire hydrant{COLOR DARK_GRAY}.\nFor hydrating fire."
 	)
 	closemessage
 
@@ -972,7 +991,7 @@ script Tamatown_EventScript_HydrantTorchic {
 		lock
 
 		msgbox(
-			"It's a fire hydrant.\nFor hydrating fire.\p"
+			"It's a {COLOR RED}fire hydrant{COLOR DARK_GRAY}.\nFor hydrating fire.\p"
 			"… … …Hydrate Torchic?"
 		)
 
@@ -1039,11 +1058,12 @@ script Tamatown_EventScript_Torchic {
 		closemessage
 
 		message(
-			"You got a neat poster for your room!"
+			"You got a neat {COLOR RED}Poster{COLOR DARK_GRAY} for your room!"
 		)
 		playfanfare(MUS_LEVEL_UP)
 		waitfanfare
 		waitmessage
+		waitbuttonpress
 		setflag(POKEGOTCHI_FLAG_FRNTR_POSTER_TORCHIC)
 		
 	} else {
@@ -1067,7 +1087,7 @@ script Tamatown_EventScript_StepInPoop {
 script Tamatown_EventScript_HotDogs {
 	lock
 	msgbox(
-		"Hmmm, hot dogs…\n(Wonder what the sausage is made of…)"
+		"Hmmm, {COLOR RED}Hot Dogs{COLOR DARK_GRAY}…\n(Wonder what the sausage is made of…)"
 	)
 	closemessage
 	release
@@ -1152,16 +1172,17 @@ script Tamatown_EventScript_DittoLamppost {
 			setspeaker("Ditto")
 			msgbox(
 				"Please don't tell anyone.\nI like being a lamppost!\p"
-				"I'll give you a cool plushie if you\nkeep this a secret."
+				"I'll give you a cool {COLOR RED}Plushie{COLOR DARK_GRAY} if you\nkeep this a secret."
 			)
 			closemessage
 
 			message(
-				"You got a cute plushie for your room!"
+				"You got a cute {COLOR RED}Plushie{COLOR DARK_GRAY} for your room!"
 			)
 			playfanfare(MUS_LEVEL_UP)
 			waitfanfare
 			waitmessage
+			waitbuttonpress
 			closemessage
 
 			setflag(POKEGOTCHI_FLAG_FRNTR_DITTO)
@@ -1180,7 +1201,7 @@ script Tamatown_EventScript_TreeckoPrint {
 	lock
 
 	msgbox(
-		"What a pretty poster!"
+		"What a pretty {COLOR RED}Poster{COLOR DARK_GRAY}!"
 	)
 
 	mcdialogueB(
@@ -1198,16 +1219,151 @@ script Tamatown_EventScript_TreeckoPrint {
 		delay(32)
 
 		message(
-			"You got a neat poster for your room!"
+			"You got a neat {COLOR RED}Green Poster{COLOR DARK_GRAY} for your\nroom!"
 		)
 		playfanfare(MUS_LEVEL_UP)
 		waitfanfare
 		waitmessage
+		waitbuttonpress
 		setflag(POKEGOTCHI_FLAG_FRNTR_POSTER_TREECKO)
 		closemessage
 	} else {
 		msgbox(
 			"Right, what if the cops see you?"
+		)
+		closemessage
+	}
+
+	release
+}
+
+script Tamatown_EventScript_Hypno {
+	lock
+	if (flag(POKEGOTCHI_FLAG_FRNTR_BED)) {
+		setspeaker("Hypno")
+		playmoncry(SPECIES_HYPNO, CRY_MODE_NORMAL)
+		msgbox(
+			"Has your sleep quality improved?{PAUSE 8}\nHmmmm…{PAUSE 8} Yessss…"
+		)
+		closemessage
+	} else {
+		setspeaker("Hypno")
+		applymovement(VAR_LAST_TALKED, moves(emote_heart))
+		playmoncry(SPECIES_HYPNO, CRY_MODE_NORMAL)
+		msgbox(
+			"Well,{PAUSE 8} hello there,{PAUSE 8} little child…\nDo you sleep well, mmyes?\p"
+			"I can sense a…{PAUSE 8} deep…{PAUSE 8} fatigue, yes…\p"
+			"I can sell you the secret to a better\nsleep…\p"
+			"Only 50 of those {COLOR RED}Pachinko coins{COLOR DARK_GRAY},{PAUSE 8}\nhmmm,{PAUSE 8} yes…"
+		)
+
+		showcoinsbox(20, 0)
+
+		mcdialogueB(
+			"Gimme!",
+			"Too pricey"
+		)
+		closemessage
+
+		if (var(VAR_RESULT) == 0) {
+			checkcoins(VAR_0x8000)
+			if (var(VAR_0x8000) < 50) {
+				setspeaker("Hypno")
+				playmoncry(SPECIES_HYPNO, CRY_MODE_WEAK)
+				msgbox(
+					"Come back with more of those sweet,{PAUSE 8}\nscrumptious coins…"
+				)
+				closemessage
+			} else {
+				removecoins(50)
+				hidecoinsbox
+				setspeaker("Hypno")
+				applymovement(VAR_LAST_TALKED, moves(shake_horizontal))
+				playmoncry(SPECIES_HYPNO, CRY_MODE_HIGH_PITCH)
+				msgbox(
+					"Hmmm, yes!{PAUSE 8}Love it…{PAUSE 8}\nGive…\p"
+					"Go back home…{PAUSE 8}\nIt is waiting for you already…"
+				)
+				closemessage
+
+				setflag(POKEGOTCHI_FLAG_FRNTR_BED)				
+			}
+		} else {
+			setspeaker("Hypno")
+			playmoncry(SPECIES_HYPNO, CRY_MODE_WEAK)
+			msgbox(
+				"Maybe you don't{PAUSE 8} deserve better\nsleep…"
+			)
+			closemessage
+		}
+	}
+
+	release
+}
+
+script Tamatown_EventScript_Shuckle {
+	lock
+
+	if (flag(POKEGOTCHI_FLAG_UNLOCKED_SNACK_JUICE)) {
+		playmoncry(SPECIES_SHUCKLE, CRY_MODE_NORMAL)
+		setspeaker("Shuckle")
+		msgbox(
+			"Is it weird for me to drink my own\njuice?\lHmmm…"
+		)
+		closemessage
+		release
+		end
+	}
+	
+	playmoncry(SPECIES_SHUCKLE, CRY_MODE_NORMAL)
+	setspeaker("Shuckle")
+	msgbox(
+		"Yo! Quick! Shake me!!"
+	)
+
+	mcdialogue(
+		"Shake!",
+		"Why??"
+	)
+
+	if (var(VAR_RESULT) == 0) {
+		playmoncry(SPECIES_SHUCKLE, CRY_MODE_ENCOUNTER)
+		applymovement(VAR_LAST_TALKED, moves(shake_vertical * 2))
+		msgbox(
+			"(Shake shake shake shake shake)"
+		)
+		waitmoncry
+		waitmovementall
+		closemessage
+
+		delay(32)
+
+		playmoncry(SPECIES_SHUCKLE, CRY_MODE_NORMAL)
+		setspeaker("Shuckle")
+		msgbox(
+			"… … … … …\p"
+			"Aaaaand it's ready! Here, have some!"
+		)
+		waitmoncry
+		closemessage
+		delay(32)
+
+		message(
+			"You got a box of {COLOR RED}Shuckle Juice{COLOR DARK_GRAY}!"
+		)
+		playfanfare(MUS_LEVEL_UP)
+		waitfanfare
+		waitmessage
+		waitbuttonpress
+		setflag(POKEGOTCHI_FLAG_UNLOCKED_SNACK_JUICE)
+		addpokegotchifood(FEED_FOOD_KEY_JUICE, 1)
+		closemessage
+
+	} else {
+		playmoncry(SPECIES_SHUCKLE, CRY_MODE_FAINT)
+		setspeaker("Shuckle")
+		msgbox(
+			"Disappointment!… …"
 		)
 		closemessage
 	}
