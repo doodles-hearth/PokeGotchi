@@ -47,18 +47,23 @@
 #define WAITER_GAME_DURATION_SECONDS    60
 #define WAITER_MS_TO_FRAMES(ms)         ((u16)(((ms) * WAITER_FRAMES_PER_SECOND) / 1000))
 #define WAITER_TIMER_RIGHT_PADDING      4
-#define WAITER_COINS_PER_SERVE          5
-#define WAITER_END_DELAY_FRAMES         WAITER_FRAMES_PER_SECOND
+#define WAITER_COINS_PER_SERVE          2
+#define WAITER_COINS_RESULT_VAR         VAR_0x8000
+#define WAITER_END_DELAY_FRAMES         WAITER_MS_TO_FRAMES(1500)
+#define WAITER_FAILURE_THRESHOLD        3
+#define WAITER_MESSAGE_X                120
+#define WAITER_MESSAGE_Y                80
+#define WAITER_MESSAGE_GFX_SIZE         (64 * 64 / 2)
 
 enum WaiterWindowIds
 {
     WAITER_TIMER_WINDOW,
-    WAITER_COUNTDOWN_WINDOW,
 };
 
 enum WaiterSpriteIds
 {
     WAITER_SPRITE_CURSOR,
+    WAITER_SPRITE_MESSAGE,
     WAITER_SPRITE_MENU,
     WAITER_SPRITE_HOT_DOG,
     WAITER_SPRITE_SHUCKLE,
@@ -118,6 +123,16 @@ enum WaiterCountdownSteps
     WAITER_COUNTDOWN_STEP_ONE,
     WAITER_COUNTDOWN_STEP_START,
     WAITER_COUNTDOWN_STEP_DONE,
+};
+
+enum WaiterMessageAnims
+{
+    WAITER_MESSAGE_ANIM_THREE,
+    WAITER_MESSAGE_ANIM_TWO,
+    WAITER_MESSAGE_ANIM_ONE,
+    WAITER_MESSAGE_ANIM_GO,
+    WAITER_MESSAGE_ANIM_WIN,
+    WAITER_MESSAGE_ANIM_LOSE,
 };
 
 enum WaiterFontColors
@@ -204,6 +219,7 @@ struct WaiterMinigameResources
     u16 closedTimer;
     u16 endDelayTimer;
     u16 successfulServes;
+    u16 failedCustomers;
     u16 elapsedFrames;
     u8 elapsedSeconds;
     bool8 firstArrivalDone;
@@ -235,6 +251,7 @@ static u8 WaiterMinigame_CreateTableItemAtTable(u8 sheetId, u8 tableId, u8 subpr
 static u8 WaiterMinigame_CreateEmotionAtTable(u8 sheetId, u8 tableId, u8 subpriority);
 static u8 WaiterMinigame_CreateCursorAtTable(u8 tableId, u8 subpriority);
 static u8 WaiterMinigame_CreateStaticSprite(const struct SpriteSheet *sheet, const struct OamData *oam, s16 x, s16 y, u8 subpriority);
+static void WaiterMinigame_ShowMessage(u8 animNum);
 static void WaiterMinigame_SetCustomerPose(u8 customerId, u8 pose);
 static void WaiterMinigame_SetCursorTable(u8 tableId);
 static void WaiterMinigame_SetCustomerSpriteTable(u8 spriteId, u8 tableId);
@@ -261,8 +278,6 @@ static void WaiterMinigame_StartArrivalTimer(void);
 static bool8 WaiterMinigame_SpawnCustomer(void);
 static void WaiterMinigame_PrintTimer(void);
 static void WaiterMinigame_PrintClosed(void);
-static void WaiterMinigame_PrintCountdownText(const u8 *text);
-static void WaiterMinigame_ClearCountdownText(void);
 static void WaiterMinigame_ClearTimerText(void);
 static void WaiterMinigame_UpdateCountdown(void);
 static void WaiterMinigame_UpdateElapsedTimer(void);
@@ -311,16 +326,6 @@ static const struct WindowTemplate sWaiterWindowTemplates[] =
         .paletteNum = 14,
         .baseBlock = 1,
     },
-    [WAITER_COUNTDOWN_WINDOW] =
-    {
-        .bg = 0,
-        .tilemapLeft = 11,
-        .tilemapTop = 8,
-        .width = 8,
-        .height = 4,
-        .paletteNum = 14,
-        .baseBlock = 17,
-    },
     DUMMY_WIN_TEMPLATE,
 };
 
@@ -342,7 +347,23 @@ static const u8 sWaiterGulpinSpriteGfx[] = INCGFX_U8("graphics/pokegotchi_waiter
 static const u8 sWaiterHappySpriteGfx[] = INCGFX_U8("graphics/pokegotchi_waiter_minigame/emotes/happy.png", ".4bpp");
 static const u8 sWaiterOrderingSpriteGfx[] = INCGFX_U8("graphics/pokegotchi_waiter_minigame/emotes/want_to_order.png", ".4bpp");
 static const u8 sWaiterAngrySpriteGfx[] = INCGFX_U8("graphics/pokegotchi_waiter_minigame/emotes/angry.png", ".4bpp");
+static const u8 sWaiterCountdownThreeSpriteGfx[] = INCGFX_U8("graphics/pokegotchi_waiter_minigame/count_3.png", ".4bpp");
+static const u8 sWaiterCountdownTwoSpriteGfx[] = INCGFX_U8("graphics/pokegotchi_waiter_minigame/count_2.png", ".4bpp");
+static const u8 sWaiterCountdownOneSpriteGfx[] = INCGFX_U8("graphics/pokegotchi_waiter_minigame/count_1.png", ".4bpp");
+static const u8 sWaiterGoSpriteGfx[] = INCGFX_U8("graphics/pokegotchi_waiter_minigame/go.png", ".4bpp");
+static const u8 sWaiterEndWinSpriteGfx[] = INCGFX_U8("graphics/pokegotchi_waiter_minigame/end_win.png", ".4bpp");
+static const u8 sWaiterEndLoseSpriteGfx[] = INCGFX_U8("graphics/pokegotchi_waiter_minigame/end_lose.png", ".4bpp");
 static const u16 sWaiterSpritePalette[] = INCGFX_U16("graphics/pokegotchi_waiter_minigame/cursor.png", ".gbapal");
+
+static const struct SpriteFrameImage sWaiterMessageImages[] =
+{
+    obj_frame_tiles(sWaiterCountdownThreeSpriteGfx),
+    obj_frame_tiles(sWaiterCountdownTwoSpriteGfx),
+    obj_frame_tiles(sWaiterCountdownOneSpriteGfx),
+    obj_frame_tiles(sWaiterGoSpriteGfx),
+    obj_frame_tiles(sWaiterEndWinSpriteGfx),
+    obj_frame_tiles(sWaiterEndLoseSpriteGfx),
+};
 
 static const struct SpriteSheet sWaiterSpriteSheets[] =
 {
@@ -443,10 +464,6 @@ static const u8 sWaiterWindowFontColors[][3] =
     [WAITER_FONT_BLUE] = {TEXT_COLOR_TRANSPARENT, TEXT_COLOR_BLUE, TEXT_COLOR_LIGHT_GRAY},
 };
 
-static const u8 sText_WaiterCountdown3[] = _("3");
-static const u8 sText_WaiterCountdown2[] = _("2");
-static const u8 sText_WaiterCountdown1[] = _("1");
-static const u8 sText_WaiterCountdownStart[] = _("Start");
 static const u8 sText_WaiterClosed[] = _("Closed");
 
 static const u16 sWaiterArrivalDurationsFirst[] =
@@ -568,6 +585,42 @@ static const union AnimCmd sAnim_StaticFrame0[] =
     ANIMCMD_END,
 };
 
+static const union AnimCmd sWaiterMessageAnim_Three[] =
+{
+    ANIMCMD_FRAME(WAITER_MESSAGE_ANIM_THREE, 0),
+    ANIMCMD_END,
+};
+
+static const union AnimCmd sWaiterMessageAnim_Two[] =
+{
+    ANIMCMD_FRAME(WAITER_MESSAGE_ANIM_TWO, 0),
+    ANIMCMD_END,
+};
+
+static const union AnimCmd sWaiterMessageAnim_One[] =
+{
+    ANIMCMD_FRAME(WAITER_MESSAGE_ANIM_ONE, 0),
+    ANIMCMD_END,
+};
+
+static const union AnimCmd sWaiterMessageAnim_Go[] =
+{
+    ANIMCMD_FRAME(WAITER_MESSAGE_ANIM_GO, 0),
+    ANIMCMD_END,
+};
+
+static const union AnimCmd sWaiterMessageAnim_Win[] =
+{
+    ANIMCMD_FRAME(WAITER_MESSAGE_ANIM_WIN, 0),
+    ANIMCMD_END,
+};
+
+static const union AnimCmd sWaiterMessageAnim_Lose[] =
+{
+    ANIMCMD_FRAME(WAITER_MESSAGE_ANIM_LOSE, 0),
+    ANIMCMD_END,
+};
+
 static const union AnimCmd sWaiterCustomerAnim_Default[] =
 {
     ANIMCMD_FRAME(0, 0),
@@ -589,6 +642,16 @@ static const union AnimCmd sWaiterCustomerAnim_Happy[] =
 static const union AnimCmd *const sStaticSpriteAnims[] =
 {
     sAnim_StaticFrame0,
+};
+
+static const union AnimCmd *const sWaiterMessageAnims[] =
+{
+    [WAITER_MESSAGE_ANIM_THREE] = sWaiterMessageAnim_Three,
+    [WAITER_MESSAGE_ANIM_TWO] = sWaiterMessageAnim_Two,
+    [WAITER_MESSAGE_ANIM_ONE] = sWaiterMessageAnim_One,
+    [WAITER_MESSAGE_ANIM_GO] = sWaiterMessageAnim_Go,
+    [WAITER_MESSAGE_ANIM_WIN] = sWaiterMessageAnim_Win,
+    [WAITER_MESSAGE_ANIM_LOSE] = sWaiterMessageAnim_Lose,
 };
 
 static const union AnimCmd *const sWaiterCustomerSpriteAnims[] =
@@ -630,6 +693,25 @@ static const struct OamData sWaiterHotDogOam =
     .bpp = ST_OAM_4BPP,
 };
 
+static const struct OamData sWaiterMessageOam =
+{
+    .shape = SPRITE_SHAPE(64x64),
+    .size = SPRITE_SIZE(64x64),
+    .priority = 0,
+    .bpp = ST_OAM_4BPP,
+};
+
+static const struct SpriteTemplate sWaiterMessageSpriteTemplate =
+{
+    .tileTag = TAG_NONE,
+    .paletteTag = WAITER_SPRITE_PAL_TAG,
+    .oam = &sWaiterMessageOam,
+    .anims = sWaiterMessageAnims,
+    .images = sWaiterMessageImages,
+    .affineAnims = gDummySpriteAffineAnimTable,
+    .callback = SpriteCallbackDummy,
+};
+
 void PlayPokegotchiWaiterMinigameEasy(void)
 {
     VarSet(VAR_RESULT, 0);
@@ -658,6 +740,8 @@ static void WaiterMinigame_Init(MainCallback callback, enum PokegotchiWaiterMini
 {
     u8 i;
 
+    VarSet(WAITER_COINS_RESULT_VAR, 0);
+
     if ((sWaiterMinigame = AllocZeroed(sizeof(*sWaiterMinigame))) == NULL)
     {
         SetMainCallback2(callback);
@@ -677,6 +761,7 @@ static void WaiterMinigame_Init(MainCallback callback, enum PokegotchiWaiterMini
     sWaiterMinigame->closedTimer = 0;
     sWaiterMinigame->endDelayTimer = 0;
     sWaiterMinigame->successfulServes = 0;
+    sWaiterMinigame->failedCustomers = 0;
     sWaiterMinigame->elapsedFrames = 0;
     sWaiterMinigame->elapsedSeconds = 0;
     sWaiterMinigame->firstArrivalDone = FALSE;
@@ -865,10 +950,6 @@ static void WaiterMinigame_InitWindows(void)
     PutWindowTilemap(WAITER_TIMER_WINDOW);
     CopyWindowToVram(WAITER_TIMER_WINDOW, COPYWIN_FULL);
 
-    FillWindowPixelBuffer(WAITER_COUNTDOWN_WINDOW, PIXEL_FILL(0));
-    PutWindowTilemap(WAITER_COUNTDOWN_WINDOW);
-    CopyWindowToVram(WAITER_COUNTDOWN_WINDOW, COPYWIN_FULL);
-
     sWaiterMinigame->windowsInitialized = TRUE;
 }
 
@@ -925,6 +1006,15 @@ static bool8 WaiterMinigame_LoadSprites(void)
         WaiterMinigame_FadeAndBail();
         return FALSE;
     }
+
+    sWaiterMinigame->spriteIds[WAITER_SPRITE_MESSAGE] =
+        CreateSprite(&sWaiterMessageSpriteTemplate, WAITER_MESSAGE_X, WAITER_MESSAGE_Y, 0);
+    if (sWaiterMinigame->spriteIds[WAITER_SPRITE_MESSAGE] == MAX_SPRITES)
+    {
+        WaiterMinigame_FadeAndBail();
+        return FALSE;
+    }
+    WaiterMinigame_SetSpriteVisibility(sWaiterMinigame->spriteIds[WAITER_SPRITE_MESSAGE], FALSE);
 
     WaiterMinigame_SetCursorTable(sWaiterDefaultCursorSpawn.tableId);
     return TRUE;
@@ -997,6 +1087,17 @@ static u8 WaiterMinigame_CreateStaticSprite(const struct SpriteSheet *sheet, con
     };
 
     return CreateSprite(&spriteTemplate, x, y, subpriority);
+}
+
+static void WaiterMinigame_ShowMessage(u8 animNum)
+{
+    u8 spriteId = sWaiterMinigame->spriteIds[WAITER_SPRITE_MESSAGE];
+
+    if (spriteId == MAX_SPRITES)
+        return;
+
+    StartSpriteAnim(&gSprites[spriteId], animNum);
+    WaiterMinigame_SetSpriteVisibility(spriteId, TRUE);
 }
 
 static void WaiterMinigame_SetCursorTable(u8 tableId)
@@ -1149,6 +1250,7 @@ static void WaiterMinigame_BeginCustomerFailure(u8 customerId)
     customer->phase = WAITER_CUSTOMER_PHASE_RESULT_FAIL;
     customer->phaseTimer = sWaiterResultDuration;
     customer->serveRequested = FALSE;
+    sWaiterMinigame->failedCustomers++;
 }
 
 static void WaiterMinigame_FinishCustomer(u8 customerId, u8 taskId)
@@ -1266,10 +1368,11 @@ static void WaiterMinigame_StartEntryCountdown(void)
     sWaiterMinigame->pendingArrival = FALSE;
     sWaiterMinigame->arrivalsStopped = FALSE;
     sWaiterMinigame->successfulServes = 0;
+    sWaiterMinigame->failedCustomers = 0;
     sWaiterMinigame->exitStarted = FALSE;
     WaiterMinigame_HideAllCustomers();
     WaiterMinigame_ClearTimerText();
-    WaiterMinigame_PrintCountdownText(sText_WaiterCountdown3);
+    WaiterMinigame_ShowMessage(WAITER_MESSAGE_ANIM_THREE);
 }
 
 static void WaiterMinigame_StartArrivalTimer(void)
@@ -1362,27 +1465,6 @@ static void WaiterMinigame_PrintClosed(void)
     CopyWindowToVram(WAITER_TIMER_WINDOW, COPYWIN_FULL);
 }
 
-static void WaiterMinigame_PrintCountdownText(const u8 *text)
-{
-    u8 x = GetStringCenterAlignXOffset(FONT_NORMAL, text, sWaiterWindowTemplates[WAITER_COUNTDOWN_WINDOW].width * 8);
-
-    FillWindowPixelBuffer(WAITER_COUNTDOWN_WINDOW, PIXEL_FILL(0));
-    AddTextPrinterParameterized3(WAITER_COUNTDOWN_WINDOW,
-                                 FONT_NORMAL,
-                                 x,
-                                 8,
-                                 sWaiterWindowFontColors[WAITER_FONT_BLACK],
-                                 TEXT_SKIP_DRAW,
-                                 text);
-    CopyWindowToVram(WAITER_COUNTDOWN_WINDOW, COPYWIN_FULL);
-}
-
-static void WaiterMinigame_ClearCountdownText(void)
-{
-    FillWindowPixelBuffer(WAITER_COUNTDOWN_WINDOW, PIXEL_FILL(0));
-    CopyWindowToVram(WAITER_COUNTDOWN_WINDOW, COPYWIN_FULL);
-}
-
 static void WaiterMinigame_ClearTimerText(void)
 {
     FillWindowPixelBuffer(WAITER_TIMER_WINDOW, PIXEL_FILL(0));
@@ -1405,12 +1487,12 @@ static void WaiterMinigame_UpdateCountdown(void)
     case WAITER_COUNTDOWN_STEP_THREE:
         sWaiterMinigame->countdownStep = WAITER_COUNTDOWN_STEP_TWO;
         sWaiterMinigame->countdownTimer = WAITER_COUNTDOWN_STAGE_FRAMES;
-        WaiterMinigame_PrintCountdownText(sText_WaiterCountdown2);
+        WaiterMinigame_ShowMessage(WAITER_MESSAGE_ANIM_TWO);
         break;
     case WAITER_COUNTDOWN_STEP_TWO:
         sWaiterMinigame->countdownStep = WAITER_COUNTDOWN_STEP_ONE;
         sWaiterMinigame->countdownTimer = WAITER_COUNTDOWN_STAGE_FRAMES;
-        WaiterMinigame_PrintCountdownText(sText_WaiterCountdown1);
+        WaiterMinigame_ShowMessage(WAITER_MESSAGE_ANIM_ONE);
         break;
     case WAITER_COUNTDOWN_STEP_ONE:
         sWaiterMinigame->countdownStep = WAITER_COUNTDOWN_STEP_START;
@@ -1418,14 +1500,14 @@ static void WaiterMinigame_UpdateCountdown(void)
         sWaiterMinigame->inputEnabled = TRUE;
         sWaiterMinigame->elapsedFrames = 0;
         sWaiterMinigame->elapsedSeconds = 0;
-        WaiterMinigame_PrintCountdownText(sText_WaiterCountdownStart);
+        WaiterMinigame_ShowMessage(WAITER_MESSAGE_ANIM_GO);
         WaiterMinigame_PrintTimer();
         sWaiterMinigame->clockState = WAITER_CLOCK_STATE_RUNNING;
         WaiterMinigame_StartArrivalTimer();
         break;
     case WAITER_COUNTDOWN_STEP_START:
         sWaiterMinigame->countdownStep = WAITER_COUNTDOWN_STEP_DONE;
-        WaiterMinigame_ClearCountdownText();
+        WaiterMinigame_SetSpriteVisibility(sWaiterMinigame->spriteIds[WAITER_SPRITE_MESSAGE], FALSE);
         break;
     case WAITER_COUNTDOWN_STEP_DONE:
         break;
@@ -1510,6 +1592,10 @@ static void WaiterMinigame_UpdateEndSequence(void)
 
     if (sWaiterMinigame->endDelayTimer == 0)
     {
+        if (sWaiterMinigame->failedCustomers >= WAITER_FAILURE_THRESHOLD)
+            WaiterMinigame_ShowMessage(WAITER_MESSAGE_ANIM_LOSE);
+        else
+            WaiterMinigame_ShowMessage(WAITER_MESSAGE_ANIM_WIN);
         sWaiterMinigame->endDelayTimer = WAITER_END_DELAY_FRAMES;
         return;
     }
@@ -1520,6 +1606,7 @@ static void WaiterMinigame_UpdateEndSequence(void)
 
     coinsToAward = sWaiterMinigame->successfulServes * WAITER_COINS_PER_SERVE;
     AddCoins(coinsToAward);
+    VarSet(WAITER_COINS_RESULT_VAR, coinsToAward);
     VarSet(VAR_RESULT, sWaiterMinigame->successfulServes);
     sWaiterMinigame->exitStarted = TRUE;
     WaiterMinigame_FadeAndBail();
@@ -1604,8 +1691,6 @@ static void WaiterMinigame_FreeResources(void)
         {
             DeactivateAllTextPrinters();
             ClearWindowTilemap(WAITER_TIMER_WINDOW);
-            ClearWindowTilemap(WAITER_COUNTDOWN_WINDOW);
-            RemoveWindow(WAITER_COUNTDOWN_WINDOW);
             RemoveWindow(WAITER_TIMER_WINDOW);
             FreeAllWindowBuffers();
         }
