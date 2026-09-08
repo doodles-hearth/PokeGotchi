@@ -175,6 +175,8 @@ static void Menu_InitWindows(void);
 static void Menu_LoadTopIcons(void);
 static void Menu_LoadControlHint(void);
 static void Menu_LoadPetSprite(void);
+static void Menu_PlayPetEmotionSE(u8 emotion);
+static void SpriteCB_PetEmotion(struct Sprite *sprite);
 static bool8 Menu_SetPetEmotion(u8 emotion);
 static void Menu_UpdatePetSleepState(void);
 static void Menu_UpdatePetConditionState(void);
@@ -1096,6 +1098,35 @@ static void Menu_SetSelectedTopIcon(u8 selectedIcon)
     }
 }
 
+static void Menu_PlayPetEmotionSE(u8 emotion)
+{
+    switch (emotion)
+    {
+    case POKEGOTCHI_EMOTION_HAPPY:
+        PlaySE(SE_M_HEAL_BELL);
+        break;
+    case POKEGOTCHI_EMOTION_SAD:
+        PlaySE(SE_M_TAIL_WHIP);
+        break;
+    case POKEGOTCHI_EMOTION_ANGRY:
+        PlaySE(SE_M_SCREECH);
+        break;
+    case POKEGOTCHI_EMOTION_EATING:
+        PlaySE(SE_M_BITE);
+        break;
+    }
+}
+
+static void SpriteCB_PetEmotion(struct Sprite *sprite)
+{
+    if (!sprite->animPaused
+     && sprite->animCmdIndex == 0
+     && sprite->data[1] != 0)
+        Menu_PlayPetEmotionSE(sprite->data[0]);
+
+    sprite->data[1] = sprite->animCmdIndex;
+}
+
 static bool8 Menu_SetPetEmotion(u8 emotion)
 {
     enum Species species = Pokegotchi_GetPrimarySpecies();
@@ -1141,6 +1172,10 @@ static bool8 Menu_SetPetEmotion(u8 emotion)
     sMenuDataPtr->petSpriteId = spriteId;
     sMenuDataPtr->petEmotion = emotion;
     sMenuDataPtr->petActivity = (emotion == POKEGOTCHI_EMOTION_IDLE) ? HOUSE_PET_ACTIVITY_IDLE : HOUSE_PET_ACTIVITY_BUSY;
+    gSprites[spriteId].data[0] = emotion;
+    gSprites[spriteId].data[1] = 0;
+    gSprites[spriteId].callback = SpriteCB_PetEmotion;
+    Menu_PlayPetEmotionSE(emotion);
     return TRUE;
 }
 
