@@ -402,12 +402,12 @@ static const struct WaiterMinigameCoord sWaiterTableItemCoords[WAITER_TABLE_COUN
 
 static const struct WaiterMinigameCoord sWaiterCursorCoords[WAITER_TABLE_COUNT] =
 {
-    [WAITER_TABLE_TOP_LEFT] = {44, 48},
-    [WAITER_TABLE_TOP_MIDDLE] = {108, 48},
-    [WAITER_TABLE_TOP_RIGHT] = {172, 48},
-    [WAITER_TABLE_BOTTOM_LEFT] = {44, 128},
-    [WAITER_TABLE_BOTTOM_MIDDLE] = {108, 128},
-    [WAITER_TABLE_BOTTOM_RIGHT] = {172, 128},
+    [WAITER_TABLE_TOP_LEFT] = {45, 48},
+    [WAITER_TABLE_TOP_MIDDLE] = {109, 48},
+    [WAITER_TABLE_TOP_RIGHT] = {173, 48},
+    [WAITER_TABLE_BOTTOM_LEFT] = {45, 128},
+    [WAITER_TABLE_BOTTOM_MIDDLE] = {109, 128},
+    [WAITER_TABLE_BOTTOM_RIGHT] = {173, 128},
 };
 
 static const struct WaiterMinigameCoord sWaiterEmotionCoords[WAITER_TABLE_COUNT] =
