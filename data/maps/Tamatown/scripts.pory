@@ -613,7 +613,7 @@ script Tamatown_EventScript_VendingMachine {
 	}
 	dynmultipush("No, thanks", 6)
 	showcoinsbox(20, 0)
-	dynmultistack(0, 0, FALSE, 10, FALSE, 0, NULL)
+	dynmultistack(0, 0, FALSE, 4, FALSE, 0, NULL)
 
 	if (var(VAR_RESULT) == 6 || var(VAR_RESULT) == MULTI_B_PRESSED) {
 		hidecoinsbox
