@@ -1830,7 +1830,7 @@ static void Task_MenuMain(u8 taskId)
             {
                 Pokegotchi_ClearPoops();
                 Menu_RefreshPoopSprites();
-                PlaySE(SE_SELECT);
+                PlaySE(SE_M_SURF);
             }
             else if (!IsSEPlaying())
                 PlaySE(SE_FAILURE);

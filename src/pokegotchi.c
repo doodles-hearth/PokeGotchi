@@ -12,6 +12,7 @@
 #define POKEGOTCHI_DAILY_EVENT_BITS 2
 #define POKEGOTCHI_DAILY_EVENT_MASK ((1 << POKEGOTCHI_DAILY_EVENT_BITS) - 1)
 #define POKEGOTCHI_DAILY_EVENT_SATURATED_COUNT 2
+#define POKEGOTCHI_CLEAN_HAPPY_PER_POOP 20
 
 STATIC_ASSERT(POKEGOTCHI_DAILY_EVENT_COUNT * POKEGOTCHI_DAILY_EVENT_BITS == 8,
               PokegotchiDailyEventsFitInOneByte);
@@ -363,12 +364,23 @@ enum PokegotchiDailyRewardTier Pokegotchi_ApplyDailyEventRewardWithTier(enum Pok
     return rewardTier;
 }
 
+static const u8 sPokegotchiPoopsToHappiness[POKEGOTCHI_MAX_POOPS + 1] =
+{
+    [0] = 0,
+    [1] = 25,
+    [2] = 40,
+    [3] = 55,
+    [4] = 60,
+};
+
 void Pokegotchi_ClearPoops(void)
 {
     struct PokegotchiStats *stats;
 
     Pokegotchi_Sync();
     stats = GetMutableStats();
+    if (stats->poopsOnScreen > 0)
+        stats->happy = ClampStatValue(stats->happy + sPokegotchiPoopsToHappiness[stats->poopsOnScreen]);
     stats->poopsOnScreen = 0;
     CommitRuntimeState();
 }

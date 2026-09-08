@@ -260,6 +260,30 @@ TEST("(Pokegotchi) Rigged poop RNG resets poop and increments poopsOnScreen")
     EXPECT_EQ(stats->poopsOnScreen, 1);
 }
 
+TEST("(Pokegotchi) Clearing poop increases happiness per poop and clamps at the maximum")
+{
+    struct PokegotchiRuntimeState *runtime;
+
+    ResetPokegotchiTestState();
+    Pokegotchi_SetCurrentTimeForTest(&sTime_10_00);
+    Pokegotchi_EnsureInitialized();
+    runtime = PokegotchiSave_GetRuntimeMutable();
+    runtime->stats.happy = 180;
+    runtime->stats.poopsOnScreen = 2;
+
+    Pokegotchi_ClearPoops();
+
+    EXPECT_EQ(runtime->stats.happy, 220);
+    EXPECT_EQ(runtime->stats.poopsOnScreen, 0);
+
+    runtime->stats.happy = 240;
+    runtime->stats.poopsOnScreen = 1;
+    Pokegotchi_ClearPoops();
+
+    EXPECT_EQ(runtime->stats.happy, POKEGOTCHI_STAT_MAX);
+    EXPECT_EQ(runtime->stats.poopsOnScreen, 0);
+}
+
 TEST("(Pokegotchi) Clock rollback restamps without underflowing stats")
 {
     const struct PokegotchiStats *stats;
