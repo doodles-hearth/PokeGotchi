@@ -50,6 +50,7 @@ struct PokegotchiFoodEffect
     u8 inventoryKey;
     u8 food;
     u8 fun;
+    u8 happy;
 };
 
 enum WindowIds
@@ -241,43 +242,51 @@ static const struct PokegotchiFoodEffect sPokegotchiFoodEffects[] =
     {
         .inventoryKey = FEED_FOOD_KEY_LEAF,
         .food = 40,
-        .fun = 10,
+        .fun = 0,
+        .happy = 0,
     },
     {
         .inventoryKey = FEED_FOOD_KEY_HOT_DOG,
         .food = 50,
-        .fun = 20,
+        .fun = 0,
+        .happy = 0,
     },
     {
         .inventoryKey = FEED_FOOD_KEY_POKEBLOCK,
         .food = 45,
-        .fun = 25,
+        .fun = 10,
+        .happy = 0,
     },
     {
         .inventoryKey = FEED_FOOD_KEY_EGG,
         .food = 50,
-        .fun = 20,
+        .fun = 10,
+        .happy = 0,
     },
 
     {
         .inventoryKey = FEED_FOOD_KEY_PECHA,
-        .food = 20,
-        .fun = 30,
+        .food = 10,
+        .fun = 15,
+        .happy = 10,
     },
     {
         .inventoryKey = FEED_FOOD_KEY_ICE_CREAM,
         .food = 20,
-        .fun = 50,
+        .fun = 25,
+        .happy = 10,
     },
     {
         .inventoryKey = FEED_FOOD_KEY_DONUT,
         .food = 25,
-        .fun = 45,
+        .fun = 35,
+        .happy = 10,
     },
     {
         .inventoryKey = FEED_FOOD_KEY_JUICE,
         .food = 20,
-        .fun = 50,
+        .fun = 25,
+        .happy = 10,
     },
 };
 
@@ -896,6 +905,7 @@ static bool8 Menu_ConsumeFoodByKey(u8 inventoryKey, enum PokegotchiDailyRewardTi
     {
         runtime->stats.food = Menu_AddStatIncrease(runtime->stats.food, foodEffect->food);
         runtime->stats.fun = Menu_AddStatIncrease(runtime->stats.fun, foodEffect->fun);
+        runtime->stats.happy = Menu_AddStatIncrease(runtime->stats.happy, foodEffect->happy);
     }
     if (Menu_GetDailyEventForFood(inventoryKey, &dailyEvent))
         *rewardTier = Pokegotchi_ApplyDailyEventRewardWithTier(dailyEvent);
