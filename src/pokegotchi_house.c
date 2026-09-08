@@ -56,7 +56,7 @@
  
 //==========DEFINES==========//
 #define MENU_ICONS 4
-#define HOUSE_FLOOR_ANCHORS 13
+#define HOUSE_FLOOR_ANCHORS 12
 #define HOUSE_INITIAL_PET_ANCHOR 2
 #define HOUSE_SULKING_PET_ANCHOR 2
 #define HOUSE_WANDER_MIN_FRAMES (4 * 60)
@@ -132,6 +132,7 @@ struct MenuResources
     MainCallback savedCallback; // determines callback to run when we exit. e.g. where do we want to go after closing the menu
     u8 gfxLoadState;
     u8 menuIconIds[MENU_ICONS];
+    u8 controlHintSpriteId;
     u8 petSpriteId;
     u8 petEmotion;
     u8 petActivity;
@@ -172,6 +173,7 @@ static bool8 Menu_LoadGraphics(void);
 static void Menu_ApplyUnlockedFurniture(void);
 static void Menu_InitWindows(void);
 static void Menu_LoadTopIcons(void);
+static void Menu_LoadControlHint(void);
 static void Menu_LoadPetSprite(void);
 static bool8 Menu_SetPetEmotion(u8 emotion);
 static void Menu_UpdatePetSleepState(void);
@@ -292,6 +294,7 @@ static const u8 sMenuWindowFontColors[][3] =
 #define ICON_SPRITES_PAL_TAG 5525
 #define POOP_SPRITE_TAG 5526
 #define POOP_SPRITE_PAL_TAG 5527
+#define CONTROL_HINT_SPRITE_TAG 5528
 
 #define SPRITE_SELECTED 0
 #define SPRITE_UNSELECTED 1
@@ -307,6 +310,7 @@ static const u8 sMenuIconStatusSpriteGfx[] = INCGFX_U8("graphics/pokegotchi_hous
 static const u8 sMenuIconFoodSpriteGfx[] = INCGFX_U8("graphics/pokegotchi_house_ui/menu_food.png", ".4bpp");
 static const u8 sMenuIconCleanSpriteGfx[] = INCGFX_U8("graphics/pokegotchi_house_ui/menu_clean.png", ".4bpp");
 static const u8 sMenuIconTownSpriteGfx[] = INCGFX_U8("graphics/pokegotchi_house_ui/menu_town.png", ".4bpp");
+static const u8 sControlHintSpriteGfx[] = INCGFX_U8("graphics/pokegotchi_house_ui/lr.png", ".4bpp");
 static const u16 sMenuIconSpritesPalette[] = INCGFX_U16("graphics/pokegotchi_house_ui/menu_status.png", ".gbapal");
 
 static const struct SpriteSheet sMenuIconsSpriteSheets[] =
@@ -329,6 +333,13 @@ static const struct SpritePalette sMenuIconsPalette =
 {
     .data = sMenuIconSpritesPalette,
     .tag = ICON_SPRITES_PAL_TAG,
+};
+
+static const struct SpriteSheet sControlHintSpriteSheet =
+{
+    .data = sControlHintSpriteGfx,
+    .size = sizeof(sControlHintSpriteGfx),
+    .tag = CONTROL_HINT_SPRITE_TAG,
 };
 
 static const union AnimCmd sAnim_UnselectedIcon[] =
@@ -363,6 +374,17 @@ static const struct OamData sMenuIconsSpriteOamData =
     .priority = 0,
     .paletteNum = 1,
     .affineParam = 0,
+};
+
+static const struct SpriteTemplate sControlHintSpriteTemplate =
+{
+    .tileTag = CONTROL_HINT_SPRITE_TAG,
+    .paletteTag = ICON_SPRITES_PAL_TAG,
+    .anims = gDummySpriteAnimTable,
+    .oam = &sMenuIconsSpriteOamData,
+    .images = NULL,
+    .affineAnims = gDummySpriteAffineAnimTable,
+    .callback = SpriteCallbackDummy,
 };
 
 static const struct SpriteTemplate sMenuIconsSprites[MENU_ICONS] =
@@ -516,7 +538,6 @@ static const s16 sHouseFloorAnchorCoords[HOUSE_FLOOR_ANCHORS][2] =
     {116, 112},
     {150, 117},
     {216, 126},
-    {16, 139},
     {82, 142},
     {114, 138},
     {146, 141},
@@ -609,6 +630,7 @@ static void Menu_Init(MainCallback callback)
     sMenuDataPtr->savedCallback = callback;
     for (i = 0; i < MENU_ICONS; i++)
         sMenuDataPtr->menuIconIds[i] = MAX_SPRITES;
+    sMenuDataPtr->controlHintSpriteId = SPRITE_NONE;
     sMenuDataPtr->petSpriteId = SPRITE_NONE;
     sMenuDataPtr->petEmotion = POKEGOTCHI_EMOTION_COUNT;
     sMenuDataPtr->petActivity = HOUSE_PET_ACTIVITY_IDLE;
@@ -695,6 +717,7 @@ static bool8 Menu_DoGfxSetup(void)
     case 5:
         m4aSongNumStartOrChange(MUS_FORTREE);
         Menu_LoadTopIcons();
+        Menu_LoadControlHint();
         Menu_LoadPetSprite();
         Menu_RefreshPoopSprites();
         if (sHouseEntryMode == HOUSE_ENTRY_EATING_SCENE)
@@ -735,6 +758,12 @@ static void Menu_FreeResources(void)
             }
         }
 
+        if (sMenuDataPtr->controlHintSpriteId != SPRITE_NONE)
+        {
+            DestroySprite(&gSprites[sMenuDataPtr->controlHintSpriteId]);
+            sMenuDataPtr->controlHintSpriteId = SPRITE_NONE;
+        }
+
         if (sMenuDataPtr->petSpriteId != SPRITE_NONE)
         {
             DestroyPokegotchiSprite(sMenuDataPtr->petSpriteId);
@@ -762,6 +791,7 @@ static void Menu_FreeResources(void)
     FreeSpriteTilesByTag(ICON_2_SPRITE_TAG);
     FreeSpriteTilesByTag(ICON_3_SPRITE_TAG);
     FreeSpriteTilesByTag(ICON_4_SPRITE_TAG);
+    FreeSpriteTilesByTag(CONTROL_HINT_SPRITE_TAG);
     FreeSpritePaletteByTag(ICON_SPRITES_PAL_TAG);
     Menu_FreePoopSpriteGfx();
     try_free(sMenuDataPtr);
@@ -890,6 +920,28 @@ static void Menu_LoadTopIcons(void)
     }
 
     Menu_SetSelectedTopIcon(sHouseEntryMode == HOUSE_ENTRY_EATING_SCENE ? FOOD_ICON : STATUS_ICON);
+}
+
+static void Menu_LoadControlHint(void)
+{
+    u8 spriteId;
+
+    if (sHouseEntryMode != HOUSE_ENTRY_NORMAL
+     || IndexOfSpritePaletteTag(ICON_SPRITES_PAL_TAG) == 0xFF)
+        return;
+
+    LoadSpriteSheet(&sControlHintSpriteSheet);
+    if (GetSpriteTileStartByTag(CONTROL_HINT_SPRITE_TAG) == TAG_NONE)
+        return;
+
+    spriteId = CreateSpriteUnchecked(&sControlHintSpriteTemplate, 16, 144, 0);
+    if (spriteId == MAX_SPRITES)
+    {
+        FreeSpriteTilesByTag(CONTROL_HINT_SPRITE_TAG);
+        return;
+    }
+
+    sMenuDataPtr->controlHintSpriteId = spriteId;
 }
 
 static void Menu_LoadPetSprite(void)

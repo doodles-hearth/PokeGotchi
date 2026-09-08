@@ -12,6 +12,7 @@
 #include "main.h"
 #include "metatile_behavior.h"
 #include "overworld.h"
+#include "pokegotchi_overworld.h"
 #include "script.h"
 #include "secret_base.h"
 #include "sound.h"
@@ -196,6 +197,8 @@ static void Task_RunTimeBasedEvents(u8 taskId)
 
 void SetUpFieldTasks(void)
 {
+    PokegotchiOverworld_SetUpControlHint();
+
     if (!FuncIsActiveTask(Task_RunPerStepCallback))
     {
         u8 taskId = CreateTask(Task_RunPerStepCallback, 80);
