@@ -1594,7 +1594,7 @@
 #define DAILY_FLAGS_START                           (FLAG_UNUSED_0x91F + (8 - FLAG_UNUSED_0x91F % 8))
 #define POKEGOTCHI_DAILY_FLAGS_START                DAILY_FLAGS_START
 #define FLAG_RECEIVED_PACHINKO_COINS                (DAILY_FLAGS_START + 0x0)
-#define FLAG_UNUSED_0x922                           (DAILY_FLAGS_START + 0x1) // Unused Flag
+#define POKEGOTCHI_DAILY_FLAG_INTERACTED_WITH_PET   (DAILY_FLAGS_START + 0x1)
 #define FLAG_UNUSED_0x923                           (DAILY_FLAGS_START + 0x2) // Unused Flag
 #define FLAG_RECEIVED_DAILY_DONUT                   (DAILY_FLAGS_START + 0x3)
 #define FLAG_UNUSED_0x924                           (DAILY_FLAGS_START + 0x4)  // Unused Flag

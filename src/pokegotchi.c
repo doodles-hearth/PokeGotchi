@@ -1,4 +1,5 @@
 #include "global.h"
+#include "event_data.h"
 #include "pokegotchi.h"
 #include "pokemon.h"
 #include "random.h"
@@ -8,6 +9,12 @@
 #define POKEGOTCHI_STARTING_FOOD_COUNT 10
 #define POKEGOTCHI_SESSION_WOKEN_DURING_SLEEP (1 << 0)
 #define POKEGOTCHI_SESSION_SLEEP_DECAY_PENDING (1 << 1)
+#define POKEGOTCHI_DAILY_EVENT_BITS 2
+#define POKEGOTCHI_DAILY_EVENT_MASK ((1 << POKEGOTCHI_DAILY_EVENT_BITS) - 1)
+#define POKEGOTCHI_DAILY_EVENT_SATURATED_COUNT 2
+
+STATIC_ASSERT(POKEGOTCHI_DAILY_EVENT_COUNT * POKEGOTCHI_DAILY_EVENT_BITS == 8,
+              PokegotchiDailyEventsFitInOneByte);
 
 static EWRAM_DATA bool8 sPokegotchiSessionStarted = FALSE;
 static EWRAM_DATA struct Time sPokegotchiSessionStart = {0};
@@ -266,6 +273,94 @@ void Pokegotchi_AddToStat(enum PokegotchiStat stat, s16 delta)
 
     *value = ClampStatValue(*value + delta);
     CommitRuntimeState();
+}
+
+bool8 Pokegotchi_ApplyDailyPetInteractionReward(void)
+{
+    struct PokegotchiStats *stats;
+
+    Pokegotchi_Sync();
+    if (FlagGet(POKEGOTCHI_DAILY_FLAG_INTERACTED_WITH_PET))
+        return FALSE;
+
+    stats = GetMutableStats();
+    stats->happy = ClampStatValue(stats->happy + 40);
+    FlagSet(POKEGOTCHI_DAILY_FLAG_INTERACTED_WITH_PET);
+    CommitRuntimeState();
+    return TRUE;
+}
+
+bool8 Pokegotchi_ApplyDailyEventReward(enum PokegotchiDailyEvent event)
+{
+    return Pokegotchi_ApplyDailyEventRewardWithTier(event) != POKEGOTCHI_DAILY_REWARD_NONE;
+}
+
+enum PokegotchiDailyRewardTier Pokegotchi_ApplyDailyEventRewardWithTier(enum PokegotchiDailyEvent event)
+{
+    struct PokegotchiRuntimeState *runtime;
+    struct PokegotchiStats *stats;
+    u8 shift;
+    u8 count;
+    u8 happyIncrease = 0;
+    u8 funIncrease = 0;
+    u16 oldHappy;
+    u16 oldFun;
+    enum PokegotchiDailyRewardTier rewardTier;
+
+    if ((u32)event >= POKEGOTCHI_DAILY_EVENT_COUNT)
+        return POKEGOTCHI_DAILY_REWARD_NONE;
+
+    Pokegotchi_UpdateDailyFlags();
+    runtime = PokegotchiSave_GetRuntimeMutable();
+    stats = &runtime->stats;
+    shift = event * POKEGOTCHI_DAILY_EVENT_BITS;
+    count = (runtime->dailyEventCounts >> shift) & POKEGOTCHI_DAILY_EVENT_MASK;
+    count = min(count, POKEGOTCHI_DAILY_EVENT_SATURATED_COUNT);
+    if (count == 0)
+        rewardTier = POKEGOTCHI_DAILY_REWARD_FIRST;
+    else if (count == 1)
+        rewardTier = POKEGOTCHI_DAILY_REWARD_SECOND;
+    else
+        rewardTier = POKEGOTCHI_DAILY_REWARD_REPEAT;
+
+    if (event == POKEGOTCHI_DAILY_EVENT_MEAL || event == POKEGOTCHI_DAILY_EVENT_SNACK)
+    {
+        if (count == 0)
+            happyIncrease = 30;
+        else if (count == 1)
+            happyIncrease = 20;
+    }
+    else
+    {
+        if (count == 0)
+        {
+            happyIncrease = 50;
+            funIncrease = 50;
+        }
+        else if (count == 1)
+        {
+            happyIncrease = 25;
+            funIncrease = 25;
+        }
+        else
+        {
+            happyIncrease = 10;
+            funIncrease = 20;
+        }
+    }
+
+    oldHappy = stats->happy;
+    oldFun = stats->fun;
+    stats->happy = ClampStatValue(stats->happy + happyIncrease);
+    stats->fun = ClampStatValue(stats->fun + funIncrease);
+    if (stats->happy == oldHappy && stats->fun == oldFun)
+        return POKEGOTCHI_DAILY_REWARD_NONE;
+
+    if (count < POKEGOTCHI_DAILY_EVENT_SATURATED_COUNT)
+        count++;
+    runtime->dailyEventCounts &= ~(POKEGOTCHI_DAILY_EVENT_MASK << shift);
+    runtime->dailyEventCounts |= count << shift;
+    return rewardTier;
 }
 
 void Pokegotchi_ClearPoops(void)
@@ -587,6 +682,7 @@ static void UpdateDailyFlagsForTime(const struct Time *time)
     if (!runtime->dailyFlagsInitialized)
     {
         memset(runtime->dailyFlags, 0, sizeof(runtime->dailyFlags));
+        runtime->dailyEventCounts = 0;
         runtime->dailyFlagsDay = time->days;
         runtime->dailyFlagsInitialized = TRUE;
         CommitRuntimeState();
@@ -594,6 +690,7 @@ static void UpdateDailyFlagsForTime(const struct Time *time)
     else if (runtime->dailyFlagsDay != time->days && runtime->dailyFlagsDay <= time->days)
     {
         memset(runtime->dailyFlags, 0, sizeof(runtime->dailyFlags));
+        runtime->dailyEventCounts = 0;
         runtime->dailyFlagsDay = time->days;
         CommitRuntimeState();
     }

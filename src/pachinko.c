@@ -12,6 +12,8 @@
 #include "overworld.h"
 #include "palette.h"
 #include "pachinko.h"
+#include "pokegotchi.h"
+#include "pokegotchi_save.h"
 #include "random.h"
 #include "script.h"
 #include "sound.h"
@@ -207,6 +209,7 @@ struct PinballGame
     struct Tilt downTilt;
     bool8 doArtificialDownTilt;
     bool8 completed;
+    bool8 playedRound;
     u8 exitTimer;
     bool8 waitExitScene;
     MainCallback returnMainCallback;
@@ -1489,6 +1492,7 @@ static void AButton(void)
     }
     RemoveCoins(3);
     SetPlayerDigits(GetCoins());
+    sPinballGame->playedRound = TRUE;
     sScore->GameStart = 1;
     return;
     }
@@ -2312,6 +2316,13 @@ static void ExitPinballGame(void)
     if (!gPaletteFade.active)
     {
         FREE_AND_SET_NULL(sPinballGame->diglett.collisionMap);
+
+        if (sPinballGame->playedRound)
+        {
+            Pokegotchi_Sync();
+            if (Pokegotchi_ApplyDailyEventReward(POKEGOTCHI_DAILY_EVENT_PACHINKO))
+                PokegotchiSave_Commit();
+        }
 
         SetMainCallback2(sPinballGame->returnMainCallback);
         FREE_AND_SET_NULL(sPinballGame);

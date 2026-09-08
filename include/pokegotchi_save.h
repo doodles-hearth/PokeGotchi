@@ -5,7 +5,7 @@
 #include "constants/flags.h"
 
 #define POKEGOTCHI_SAVE_MAGIC   0x50475443
-#define POKEGOTCHI_SAVE_VERSION 3
+#define POKEGOTCHI_SAVE_VERSION 4
 #define POKEGOTCHI_SAVE_SLOT_COUNT 2
 
 struct PokegotchiRuntimeState
@@ -22,6 +22,8 @@ struct PokegotchiRuntimeState
     u8 optionsSound;
     u8 flags[POKEGOTCHI_FLAG_BYTES];
     u8 dailyFlags[POKEGOTCHI_DAILY_FLAG_BYTES];
+    u8 dailyEventCounts;
+    u8 filler[3]; // Free
 };
 
 struct PokegotchiPersistedPayload
@@ -38,6 +40,8 @@ struct PokegotchiPersistedPayload
     u8 optionsSound;
     u8 flags[POKEGOTCHI_FLAG_BYTES];
     u8 dailyFlags[POKEGOTCHI_DAILY_FLAG_BYTES];
+    u8 dailyEventCounts;
+    u8 filler[3]; // Free
 };
 
 struct PokegotchiPersistedSave

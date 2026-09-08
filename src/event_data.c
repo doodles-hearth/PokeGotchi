@@ -91,6 +91,7 @@ void ClearDailyFlags(void)
 {
     memset(&gSaveBlock1Ptr->flags[DAILY_FLAGS_START / 8], 0, DAILY_FLAGS_SIZE);
     memset(PokegotchiSave_GetRuntimeMutable()->dailyFlags, 0, POKEGOTCHI_DAILY_FLAG_BYTES);
+    PokegotchiSave_GetRuntimeMutable()->dailyEventCounts = 0;
 }
 
 void DisableNationalPokedex(void)

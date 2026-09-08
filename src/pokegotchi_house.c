@@ -156,6 +156,7 @@ static EWRAM_DATA MainCallback sHouseEatingSceneReturnCallback = NULL;
 static EWRAM_DATA u8 sHouseWaiterMinigameDifficulty = POKEGOTCHI_WAITER_MINIGAME_EASY;
 static EWRAM_DATA u8 sHouseEntryMode = HOUSE_ENTRY_NORMAL;
 static EWRAM_DATA u8 sHouseEatingSceneFoodKey = FEED_FOOD_KEY_NONE;
+static EWRAM_DATA enum PokegotchiDailyRewardTier sHouseEatingSceneRewardTier = POKEGOTCHI_DAILY_REWARD_NONE;
 static EWRAM_DATA struct HousePoopLayout sHousePoopLayout = {0};
 
 //==========STATIC=DEFINES==========//
@@ -196,7 +197,7 @@ static bool8 Menu_LoadFoodSpritePalette(const struct PokegotchiFeedFoodItem *foo
 static void Menu_DestroyFoodSprite(void);
 static void Menu_SetFoodBiteFrame(u8 frame);
 static void Menu_SetSelectedTopIcon(u8 selectedIcon);
-static u8 Menu_GetPostEatEmotionStub(u8 foodKey);
+static struct HouseReaction Menu_GetPostEatReaction(enum PokegotchiDailyRewardTier rewardTier);
 static void Task_MenuWaitFadeIn(u8 taskId);
 static void Task_MenuMain(u8 taskId);
 static void Task_MenuPetInteraction(u8 taskId);
@@ -534,14 +535,16 @@ void OpenPokegotchiHouseMenu(MainCallback callback)
 {
     sHouseEntryMode = HOUSE_ENTRY_NORMAL;
     sHouseEatingSceneFoodKey = FEED_FOOD_KEY_NONE;
+    sHouseEatingSceneRewardTier = POKEGOTCHI_DAILY_REWARD_NONE;
     sHouseEatingSceneReturnCallback = NULL;
     Menu_Init(callback);
 }
 
-void OpenPokegotchiHouseEatingScene(u8 foodKey, MainCallback returnCallback)
+void OpenPokegotchiHouseEatingScene(u8 foodKey, enum PokegotchiDailyRewardTier rewardTier, MainCallback returnCallback)
 {
     sHouseEntryMode = HOUSE_ENTRY_EATING_SCENE;
     sHouseEatingSceneFoodKey = foodKey;
+    sHouseEatingSceneRewardTier = rewardTier;
     sHouseEatingSceneReturnCallback = returnCallback;
     Menu_Init(sHouseEatingSceneReturnCallback);
 }
@@ -1469,10 +1472,13 @@ static void Menu_SetFoodBiteFrame(u8 frame)
     StartSpriteAnimIfDifferent(&gSprites[sMenuDataPtr->foodSpriteId], frame);
 }
 
-static u8 Menu_GetPostEatEmotionStub(u8 foodKey)
+static struct HouseReaction Menu_GetPostEatReaction(enum PokegotchiDailyRewardTier rewardTier)
 {
-    (void)foodKey;
-    return POKEGOTCHI_EMOTION_IDLE;
+    if (rewardTier == POKEGOTCHI_DAILY_REWARD_FIRST)
+        return (struct HouseReaction){POKEGOTCHI_EMOTION_HAPPY, 1, POKEGOTCHI_EMOTICON_SUN};
+    if (rewardTier == POKEGOTCHI_DAILY_REWARD_SECOND)
+        return (struct HouseReaction){POKEGOTCHI_EMOTION_HAPPY, 1, POKEGOTCHI_EMOTICON_NONE};
+    return (struct HouseReaction){POKEGOTCHI_EMOTION_IDLE, 0, POKEGOTCHI_EMOTICON_NONE};
 }
 
 static void Menu_StartPetInteraction(u8 taskId)
@@ -1522,6 +1528,7 @@ static void Menu_StartPetInteraction(u8 taskId)
     if (reaction.loopCount == 0 || !Menu_SetPetEmotion(reaction.emotion))
         return;
 
+    Pokegotchi_ApplyDailyPetInteractionReward();
     Menu_CreateEmoticon(reaction.emoticon, FALSE);
     gTasks[taskId].data[1] = HOUSE_REACTION_PHASE_ACTIVE;
     gTasks[taskId].data[2] = 0;
@@ -1782,15 +1789,23 @@ static void Task_MenuEatingScene(u8 taskId)
         gTasks[taskId].data[0] = HOUSE_EATING_SCENE_PHASE_POST_EAT;
         gTasks[taskId].data[1] = 0;
         {
-        u8 postEatEmotion = Menu_GetPostEatEmotionStub(sHouseEatingSceneFoodKey);
+            struct HouseReaction reaction = Menu_GetPostEatReaction(sHouseEatingSceneRewardTier);
 
-        if (postEatEmotion != sMenuDataPtr->petEmotion)
-            Menu_SetPetEmotion(postEatEmotion);
+            gTasks[taskId].data[2] = HOUSE_POST_EAT_PHASE_FRAMES;
+            if (reaction.loopCount != 0 && Menu_SetPetEmotion(reaction.emotion))
+            {
+                Menu_CreateEmoticon(reaction.emoticon, FALSE);
+                gTasks[taskId].data[2] = reaction.loopCount * HOUSE_REACTION_CYCLE_FRAMES;
+            }
+            else if (sMenuDataPtr->petEmotion != POKEGOTCHI_EMOTION_IDLE)
+            {
+                Menu_SetPetEmotion(POKEGOTCHI_EMOTION_IDLE);
+            }
         }
         return;
     }
 
-    if (++gTasks[taskId].data[1] < HOUSE_POST_EAT_PHASE_FRAMES)
+    if (++gTasks[taskId].data[1] < gTasks[taskId].data[2])
         return;
 
     Menu_FadeAndBail();

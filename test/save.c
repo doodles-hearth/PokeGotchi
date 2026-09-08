@@ -11,7 +11,7 @@
 
 // If you would like to ensure save compatibility, update the values below with those for your hack. You can find these through the debug menu.
 // Please note that this simple check is not 100% foolproof, but should be able to catch most unintended shifts.
-#define T_POKEGOTCHI_SAVE_DATA_SIZE 668
+#define T_POKEGOTCHI_SAVE_DATA_SIZE 672
 #define T_POKEGOTCHI_STAGED_WRITE_BYTES (sizeof(struct PokegotchiPersistedSave) - sizeof(((struct PokegotchiPersistedSave *)0)->magic))
 
 static void ExpectPokegotchiFlagsCleared(void)
@@ -73,6 +73,7 @@ TEST("(Pokegotchi) Blank SRAM boot initializes defaults")
     EXPECT_EQ((u32)runtime->optionsSound, OPTIONS_SOUND_MONO);
     ExpectPokegotchiDefaultFlags();
     EXPECT_EQ(runtime->dailyFlags[0], 0);
+    EXPECT_EQ(runtime->dailyEventCounts, 0);
 }
 
 TEST("(Pokegotchi) Blank flash boot initializes defaults")
@@ -100,6 +101,7 @@ TEST("(Pokegotchi) Blank flash boot initializes defaults")
     EXPECT_EQ((u32)runtime->optionsSound, OPTIONS_SOUND_MONO);
     ExpectPokegotchiDefaultFlags();
     EXPECT_EQ(runtime->dailyFlags[0], 0);
+    EXPECT_EQ(runtime->dailyEventCounts, 0);
 }
 
 TEST("(Pokegotchi) SRAM save round-trip preserves runtime payload")
@@ -146,6 +148,7 @@ TEST("(Pokegotchi) SRAM save round-trip preserves runtime payload")
     runtime->dailyFlagsInitialized = TRUE;
     runtime->dailyFlagsDay = 4;
     runtime->dailyFlags[0] = (1 << 0) | (1 << 7);
+    runtime->dailyEventCounts = 0xA5;
 
     SetMonData(&mon, MON_DATA_SPECIES, &(u16){SPECIES_BULBASAUR});
     SetMonData(&mon, MON_DATA_LEVEL, &(u8){12});
@@ -192,6 +195,7 @@ TEST("(Pokegotchi) SRAM save round-trip preserves runtime payload")
     EXPECT(loaded->dailyFlagsInitialized);
     EXPECT_EQ(loaded->dailyFlagsDay, 4);
     EXPECT_EQ(loaded->dailyFlags[0], (1 << 0) | (1 << 7));
+    EXPECT_EQ(loaded->dailyEventCounts, 0xA5);
     EXPECT_EQ(GetMonData(&loadedMon, MON_DATA_SPECIES), SPECIES_BULBASAUR);
     EXPECT_EQ(GetMonData(&loadedMon, MON_DATA_LEVEL), 12);
 }
@@ -240,6 +244,7 @@ TEST("(Pokegotchi) Flash save round-trip preserves runtime payload")
     runtime->dailyFlagsInitialized = TRUE;
     runtime->dailyFlagsDay = 8;
     runtime->dailyFlags[0] = (1 << 2) | (1 << 6);
+    runtime->dailyEventCounts = 0x5A;
 
     SetMonData(&mon, MON_DATA_SPECIES, &(u16){SPECIES_CHARMANDER});
     SetMonData(&mon, MON_DATA_LEVEL, &(u8){16});
@@ -286,6 +291,7 @@ TEST("(Pokegotchi) Flash save round-trip preserves runtime payload")
     EXPECT(loaded->dailyFlagsInitialized);
     EXPECT_EQ(loaded->dailyFlagsDay, 8);
     EXPECT_EQ(loaded->dailyFlags[0], (1 << 2) | (1 << 6));
+    EXPECT_EQ(loaded->dailyEventCounts, 0x5A);
     EXPECT_EQ(GetMonData(&loadedMon, MON_DATA_SPECIES), SPECIES_CHARMANDER);
     EXPECT_EQ(GetMonData(&loadedMon, MON_DATA_LEVEL), 16);
 }
@@ -519,6 +525,7 @@ TEST("(Pokegotchi) ClearDailyFlags clears custom and vanilla daily flags only")
     FlagSet(POKEGOTCHI_DAILY_FLAGS_START);
     FlagSet(POKEGOTCHI_DAILY_FLAGS_END);
     FlagSet(POKEGOTCHI_DAILY_FLAGS_END + 1);
+    PokegotchiSave_GetRuntimeMutable()->dailyEventCounts = 0xFF;
 
     ClearDailyFlags();
 
@@ -527,6 +534,7 @@ TEST("(Pokegotchi) ClearDailyFlags clears custom and vanilla daily flags only")
     EXPECT(!FlagGet(POKEGOTCHI_DAILY_FLAGS_END));
     EXPECT(!FlagGet(POKEGOTCHI_DAILY_FLAGS_END + 1));
     EXPECT_EQ(PokegotchiSave_GetRuntime()->dailyFlags[0], 0);
+    EXPECT_EQ(PokegotchiSave_GetRuntime()->dailyEventCounts, 0);
 }
 
 TEST("(Pokegotchi) Script flag commands use Pokegotchi storage")

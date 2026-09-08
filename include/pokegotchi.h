@@ -21,6 +21,23 @@ enum PokegotchiStat
     POKEGOTCHI_STAT_POOP,
 };
 
+enum PokegotchiDailyEvent
+{
+    POKEGOTCHI_DAILY_EVENT_MEAL,
+    POKEGOTCHI_DAILY_EVENT_SNACK,
+    POKEGOTCHI_DAILY_EVENT_PACHINKO,
+    POKEGOTCHI_DAILY_EVENT_WAITER,
+    POKEGOTCHI_DAILY_EVENT_COUNT,
+};
+
+enum PokegotchiDailyRewardTier
+{
+    POKEGOTCHI_DAILY_REWARD_NONE,
+    POKEGOTCHI_DAILY_REWARD_FIRST,
+    POKEGOTCHI_DAILY_REWARD_SECOND,
+    POKEGOTCHI_DAILY_REWARD_REPEAT,
+};
+
 enum PokegotchiInteractionReaction
 {
     POKEGOTCHI_REACTION_SULKING,
@@ -45,6 +62,9 @@ bool8 Pokegotchi_WakeForActivity(void);
 enum PokegotchiInteractionReaction Pokegotchi_GetInteractionReaction(const struct PokegotchiStats *stats);
 bool8 Pokegotchi_AddFoodByKey(u8 foodKey, u16 amount);
 void Pokegotchi_AddToStat(enum PokegotchiStat stat, s16 delta);
+bool8 Pokegotchi_ApplyDailyPetInteractionReward(void);
+bool8 Pokegotchi_ApplyDailyEventReward(enum PokegotchiDailyEvent event);
+enum PokegotchiDailyRewardTier Pokegotchi_ApplyDailyEventRewardWithTier(enum PokegotchiDailyEvent event);
 void Pokegotchi_ClearPoops(void);
 
 void Pokegotchi_SetCurrentTimeForTest(const struct Time *time);

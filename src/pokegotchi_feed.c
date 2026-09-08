@@ -62,6 +62,7 @@ static EWRAM_DATA u8 *sBg1TilemapBuffer = NULL;
 static EWRAM_DATA MainCallback sFeedMenuExitCallback = NULL;
 static EWRAM_DATA u8 sPendingConsumedFoodKey = FEED_FOOD_KEY_NONE;
 static EWRAM_DATA u8 sPendingConsumedFoodSlot = FEED_CURSOR_START_SLOT;
+static EWRAM_DATA enum PokegotchiDailyRewardTier sPendingConsumedRewardTier = POKEGOTCHI_DAILY_REWARD_NONE;
 
 static void Menu_Init(MainCallback callback, u8 initialSlot);
 static void Menu_RunSetup(void);
@@ -86,7 +87,8 @@ static bool8 Menu_MoveFeedCursor(s8 dx, s8 dy);
 static const struct PokegotchiFoodEffect *Menu_GetFoodEffect(u8 inventoryKey);
 static const struct PokegotchiFeedFoodItem *Menu_GetFoodItemForVisualSlot(u8 visualSlot);
 static u16 Menu_AddStatIncrease(u16 current, u8 increase);
-static bool8 Menu_ConsumeFoodByKey(u8 inventoryKey);
+static bool8 Menu_GetDailyEventForFood(u8 inventoryKey, enum PokegotchiDailyEvent *event);
+static bool8 Menu_ConsumeFoodByKey(u8 inventoryKey, enum PokegotchiDailyRewardTier *rewardTier);
 static u8 Menu_GetFoodCount(u8 inventoryKey);
 static u8 Menu_GetFoodCountForVisualSlot(u8 visualSlot);
 static bool8 Menu_IsInfiniteFood(u8 inventoryKey);
@@ -822,11 +824,35 @@ static u16 Menu_AddStatIncrease(u16 current, u8 increase)
     return total;
 }
 
-static bool8 Menu_ConsumeFoodByKey(u8 inventoryKey)
+static bool8 Menu_GetDailyEventForFood(u8 inventoryKey, enum PokegotchiDailyEvent *event)
 {
-    struct PokegotchiRuntimeState *runtime = PokegotchiSave_GetRuntimeMutable();
+    switch (inventoryKey)
+    {
+    case FEED_FOOD_KEY_HOT_DOG:
+    case FEED_FOOD_KEY_POKEBLOCK:
+    case FEED_FOOD_KEY_EGG:
+        *event = POKEGOTCHI_DAILY_EVENT_MEAL;
+        return TRUE;
+    case FEED_FOOD_KEY_ICE_CREAM:
+    case FEED_FOOD_KEY_DONUT:
+    case FEED_FOOD_KEY_JUICE:
+        *event = POKEGOTCHI_DAILY_EVENT_SNACK;
+        return TRUE;
+    default:
+        return FALSE;
+    }
+}
+
+static bool8 Menu_ConsumeFoodByKey(u8 inventoryKey, enum PokegotchiDailyRewardTier *rewardTier)
+{
+    struct PokegotchiRuntimeState *runtime;
     const struct PokegotchiFoodEffect *foodEffect = Menu_GetFoodEffect(inventoryKey);
+    enum PokegotchiDailyEvent dailyEvent;
     u8 *count = NULL;
+
+    *rewardTier = POKEGOTCHI_DAILY_REWARD_NONE;
+    Pokegotchi_Sync();
+    runtime = PokegotchiSave_GetRuntimeMutable();
 
     switch (inventoryKey)
     {
@@ -871,6 +897,8 @@ static bool8 Menu_ConsumeFoodByKey(u8 inventoryKey)
         runtime->stats.food = Menu_AddStatIncrease(runtime->stats.food, foodEffect->food);
         runtime->stats.fun = Menu_AddStatIncrease(runtime->stats.fun, foodEffect->fun);
     }
+    if (Menu_GetDailyEventForFood(inventoryKey, &dailyEvent))
+        *rewardTier = Pokegotchi_ApplyDailyEventRewardWithTier(dailyEvent);
 
     PokegotchiSave_Commit();
     return TRUE;
@@ -1081,13 +1109,15 @@ static void Task_MenuMain(u8 taskId)
     if (JOY_NEW(A_BUTTON))
     {
         const struct PokegotchiFeedFoodItem *foodItem = Menu_GetFoodItemForVisualSlot(sMenuDataPtr->selectedSlot);
+        enum PokegotchiDailyRewardTier rewardTier;
 
         if (foodItem != NULL
          && Menu_IsFoodAvailable(foodItem->inventoryKey)
-         && Menu_ConsumeFoodByKey(foodItem->inventoryKey))
+         && Menu_ConsumeFoodByKey(foodItem->inventoryKey, &rewardTier))
         {
             sPendingConsumedFoodKey = foodItem->inventoryKey;
             sPendingConsumedFoodSlot = sMenuDataPtr->selectedSlot;
+            sPendingConsumedRewardTier = rewardTier;
             sFeedMenuExitCallback = sMenuDataPtr->savedCallback;
             sMenuDataPtr->savedCallback = CB2_OpenPokegotchiHouseEatingSceneFromFeed;
             PlaySE(SE_SELECT);
@@ -1131,7 +1161,7 @@ static void Task_MenuMain(u8 taskId)
 
 static void CB2_OpenPokegotchiHouseEatingSceneFromFeed(void)
 {
-    OpenPokegotchiHouseEatingScene(sPendingConsumedFoodKey, CB2_ReturnToConsumedFoodFeedMenu);
+    OpenPokegotchiHouseEatingScene(sPendingConsumedFoodKey, sPendingConsumedRewardTier, CB2_ReturnToConsumedFoodFeedMenu);
 }
 
 static void CB2_ReturnToConsumedFoodFeedMenu(void)

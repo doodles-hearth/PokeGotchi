@@ -4,6 +4,7 @@
 #include "load_save.h"
 #include "palette.h"
 #include "pokegotchi.h"
+#include "pokegotchi_feed.h"
 #include "pokegotchi_save.h"
 #include "pokegotchi_sprites.h"
 #include "script.h"
@@ -70,6 +71,7 @@ TEST("(Pokegotchi) EnsureInitialized seeds default stats and food inventory")
     EXPECT_EQ(runtime->food.iceCream, 0);
     EXPECT_EQ(runtime->food.donut, 0);
     EXPECT_EQ(runtime->food.juice, 0);
+    EXPECT_EQ(runtime->dailyEventCounts, 0);
 }
 
 TEST("(Pokegotchi) Daily flags initialize and remain set on the same day")
@@ -84,14 +86,17 @@ TEST("(Pokegotchi) Daily flags initialize and remain set on the same day")
     EXPECT(runtime->dailyFlagsInitialized);
     EXPECT_EQ(runtime->dailyFlagsDay, 1);
     EXPECT_EQ(runtime->dailyFlags[0], 0);
+    EXPECT_EQ(runtime->dailyEventCounts, 0);
 
     FlagSet(POKEGOTCHI_DAILY_FLAGS_START);
     FlagSet(POKEGOTCHI_DAILY_FLAGS_END);
+    PokegotchiSave_GetRuntimeMutable()->dailyEventCounts = 0xA5;
     Pokegotchi_UpdateDailyFlags();
 
     EXPECT(FlagGet(POKEGOTCHI_DAILY_FLAGS_START));
     EXPECT(FlagGet(POKEGOTCHI_DAILY_FLAGS_END));
     EXPECT_EQ(runtime->dailyFlagsDay, 1);
+    EXPECT_EQ(runtime->dailyEventCounts, 0xA5);
 }
 
 TEST("(Pokegotchi) Daily flags reset across forward day changes and persist")
@@ -103,6 +108,7 @@ TEST("(Pokegotchi) Daily flags reset across forward day changes and persist")
     Pokegotchi_UpdateDailyFlags();
     FlagSet(POKEGOTCHI_DAILY_FLAGS_START);
     FlagSet(POKEGOTCHI_DAILY_FLAGS_END);
+    PokegotchiSave_GetRuntimeMutable()->dailyEventCounts = 0xA5;
 
     Pokegotchi_SetCurrentTimeForTest(&sTime_Day2_06_00);
     Pokegotchi_UpdateDailyFlags();
@@ -110,13 +116,23 @@ TEST("(Pokegotchi) Daily flags reset across forward day changes and persist")
 
     EXPECT_EQ(runtime->dailyFlagsDay, 2);
     EXPECT_EQ(runtime->dailyFlags[0], 0);
+    EXPECT_EQ(runtime->dailyEventCounts, 0);
 
     FlagSet(POKEGOTCHI_DAILY_FLAGS_START + 3);
+    PokegotchiSave_GetRuntimeMutable()->dailyEventCounts = 0x5A;
     Pokegotchi_SetCurrentTimeForTest(&sTime_Day4_06_00);
     Pokegotchi_UpdateDailyFlags();
 
     EXPECT_EQ(runtime->dailyFlagsDay, 4);
     EXPECT_EQ(runtime->dailyFlags[0], 0);
+    EXPECT_EQ(runtime->dailyEventCounts, 0);
+
+    PokegotchiSave_GetRuntimeMutable()->dailyEventCounts = 0xA5;
+    Pokegotchi_SetCurrentTimeForTest(&sTime_Day2_06_00);
+    Pokegotchi_UpdateDailyFlags();
+    EXPECT_EQ(runtime->dailyFlagsDay, 4);
+    EXPECT_EQ(runtime->dailyEventCounts, 0xA5);
+    PokegotchiSave_Commit();
 
     PokegotchiSave_ClearRuntimeState();
     EXPECT_EQ(PokegotchiSave_InitOrLoad(), TRUE);
@@ -124,6 +140,30 @@ TEST("(Pokegotchi) Daily flags reset across forward day changes and persist")
     EXPECT(runtime->dailyFlagsInitialized);
     EXPECT_EQ(runtime->dailyFlagsDay, 4);
     EXPECT_EQ(runtime->dailyFlags[0], 0);
+    EXPECT_EQ(runtime->dailyEventCounts, 0xA5);
+}
+
+TEST("(Pokegotchi) Pet interaction happiness is awarded once per day")
+{
+    struct PokegotchiRuntimeState *runtime;
+
+    ResetPokegotchiTestState();
+    Pokegotchi_SetCurrentTimeForTest(&sTime_Day1_00_00);
+    Pokegotchi_EnsureInitialized();
+    runtime = PokegotchiSave_GetRuntimeMutable();
+    runtime->stats.happy = 100;
+
+    EXPECT(Pokegotchi_ApplyDailyPetInteractionReward());
+    EXPECT_EQ(runtime->stats.happy, 140);
+    EXPECT(FlagGet(POKEGOTCHI_DAILY_FLAG_INTERACTED_WITH_PET));
+
+    EXPECT(!Pokegotchi_ApplyDailyPetInteractionReward());
+    EXPECT_EQ(runtime->stats.happy, 140);
+
+    ClearDailyFlags();
+    EXPECT(!FlagGet(POKEGOTCHI_DAILY_FLAG_INTERACTED_WITH_PET));
+    EXPECT(Pokegotchi_ApplyDailyPetInteractionReward());
+    EXPECT_EQ(runtime->stats.happy, 180);
 }
 
 TEST("(Pokegotchi) One active minute reduces all four meters by two")

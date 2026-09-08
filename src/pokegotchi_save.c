@@ -368,6 +368,7 @@ static void SerializeRuntimeState(struct PokegotchiPersistedSave *dst, u32 saveC
     memcpy(dst->payload.dailyFlags,
            sPokegotchiRuntimeState.dailyFlags,
            sizeof(dst->payload.dailyFlags));
+    dst->payload.dailyEventCounts = sPokegotchiRuntimeState.dailyEventCounts;
     dst->checksum = Crc32B((const u8 *)&dst->payload, sizeof(dst->payload));
 }
 
@@ -396,6 +397,7 @@ static void DeserializeRuntimeState(const struct PokegotchiPersistedSave *src)
     memcpy(sPokegotchiRuntimeState.dailyFlags,
            src->payload.dailyFlags,
            sizeof(sPokegotchiRuntimeState.dailyFlags));
+    sPokegotchiRuntimeState.dailyEventCounts = src->payload.dailyEventCounts;
 }
 
 static volatile u8 *GetSramMemoryBase(void)

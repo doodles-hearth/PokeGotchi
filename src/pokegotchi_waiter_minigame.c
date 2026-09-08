@@ -1,6 +1,8 @@
 #include "global.h"
 #include "pokegotchi_waiter_minigame.h"
 #include "pokegotchi_intro.h"
+#include "pokegotchi.h"
+#include "pokegotchi_save.h"
 #include "bg.h"
 #include "coins.h"
 #include "decompress.h"
@@ -1608,6 +1610,9 @@ static void WaiterMinigame_UpdateEndSequence(void)
     AddCoins(coinsToAward);
     VarSet(WAITER_COINS_RESULT_VAR, coinsToAward);
     VarSet(VAR_RESULT, sWaiterMinigame->successfulServes);
+    Pokegotchi_Sync();
+    if (Pokegotchi_ApplyDailyEventReward(POKEGOTCHI_DAILY_EVENT_WAITER))
+        PokegotchiSave_Commit();
     sWaiterMinigame->exitStarted = TRUE;
     WaiterMinigame_FadeAndBail();
 }
