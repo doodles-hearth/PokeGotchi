@@ -11,7 +11,7 @@ const u32 gObjectEventPic_PokeGotchi_Car[] = INCGFX_U32("graphics/object_events/
 const u32 gObjectEventPic_PokeGotchi_Chansey[] = INCGFX_U32("graphics/object_events/pics/pokegotchi/chansey.png", ".4bpp", "-mwidth 2 -mheight 4");
 const u32 gObjectEventPic_PokeGotchi_Torchic[] = INCGFX_U32("graphics/object_events/pics/pokegotchi/torchic.png", ".4bpp", "-mwidth 2 -mheight 4");
 const u32 gObjectEventPic_PokeGotchi_Lamppost[] = INCGFX_U32("graphics/object_events/pics/pokegotchi/lamppost.png", ".4bpp", "-mwidth 4 -mheight 4");
-const u32 gObjectEventPic_PokeGotchi_Ditto[] = INCGFX_U32("graphics/object_events/pics/pokegotchi/ditto.png", ".4bpp", "-mwidth 2 -mheight 4");
+const u32 gObjectEventPic_PokeGotchi_Ditto[] = INCGFX_U32("graphics/object_events/pics/pokegotchi/ditto.png", ".4bpp", "-mwidth 4 -mheight 4");
 const u32 gObjectEventPic_PokeGotchi_Hypno[] = INCGFX_U32("graphics/object_events/pics/pokegotchi/hypno.png", ".4bpp", "-mwidth 2 -mheight 4");
 const u32 gObjectEventPic_PokeGotchi_Shuckle[] = INCGFX_U32("graphics/object_events/pics/pokegotchi/shuckle.png", ".4bpp", "-mwidth 2 -mheight 4");
 

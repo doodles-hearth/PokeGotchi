@@ -1495,7 +1495,7 @@ Tamatown_EventScript_DittoLamppost_7:
 # 1152 "data/maps/Tamatown/scripts.pory"
 	playse SE_PIN
 # 1153 "data/maps/Tamatown/scripts.pory"
-	applymovement VAR_LAST_TALKED, Tamatown_EventScript_Tangela_Movement_0
+	applymovement LOCALID_DITTO, Tamatown_EventScript_Tangela_Movement_0
 # 1154 "data/maps/Tamatown/scripts.pory"
 	waitmovement 0
 # 1155 "data/maps/Tamatown/scripts.pory"
@@ -1503,20 +1503,13 @@ Tamatown_EventScript_DittoLamppost_7:
 # 1156 "data/maps/Tamatown/scripts.pory"
 	playse SE_LEDGE
 # 1157 "data/maps/Tamatown/scripts.pory"
-	applymovement VAR_LAST_TALKED, Tamatown_EventScript_DittoLamppost_Movement_4
+	applymovement LOCALID_DITTO, Tamatown_EventScript_DittoLamppost_Movement_4
 # 1158 "data/maps/Tamatown/scripts.pory"
 	waitmovement 0
 # 1159 "data/maps/Tamatown/scripts.pory"
 	waitse
 # 1161 "data/maps/Tamatown/scripts.pory"
 	delay 32
-# 1162 "data/maps/Tamatown/scripts.pory"
-	compare VAR_FACING, DIR_SOUTH
-	goto_if_eq Tamatown_EventScript_DittoLamppost_16
-# 1164 "data/maps/Tamatown/scripts.pory"
-	compare VAR_FACING, DIR_NORTH
-	goto_if_eq Tamatown_EventScript_DittoLamppost_17
-Tamatown_EventScript_DittoLamppost_15:
 # 1167 "data/maps/Tamatown/scripts.pory"
 	mosaicmorph LOCALID_DITTO, OBJ_EVENT_GFX_PG_DITTO
 # 1169 "data/maps/Tamatown/scripts.pory"
@@ -1573,16 +1566,6 @@ Tamatown_EventScript_DittoLamppost_10:
 # 1138 "data/maps/Tamatown/scripts.pory"
 	applymovement LOCALID_PLAYER, Tamatown_EventScript_DittoLamppost_Movement_2
 	goto Tamatown_EventScript_DittoLamppost_7
-
-Tamatown_EventScript_DittoLamppost_16:
-# 1163 "data/maps/Tamatown/scripts.pory"
-	setobjectxy LOCALID_DITTO, 16, 13
-	goto Tamatown_EventScript_DittoLamppost_15
-
-Tamatown_EventScript_DittoLamppost_17:
-# 1165 "data/maps/Tamatown/scripts.pory"
-	setobjectxy LOCALID_DITTO, 18, 11
-	goto Tamatown_EventScript_DittoLamppost_15
 
 
 Tamatown_EventScript_TreeckoPrint::
@@ -2041,11 +2024,11 @@ Tamatown_EventScript_Vanillish_Movement_2:
 # 1130 "data/maps/Tamatown/scripts.pory"
 Tamatown_EventScript_DittoLamppost_Movement_0:
 # 1131 "data/maps/Tamatown/scripts.pory"
-	quarter_step_left
+	walk_left
 # 1131 "data/maps/Tamatown/scripts.pory"
 	lock_facing_direction
 # 1131 "data/maps/Tamatown/scripts.pory"
-	quarter_step_right
+	walk_right
 # 1131 "data/maps/Tamatown/scripts.pory"
 	unlock_facing_direction
 	step_end
@@ -2053,11 +2036,11 @@ Tamatown_EventScript_DittoLamppost_Movement_0:
 # 1134 "data/maps/Tamatown/scripts.pory"
 Tamatown_EventScript_DittoLamppost_Movement_1:
 # 1135 "data/maps/Tamatown/scripts.pory"
-	quarter_step_right
+	walk_right
 # 1135 "data/maps/Tamatown/scripts.pory"
 	lock_facing_direction
 # 1135 "data/maps/Tamatown/scripts.pory"
-	quarter_step_left
+	walk_left
 # 1135 "data/maps/Tamatown/scripts.pory"
 	unlock_facing_direction
 	step_end
@@ -2065,11 +2048,11 @@ Tamatown_EventScript_DittoLamppost_Movement_1:
 # 1138 "data/maps/Tamatown/scripts.pory"
 Tamatown_EventScript_DittoLamppost_Movement_2:
 # 1139 "data/maps/Tamatown/scripts.pory"
-	quarter_step_down
+	walk_down
 # 1139 "data/maps/Tamatown/scripts.pory"
 	lock_facing_direction
 # 1139 "data/maps/Tamatown/scripts.pory"
-	quarter_step_up
+	walk_up
 # 1139 "data/maps/Tamatown/scripts.pory"
 	unlock_facing_direction
 	step_end
@@ -2077,11 +2060,11 @@ Tamatown_EventScript_DittoLamppost_Movement_2:
 # 1142 "data/maps/Tamatown/scripts.pory"
 Tamatown_EventScript_DittoLamppost_Movement_3:
 # 1143 "data/maps/Tamatown/scripts.pory"
-	quarter_step_up
+	walk_up
 # 1143 "data/maps/Tamatown/scripts.pory"
 	lock_facing_direction
 # 1143 "data/maps/Tamatown/scripts.pory"
-	quarter_step_down
+	walk_down
 # 1143 "data/maps/Tamatown/scripts.pory"
 	unlock_facing_direction
 	step_end

@@ -49,11 +49,11 @@ static const struct SpriteFrameImage sPicTable_PokeGotchi_Torchic[] = {
 };
 
 static const struct SpriteFrameImage sPicTable_PokeGotchi_Ditto[] = {
-    overworld_ascending_frames(gObjectEventPic_PokeGotchi_Ditto, 2, 4),
+    overworld_ascending_frames(gObjectEventPic_PokeGotchi_Ditto, 4, 4),
 };
 
 static const struct SpriteFrameImage sPicTable_PokeGotchi_Lamppost[] = {
-    obj_frame_tiles(gObjectEventPic_PokeGotchi_Lamppost),
+    overworld_ascending_frames(gObjectEventPic_PokeGotchi_Lamppost, 4, 4),
 };
 
 // End of PokéGotchi

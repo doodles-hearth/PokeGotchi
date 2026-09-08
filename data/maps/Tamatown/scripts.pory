@@ -1128,19 +1128,19 @@ script Tamatown_EventScript_DittoLamppost {
 		if (var(VAR_RESULT) == 0) {
 			if (var(VAR_FACING) == DIR_WEST) {
 				applymovement(LOCALID_PLAYER, moves(
-					quarter_step_left, lock_facing_direction, quarter_step_right, unlock_facing_direction
+					walk_left, lock_facing_direction, walk_right, unlock_facing_direction
 				))
 			} elif (var(VAR_FACING) == DIR_EAST){
 				applymovement(LOCALID_PLAYER, moves(
-					quarter_step_right, lock_facing_direction, quarter_step_left, unlock_facing_direction
+					walk_right, lock_facing_direction, walk_left, unlock_facing_direction
 				))
 			} elif (var(VAR_FACING) == DIR_SOUTH){
 				applymovement(LOCALID_PLAYER, moves(
-					quarter_step_down, lock_facing_direction, quarter_step_up, unlock_facing_direction
+					walk_down, lock_facing_direction, walk_up, unlock_facing_direction
 				))
 			} else {
 				applymovement(LOCALID_PLAYER, moves(
-					quarter_step_up, lock_facing_direction, quarter_step_down, unlock_facing_direction
+					walk_up, lock_facing_direction, walk_down, unlock_facing_direction
 				))
 			}
 
@@ -1150,20 +1150,16 @@ script Tamatown_EventScript_DittoLamppost {
 			closemessage
 
 			playse(SE_PIN)
-			applymovement(VAR_LAST_TALKED, moves(emote_exclamation_mark))
+			applymovement(LOCALID_DITTO, moves(emote_exclamation_mark))
 			waitmovement(0)
 			waitse
 			playse(SE_LEDGE)
-			applymovement(VAR_LAST_TALKED, moves(lock_facing_direction, jump_in_place_down, unlock_facing_direction))
+			applymovement(LOCALID_DITTO, moves(lock_facing_direction, jump_in_place_down, unlock_facing_direction))
 			waitmovement(0)
 			waitse
 
 			delay(32)
-			if (var(VAR_FACING) == DIR_SOUTH) {
-				setobjectxy(LOCALID_DITTO, 16, 13)
-			} elif (var(VAR_FACING) == DIR_NORTH) {
-				setobjectxy(LOCALID_DITTO, 18, 11)
-			}
+
 			mosaicmorph(LOCALID_DITTO, OBJ_EVENT_GFX_PG_DITTO)
 
 			playse(SE_PIN)
