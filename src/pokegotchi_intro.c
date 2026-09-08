@@ -276,7 +276,7 @@ static void Task_Wait(u8 taskId)
 {
     if (gMain.newKeys != 0)
     {
-        PlayCry_ByMode(SPECIES_CHIMECHO, 0, CRY_MODE_NORMAL);
+        PlayCry_ByMode(SPECIES_FOMANTIS, 0, CRY_MODE_NORMAL);
         PokegotchiIntro_StartFadeOut(taskId);
     }
 }
