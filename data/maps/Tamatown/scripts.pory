@@ -1159,6 +1159,11 @@ script Tamatown_EventScript_DittoLamppost {
 			waitse
 
 			delay(32)
+			if (var(VAR_FACING) == DIR_SOUTH) {
+				setobjectxy(LOCALID_DITTO, 16, 13)
+			} elif (var(VAR_FACING) == DIR_NORTH) {
+				setobjectxy(LOCALID_DITTO, 18, 11)
+			}
 			mosaicmorph(LOCALID_DITTO, OBJ_EVENT_GFX_PG_DITTO)
 
 			playse(SE_PIN)
@@ -1369,4 +1374,21 @@ script Tamatown_EventScript_Shuckle {
 	}
 
 	release
+}
+
+script Tamatown_EventScript_TrashcanPoster {
+	if (flag(POKEGOTCHI_FLAG_FRNTR_POSTER_MUDKIP)) {
+		goto(Tamatown_EventScript_Trashcan)
+	}
+
+	lock
+	message(
+		"You got a neat {COLOR RED}Blue Poster{COLOR DARK_GRAY} for your\nroom!"
+	)
+	playfanfare(MUS_LEVEL_UP)
+	waitfanfare
+	waitmessage
+	waitbuttonpress
+	setflag(POKEGOTCHI_FLAG_FRNTR_POSTER_MUDKIP)
+	closemessage
 }

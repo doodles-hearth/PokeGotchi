@@ -1458,7 +1458,7 @@ Tamatown_EventScript_DittoLamppost::
 	compare VAR_RESULT, 0
 	goto_if_eq Tamatown_EventScript_DittoLamppost_5
 Tamatown_EventScript_DittoLamppost_1:
-# 1197 "data/maps/Tamatown/scripts.pory"
+# 1202 "data/maps/Tamatown/scripts.pory"
 	release
 	return
 
@@ -1511,44 +1511,51 @@ Tamatown_EventScript_DittoLamppost_7:
 # 1161 "data/maps/Tamatown/scripts.pory"
 	delay 32
 # 1162 "data/maps/Tamatown/scripts.pory"
-	mosaicmorph LOCALID_DITTO, OBJ_EVENT_GFX_PG_DITTO
+	compare VAR_FACING, DIR_SOUTH
+	goto_if_eq Tamatown_EventScript_DittoLamppost_16
 # 1164 "data/maps/Tamatown/scripts.pory"
-	playse SE_PIN
-# 1165 "data/maps/Tamatown/scripts.pory"
-	applymovement LOCALID_PLAYER, Tamatown_EventScript_Tangela_Movement_0
-# 1166 "data/maps/Tamatown/scripts.pory"
-	waitse
+	compare VAR_FACING, DIR_NORTH
+	goto_if_eq Tamatown_EventScript_DittoLamppost_17
+Tamatown_EventScript_DittoLamppost_15:
 # 1167 "data/maps/Tamatown/scripts.pory"
-	waitmovementall
+	mosaicmorph LOCALID_DITTO, OBJ_EVENT_GFX_PG_DITTO
 # 1169 "data/maps/Tamatown/scripts.pory"
-	delay 32
+	playse SE_PIN
+# 1170 "data/maps/Tamatown/scripts.pory"
+	applymovement LOCALID_PLAYER, Tamatown_EventScript_Tangela_Movement_0
 # 1171 "data/maps/Tamatown/scripts.pory"
-	playmoncry SPECIES_DITTO, CRY_MODE_NORMAL
+	waitse
 # 1172 "data/maps/Tamatown/scripts.pory"
-	setspeaker Tamatown_EventScript_DittoLamppost_Text_4
-# 1173 "data/maps/Tamatown/scripts.pory"
-	msgbox Tamatown_EventScript_DittoLamppost_Text_5
+	waitmovementall
+# 1174 "data/maps/Tamatown/scripts.pory"
+	delay 32
+# 1176 "data/maps/Tamatown/scripts.pory"
+	playmoncry SPECIES_DITTO, CRY_MODE_NORMAL
 # 1177 "data/maps/Tamatown/scripts.pory"
-	closemessage
-# 1179 "data/maps/Tamatown/scripts.pory"
-	message Tamatown_EventScript_DittoLamppost_Text_6
+	setspeaker Tamatown_EventScript_DittoLamppost_Text_4
+# 1178 "data/maps/Tamatown/scripts.pory"
+	msgbox Tamatown_EventScript_DittoLamppost_Text_5
 # 1182 "data/maps/Tamatown/scripts.pory"
-	playfanfare MUS_LEVEL_UP
-# 1183 "data/maps/Tamatown/scripts.pory"
-	waitfanfare
-# 1184 "data/maps/Tamatown/scripts.pory"
-	waitmessage
-# 1185 "data/maps/Tamatown/scripts.pory"
-	waitbuttonpress
-# 1186 "data/maps/Tamatown/scripts.pory"
 	closemessage
+# 1184 "data/maps/Tamatown/scripts.pory"
+	message Tamatown_EventScript_DittoLamppost_Text_6
+# 1187 "data/maps/Tamatown/scripts.pory"
+	playfanfare MUS_LEVEL_UP
 # 1188 "data/maps/Tamatown/scripts.pory"
-	setflag POKEGOTCHI_FLAG_FRNTR_DITTO
+	waitfanfare
+# 1189 "data/maps/Tamatown/scripts.pory"
+	waitmessage
 # 1190 "data/maps/Tamatown/scripts.pory"
-	delay 16
-# 1192 "data/maps/Tamatown/scripts.pory"
-	mosaicmorph LOCALID_DITTO
+	waitbuttonpress
+# 1191 "data/maps/Tamatown/scripts.pory"
+	closemessage
 # 1193 "data/maps/Tamatown/scripts.pory"
+	setflag POKEGOTCHI_FLAG_FRNTR_DITTO
+# 1195 "data/maps/Tamatown/scripts.pory"
+	delay 16
+# 1197 "data/maps/Tamatown/scripts.pory"
+	mosaicmorph LOCALID_DITTO
+# 1198 "data/maps/Tamatown/scripts.pory"
 	delay 16
 	goto Tamatown_EventScript_DittoLamppost_1
 
@@ -1567,226 +1574,264 @@ Tamatown_EventScript_DittoLamppost_10:
 	applymovement LOCALID_PLAYER, Tamatown_EventScript_DittoLamppost_Movement_2
 	goto Tamatown_EventScript_DittoLamppost_7
 
+Tamatown_EventScript_DittoLamppost_16:
+# 1163 "data/maps/Tamatown/scripts.pory"
+	setobjectxy LOCALID_DITTO, 16, 13
+	goto Tamatown_EventScript_DittoLamppost_15
+
+Tamatown_EventScript_DittoLamppost_17:
+# 1165 "data/maps/Tamatown/scripts.pory"
+	setobjectxy LOCALID_DITTO, 18, 11
+	goto Tamatown_EventScript_DittoLamppost_15
+
 
 Tamatown_EventScript_TreeckoPrint::
-# 1201 "data/maps/Tamatown/scripts.pory"
+# 1206 "data/maps/Tamatown/scripts.pory"
 	lock
-# 1203 "data/maps/Tamatown/scripts.pory"
+# 1208 "data/maps/Tamatown/scripts.pory"
 	msgbox Tamatown_EventScript_TreeckoPrint_Text_0
-# 1207 "data/maps/Tamatown/scripts.pory"
+# 1212 "data/maps/Tamatown/scripts.pory"
 	mcdialogueB Tamatown_EventScript_TreeckoPrint_Text_1, Tamatown_EventScript_TreeckoPrint_Text_2
-# 1211 "data/maps/Tamatown/scripts.pory"
+# 1216 "data/maps/Tamatown/scripts.pory"
 	closemessage
-# 1213 "data/maps/Tamatown/scripts.pory"
+# 1218 "data/maps/Tamatown/scripts.pory"
 	compare VAR_RESULT, 0
 	goto_if_eq Tamatown_EventScript_TreeckoPrint_2
-# 1231 "data/maps/Tamatown/scripts.pory"
+# 1236 "data/maps/Tamatown/scripts.pory"
 	msgbox Tamatown_EventScript_TreeckoPrint_Text_4
-# 1234 "data/maps/Tamatown/scripts.pory"
+# 1239 "data/maps/Tamatown/scripts.pory"
 	closemessage
 Tamatown_EventScript_TreeckoPrint_1:
-# 1237 "data/maps/Tamatown/scripts.pory"
+# 1242 "data/maps/Tamatown/scripts.pory"
 	release
 	return
 
 Tamatown_EventScript_TreeckoPrint_2:
-# 1214 "data/maps/Tamatown/scripts.pory"
-	playse SE_CONTEST_CONDITION_LOSE
-# 1215 "data/maps/Tamatown/scripts.pory"
-	setmetatile 29, 8, METATILE_Tamatown_BrickWall, TRUE
-# 1216 "data/maps/Tamatown/scripts.pory"
-	special DrawWholeMapView
-# 1217 "data/maps/Tamatown/scripts.pory"
-	removeobject VAR_LAST_TALKED
-# 1218 "data/maps/Tamatown/scripts.pory"
-	waitse
 # 1219 "data/maps/Tamatown/scripts.pory"
-	delay 32
+	playse SE_CONTEST_CONDITION_LOSE
+# 1220 "data/maps/Tamatown/scripts.pory"
+	setmetatile 29, 8, METATILE_Tamatown_BrickWall, TRUE
 # 1221 "data/maps/Tamatown/scripts.pory"
-	message Tamatown_EventScript_TreeckoPrint_Text_3
+	special DrawWholeMapView
+# 1222 "data/maps/Tamatown/scripts.pory"
+	removeobject VAR_LAST_TALKED
+# 1223 "data/maps/Tamatown/scripts.pory"
+	waitse
 # 1224 "data/maps/Tamatown/scripts.pory"
-	playfanfare MUS_LEVEL_UP
-# 1225 "data/maps/Tamatown/scripts.pory"
-	waitfanfare
+	delay 32
 # 1226 "data/maps/Tamatown/scripts.pory"
-	waitmessage
-# 1227 "data/maps/Tamatown/scripts.pory"
-	waitbuttonpress
-# 1228 "data/maps/Tamatown/scripts.pory"
-	setflag POKEGOTCHI_FLAG_FRNTR_POSTER_TREECKO
+	message Tamatown_EventScript_TreeckoPrint_Text_3
 # 1229 "data/maps/Tamatown/scripts.pory"
+	playfanfare MUS_LEVEL_UP
+# 1230 "data/maps/Tamatown/scripts.pory"
+	waitfanfare
+# 1231 "data/maps/Tamatown/scripts.pory"
+	waitmessage
+# 1232 "data/maps/Tamatown/scripts.pory"
+	waitbuttonpress
+# 1233 "data/maps/Tamatown/scripts.pory"
+	setflag POKEGOTCHI_FLAG_FRNTR_POSTER_TREECKO
+# 1234 "data/maps/Tamatown/scripts.pory"
 	closemessage
 	goto Tamatown_EventScript_TreeckoPrint_1
 
 
 Tamatown_EventScript_Hypno::
-# 1241 "data/maps/Tamatown/scripts.pory"
+# 1246 "data/maps/Tamatown/scripts.pory"
 	lock
-# 1242 "data/maps/Tamatown/scripts.pory"
+# 1247 "data/maps/Tamatown/scripts.pory"
 	goto_if_set POKEGOTCHI_FLAG_FRNTR_BED, Tamatown_EventScript_Hypno_2
-# 1250 "data/maps/Tamatown/scripts.pory"
+# 1255 "data/maps/Tamatown/scripts.pory"
 	setspeaker Tamatown_EventScript_Hypno_Text_0
-# 1251 "data/maps/Tamatown/scripts.pory"
+# 1256 "data/maps/Tamatown/scripts.pory"
 	applymovement VAR_LAST_TALKED, Tamatown_EventScript_TrubbishCan_Movement_3
-# 1252 "data/maps/Tamatown/scripts.pory"
+# 1257 "data/maps/Tamatown/scripts.pory"
 	playmoncry SPECIES_HYPNO, CRY_MODE_NORMAL
-# 1253 "data/maps/Tamatown/scripts.pory"
+# 1258 "data/maps/Tamatown/scripts.pory"
 	msgbox Tamatown_EventScript_Hypno_Text_2
-# 1260 "data/maps/Tamatown/scripts.pory"
+# 1265 "data/maps/Tamatown/scripts.pory"
 	showcoinsbox 20, 0
-# 1262 "data/maps/Tamatown/scripts.pory"
+# 1267 "data/maps/Tamatown/scripts.pory"
 	mcdialogueB Tamatown_EventScript_Hypno_Text_3, Tamatown_EventScript_Hypno_Text_4
-# 1266 "data/maps/Tamatown/scripts.pory"
+# 1271 "data/maps/Tamatown/scripts.pory"
 	closemessage
-# 1268 "data/maps/Tamatown/scripts.pory"
+# 1273 "data/maps/Tamatown/scripts.pory"
 	compare VAR_RESULT, 0
 	goto_if_eq Tamatown_EventScript_Hypno_5
-# 1292 "data/maps/Tamatown/scripts.pory"
-	setspeaker Tamatown_EventScript_Hypno_Text_0
-# 1293 "data/maps/Tamatown/scripts.pory"
-	playmoncry SPECIES_HYPNO, CRY_MODE_WEAK
-# 1294 "data/maps/Tamatown/scripts.pory"
-	msgbox Tamatown_EventScript_Hypno_Text_7
 # 1297 "data/maps/Tamatown/scripts.pory"
+	setspeaker Tamatown_EventScript_Hypno_Text_0
+# 1298 "data/maps/Tamatown/scripts.pory"
+	playmoncry SPECIES_HYPNO, CRY_MODE_WEAK
+# 1299 "data/maps/Tamatown/scripts.pory"
+	msgbox Tamatown_EventScript_Hypno_Text_7
+# 1302 "data/maps/Tamatown/scripts.pory"
 	closemessage
 Tamatown_EventScript_Hypno_1:
-# 1301 "data/maps/Tamatown/scripts.pory"
+# 1306 "data/maps/Tamatown/scripts.pory"
 	release
 	return
 
 Tamatown_EventScript_Hypno_2:
-# 1243 "data/maps/Tamatown/scripts.pory"
-	setspeaker Tamatown_EventScript_Hypno_Text_0
-# 1244 "data/maps/Tamatown/scripts.pory"
-	playmoncry SPECIES_HYPNO, CRY_MODE_NORMAL
-# 1245 "data/maps/Tamatown/scripts.pory"
-	msgbox Tamatown_EventScript_Hypno_Text_1
 # 1248 "data/maps/Tamatown/scripts.pory"
+	setspeaker Tamatown_EventScript_Hypno_Text_0
+# 1249 "data/maps/Tamatown/scripts.pory"
+	playmoncry SPECIES_HYPNO, CRY_MODE_NORMAL
+# 1250 "data/maps/Tamatown/scripts.pory"
+	msgbox Tamatown_EventScript_Hypno_Text_1
+# 1253 "data/maps/Tamatown/scripts.pory"
 	closemessage
 	goto Tamatown_EventScript_Hypno_1
 
 Tamatown_EventScript_Hypno_5:
-# 1269 "data/maps/Tamatown/scripts.pory"
+# 1274 "data/maps/Tamatown/scripts.pory"
 	checkcoins VAR_0x8000
-# 1270 "data/maps/Tamatown/scripts.pory"
+# 1275 "data/maps/Tamatown/scripts.pory"
 	compare VAR_0x8000, 50
 	goto_if_lt Tamatown_EventScript_Hypno_8
-# 1278 "data/maps/Tamatown/scripts.pory"
-	removecoins 50
-# 1279 "data/maps/Tamatown/scripts.pory"
-	hidecoinsbox
-# 1280 "data/maps/Tamatown/scripts.pory"
-	setspeaker Tamatown_EventScript_Hypno_Text_0
-# 1281 "data/maps/Tamatown/scripts.pory"
-	applymovement VAR_LAST_TALKED, Tamatown_EventScript_Porygon_Movement_0
-# 1282 "data/maps/Tamatown/scripts.pory"
-	playmoncry SPECIES_HYPNO, CRY_MODE_HIGH_PITCH
 # 1283 "data/maps/Tamatown/scripts.pory"
-	msgbox Tamatown_EventScript_Hypno_Text_6
+	removecoins 50
+# 1284 "data/maps/Tamatown/scripts.pory"
+	hidecoinsbox
+# 1285 "data/maps/Tamatown/scripts.pory"
+	setspeaker Tamatown_EventScript_Hypno_Text_0
+# 1286 "data/maps/Tamatown/scripts.pory"
+	applymovement VAR_LAST_TALKED, Tamatown_EventScript_Porygon_Movement_0
 # 1287 "data/maps/Tamatown/scripts.pory"
+	playmoncry SPECIES_HYPNO, CRY_MODE_HIGH_PITCH
+# 1288 "data/maps/Tamatown/scripts.pory"
+	msgbox Tamatown_EventScript_Hypno_Text_6
+# 1292 "data/maps/Tamatown/scripts.pory"
 	closemessage
-# 1289 "data/maps/Tamatown/scripts.pory"
+# 1294 "data/maps/Tamatown/scripts.pory"
 	setflag POKEGOTCHI_FLAG_FRNTR_BED
 	goto Tamatown_EventScript_Hypno_1
 
 Tamatown_EventScript_Hypno_8:
-# 1271 "data/maps/Tamatown/scripts.pory"
-	setspeaker Tamatown_EventScript_Hypno_Text_0
-# 1272 "data/maps/Tamatown/scripts.pory"
-	playmoncry SPECIES_HYPNO, CRY_MODE_WEAK
-# 1273 "data/maps/Tamatown/scripts.pory"
-	msgbox Tamatown_EventScript_Hypno_Text_5
 # 1276 "data/maps/Tamatown/scripts.pory"
+	setspeaker Tamatown_EventScript_Hypno_Text_0
+# 1277 "data/maps/Tamatown/scripts.pory"
+	playmoncry SPECIES_HYPNO, CRY_MODE_WEAK
+# 1278 "data/maps/Tamatown/scripts.pory"
+	msgbox Tamatown_EventScript_Hypno_Text_5
+# 1281 "data/maps/Tamatown/scripts.pory"
 	closemessage
 	goto Tamatown_EventScript_Hypno_1
 
 
 Tamatown_EventScript_Shuckle::
-# 1305 "data/maps/Tamatown/scripts.pory"
+# 1310 "data/maps/Tamatown/scripts.pory"
 	lock
-# 1307 "data/maps/Tamatown/scripts.pory"
+# 1312 "data/maps/Tamatown/scripts.pory"
 	goto_if_set POKEGOTCHI_FLAG_UNLOCKED_SNACK_JUICE, Tamatown_EventScript_Shuckle_2
-# 1318 "data/maps/Tamatown/scripts.pory"
+# 1323 "data/maps/Tamatown/scripts.pory"
 	playmoncry SPECIES_SHUCKLE, CRY_MODE_NORMAL
-# 1319 "data/maps/Tamatown/scripts.pory"
-	setspeaker Tamatown_EventScript_Shuckle_Text_0
-# 1320 "data/maps/Tamatown/scripts.pory"
-	msgbox Tamatown_EventScript_Shuckle_Text_2
 # 1324 "data/maps/Tamatown/scripts.pory"
-	mcdialogue Tamatown_EventScript_Shuckle_Text_3, Tamatown_EventScript_Shuckle_Text_4
+	setspeaker Tamatown_EventScript_Shuckle_Text_0
+# 1325 "data/maps/Tamatown/scripts.pory"
+	msgbox Tamatown_EventScript_Shuckle_Text_2
 # 1329 "data/maps/Tamatown/scripts.pory"
+	mcdialogue Tamatown_EventScript_Shuckle_Text_3, Tamatown_EventScript_Shuckle_Text_4
+# 1334 "data/maps/Tamatown/scripts.pory"
 	compare VAR_RESULT, 0
 	goto_if_eq Tamatown_EventScript_Shuckle_5
-# 1363 "data/maps/Tamatown/scripts.pory"
-	playmoncry SPECIES_SHUCKLE, CRY_MODE_FAINT
-# 1364 "data/maps/Tamatown/scripts.pory"
-	setspeaker Tamatown_EventScript_Shuckle_Text_0
-# 1365 "data/maps/Tamatown/scripts.pory"
-	msgbox Tamatown_EventScript_Shuckle_Text_7
 # 1368 "data/maps/Tamatown/scripts.pory"
+	playmoncry SPECIES_SHUCKLE, CRY_MODE_FAINT
+# 1369 "data/maps/Tamatown/scripts.pory"
+	setspeaker Tamatown_EventScript_Shuckle_Text_0
+# 1370 "data/maps/Tamatown/scripts.pory"
+	msgbox Tamatown_EventScript_Shuckle_Text_7
+# 1373 "data/maps/Tamatown/scripts.pory"
 	closemessage
 Tamatown_EventScript_Shuckle_4:
-# 1371 "data/maps/Tamatown/scripts.pory"
+# 1376 "data/maps/Tamatown/scripts.pory"
 	release
 	return
 
 Tamatown_EventScript_Shuckle_2:
-# 1308 "data/maps/Tamatown/scripts.pory"
-	playmoncry SPECIES_SHUCKLE, CRY_MODE_NORMAL
-# 1309 "data/maps/Tamatown/scripts.pory"
-	setspeaker Tamatown_EventScript_Shuckle_Text_0
-# 1310 "data/maps/Tamatown/scripts.pory"
-	msgbox Tamatown_EventScript_Shuckle_Text_1
 # 1313 "data/maps/Tamatown/scripts.pory"
-	closemessage
+	playmoncry SPECIES_SHUCKLE, CRY_MODE_NORMAL
 # 1314 "data/maps/Tamatown/scripts.pory"
+	setspeaker Tamatown_EventScript_Shuckle_Text_0
+# 1315 "data/maps/Tamatown/scripts.pory"
+	msgbox Tamatown_EventScript_Shuckle_Text_1
+# 1318 "data/maps/Tamatown/scripts.pory"
+	closemessage
+# 1319 "data/maps/Tamatown/scripts.pory"
 	release
 	end
 
 Tamatown_EventScript_Shuckle_5:
-# 1330 "data/maps/Tamatown/scripts.pory"
-	playmoncry SPECIES_SHUCKLE, CRY_MODE_ENCOUNTER
-# 1331 "data/maps/Tamatown/scripts.pory"
-	applymovement VAR_LAST_TALKED, Tamatown_EventScript_Shuckle_Movement_0
-# 1332 "data/maps/Tamatown/scripts.pory"
-	msgbox Tamatown_EventScript_Shuckle_Text_5
 # 1335 "data/maps/Tamatown/scripts.pory"
-	waitmoncry
+	playmoncry SPECIES_SHUCKLE, CRY_MODE_ENCOUNTER
 # 1336 "data/maps/Tamatown/scripts.pory"
-	waitmovementall
+	applymovement VAR_LAST_TALKED, Tamatown_EventScript_Shuckle_Movement_0
 # 1337 "data/maps/Tamatown/scripts.pory"
-	closemessage
-# 1339 "data/maps/Tamatown/scripts.pory"
-	delay 32
-# 1341 "data/maps/Tamatown/scripts.pory"
-	playmoncry SPECIES_SHUCKLE, CRY_MODE_NORMAL
-# 1342 "data/maps/Tamatown/scripts.pory"
-	setspeaker Tamatown_EventScript_Shuckle_Text_0
-# 1343 "data/maps/Tamatown/scripts.pory"
-	msgbox Tamatown_EventScript_Shuckle_Text_6
-# 1347 "data/maps/Tamatown/scripts.pory"
+	msgbox Tamatown_EventScript_Shuckle_Text_5
+# 1340 "data/maps/Tamatown/scripts.pory"
 	waitmoncry
-# 1348 "data/maps/Tamatown/scripts.pory"
+# 1341 "data/maps/Tamatown/scripts.pory"
+	waitmovementall
+# 1342 "data/maps/Tamatown/scripts.pory"
 	closemessage
-# 1349 "data/maps/Tamatown/scripts.pory"
+# 1344 "data/maps/Tamatown/scripts.pory"
 	delay 32
-# 1351 "data/maps/Tamatown/scripts.pory"
-	message Tamatown_EventScript_VendingMachine_Text_22
+# 1346 "data/maps/Tamatown/scripts.pory"
+	playmoncry SPECIES_SHUCKLE, CRY_MODE_NORMAL
+# 1347 "data/maps/Tamatown/scripts.pory"
+	setspeaker Tamatown_EventScript_Shuckle_Text_0
+# 1348 "data/maps/Tamatown/scripts.pory"
+	msgbox Tamatown_EventScript_Shuckle_Text_6
+# 1352 "data/maps/Tamatown/scripts.pory"
+	waitmoncry
+# 1353 "data/maps/Tamatown/scripts.pory"
+	closemessage
 # 1354 "data/maps/Tamatown/scripts.pory"
-	playfanfare MUS_LEVEL_UP
-# 1355 "data/maps/Tamatown/scripts.pory"
-	waitfanfare
+	delay 32
 # 1356 "data/maps/Tamatown/scripts.pory"
-	waitmessage
-# 1357 "data/maps/Tamatown/scripts.pory"
-	waitbuttonpress
-# 1358 "data/maps/Tamatown/scripts.pory"
-	setflag POKEGOTCHI_FLAG_UNLOCKED_SNACK_JUICE
+	message Tamatown_EventScript_VendingMachine_Text_22
 # 1359 "data/maps/Tamatown/scripts.pory"
-	addpokegotchifood FEED_FOOD_KEY_JUICE, 1
+	playfanfare MUS_LEVEL_UP
 # 1360 "data/maps/Tamatown/scripts.pory"
+	waitfanfare
+# 1361 "data/maps/Tamatown/scripts.pory"
+	waitmessage
+# 1362 "data/maps/Tamatown/scripts.pory"
+	waitbuttonpress
+# 1363 "data/maps/Tamatown/scripts.pory"
+	setflag POKEGOTCHI_FLAG_UNLOCKED_SNACK_JUICE
+# 1364 "data/maps/Tamatown/scripts.pory"
+	addpokegotchifood FEED_FOOD_KEY_JUICE, 1
+# 1365 "data/maps/Tamatown/scripts.pory"
 	closemessage
 	goto Tamatown_EventScript_Shuckle_4
+
+
+Tamatown_EventScript_TrashcanPoster::
+# 1380 "data/maps/Tamatown/scripts.pory"
+	goto_if_set POKEGOTCHI_FLAG_FRNTR_POSTER_MUDKIP, Tamatown_EventScript_TrashcanPoster_2
+Tamatown_EventScript_TrashcanPoster_1:
+# 1384 "data/maps/Tamatown/scripts.pory"
+	lock
+# 1385 "data/maps/Tamatown/scripts.pory"
+	message Tamatown_EventScript_TrashcanPoster_Text_0
+# 1388 "data/maps/Tamatown/scripts.pory"
+	playfanfare MUS_LEVEL_UP
+# 1389 "data/maps/Tamatown/scripts.pory"
+	waitfanfare
+# 1390 "data/maps/Tamatown/scripts.pory"
+	waitmessage
+# 1391 "data/maps/Tamatown/scripts.pory"
+	waitbuttonpress
+# 1392 "data/maps/Tamatown/scripts.pory"
+	setflag POKEGOTCHI_FLAG_FRNTR_POSTER_MUDKIP
+# 1393 "data/maps/Tamatown/scripts.pory"
+	closemessage
+	return
+
+Tamatown_EventScript_TrashcanPoster_2:
+# 1381 "data/maps/Tamatown/scripts.pory"
+	goto Tamatown_EventScript_Trashcan
+	goto Tamatown_EventScript_TrashcanPoster_1
 
 
 # 75 "data/maps/Tamatown/scripts.pory"
@@ -2051,11 +2096,11 @@ Tamatown_EventScript_DittoLamppost_Movement_4:
 	unlock_facing_direction
 	step_end
 
-# 1331 "data/maps/Tamatown/scripts.pory"
+# 1336 "data/maps/Tamatown/scripts.pory"
 Tamatown_EventScript_Shuckle_Movement_0:
-# 1331 "data/maps/Tamatown/scripts.pory"
+# 1336 "data/maps/Tamatown/scripts.pory"
 	shake_vertical
-# 1331 "data/maps/Tamatown/scripts.pory"
+# 1336 "data/maps/Tamatown/scripts.pory"
 	shake_vertical
 	step_end
 
@@ -2600,103 +2645,107 @@ Tamatown_EventScript_DittoLamppost_Text_3:
 	.string "Boop!$"
 
 Tamatown_EventScript_DittoLamppost_Text_4:
-# 1172 "data/maps/Tamatown/scripts.pory"
+# 1177 "data/maps/Tamatown/scripts.pory"
 	.string "Ditto$"
 
 Tamatown_EventScript_DittoLamppost_Text_5:
-# 1174 "data/maps/Tamatown/scripts.pory"
+# 1179 "data/maps/Tamatown/scripts.pory"
 	.string "Please don't tell anyone.\nI like being a lamppost!\p"
 	.string "I'll give you a cool {COLOR RED}Plushie{COLOR DARK_GRAY} if you\nkeep this a secret.$"
 
 Tamatown_EventScript_DittoLamppost_Text_6:
-# 1180 "data/maps/Tamatown/scripts.pory"
+# 1185 "data/maps/Tamatown/scripts.pory"
 	.string "You got a cute {COLOR RED}Plushie{COLOR DARK_GRAY} for your room!$"
 
 Tamatown_EventScript_TreeckoPrint_Text_0:
-# 1204 "data/maps/Tamatown/scripts.pory"
+# 1209 "data/maps/Tamatown/scripts.pory"
 	.string "What a pretty {COLOR RED}Poster{COLOR DARK_GRAY}!$"
 
 Tamatown_EventScript_TreeckoPrint_Text_1:
-# 1208 "data/maps/Tamatown/scripts.pory"
+# 1213 "data/maps/Tamatown/scripts.pory"
 	.string "Grab it$"
 
 Tamatown_EventScript_TreeckoPrint_Text_2:
-# 1209 "data/maps/Tamatown/scripts.pory"
+# 1214 "data/maps/Tamatown/scripts.pory"
 	.string "Leave it$"
 
 Tamatown_EventScript_TreeckoPrint_Text_3:
-# 1222 "data/maps/Tamatown/scripts.pory"
+# 1227 "data/maps/Tamatown/scripts.pory"
 	.string "You got a neat {COLOR RED}Green Poster{COLOR DARK_GRAY} for your\nroom!$"
 
 Tamatown_EventScript_TreeckoPrint_Text_4:
-# 1232 "data/maps/Tamatown/scripts.pory"
+# 1237 "data/maps/Tamatown/scripts.pory"
 	.string "Right, what if the cops see you?$"
 
 Tamatown_EventScript_Hypno_Text_0:
-# 1243 "data/maps/Tamatown/scripts.pory"
+# 1248 "data/maps/Tamatown/scripts.pory"
 	.string "Hypno$"
 
 Tamatown_EventScript_Hypno_Text_1:
-# 1246 "data/maps/Tamatown/scripts.pory"
+# 1251 "data/maps/Tamatown/scripts.pory"
 	.string "Has your sleep quality improved?{PAUSE 8}\nHmmmm…{PAUSE 8} Yessss…$"
 
 Tamatown_EventScript_Hypno_Text_2:
-# 1254 "data/maps/Tamatown/scripts.pory"
+# 1259 "data/maps/Tamatown/scripts.pory"
 	.string "Well,{PAUSE 8} hello there,{PAUSE 8} little child…\nDo you sleep well, mmyes?\p"
 	.string "I can sense a…{PAUSE 8} deep…{PAUSE 8} fatigue, yes…\p"
 	.string "I can sell you the secret to a better\nsleep…\p"
 	.string "Only 50 of those {COLOR RED}Pachinko coins{COLOR DARK_GRAY},{PAUSE 8}\nhmmm,{PAUSE 8} yes…$"
 
 Tamatown_EventScript_Hypno_Text_3:
-# 1263 "data/maps/Tamatown/scripts.pory"
+# 1268 "data/maps/Tamatown/scripts.pory"
 	.string "Gimme!$"
 
 Tamatown_EventScript_Hypno_Text_4:
-# 1264 "data/maps/Tamatown/scripts.pory"
+# 1269 "data/maps/Tamatown/scripts.pory"
 	.string "Too pricey$"
 
 Tamatown_EventScript_Hypno_Text_5:
-# 1274 "data/maps/Tamatown/scripts.pory"
+# 1279 "data/maps/Tamatown/scripts.pory"
 	.string "Come back with more of those sweet,{PAUSE 8}\nscrumptious coins…$"
 
 Tamatown_EventScript_Hypno_Text_6:
-# 1284 "data/maps/Tamatown/scripts.pory"
+# 1289 "data/maps/Tamatown/scripts.pory"
 	.string "Hmmm, yes!{PAUSE 8}Love it…{PAUSE 8}\nGive…\p"
 	.string "Go back home…{PAUSE 8}\nIt is waiting for you already…$"
 
 Tamatown_EventScript_Hypno_Text_7:
-# 1295 "data/maps/Tamatown/scripts.pory"
+# 1300 "data/maps/Tamatown/scripts.pory"
 	.string "Maybe you don't{PAUSE 8} deserve better\nsleep…$"
 
 Tamatown_EventScript_Shuckle_Text_0:
-# 1309 "data/maps/Tamatown/scripts.pory"
+# 1314 "data/maps/Tamatown/scripts.pory"
 	.string "Shuckle$"
 
 Tamatown_EventScript_Shuckle_Text_1:
-# 1311 "data/maps/Tamatown/scripts.pory"
+# 1316 "data/maps/Tamatown/scripts.pory"
 	.string "Is it weird for me to drink my own\njuice?\lHmmm…$"
 
 Tamatown_EventScript_Shuckle_Text_2:
-# 1321 "data/maps/Tamatown/scripts.pory"
+# 1326 "data/maps/Tamatown/scripts.pory"
 	.string "Yo! Quick! Shake me!!$"
 
 Tamatown_EventScript_Shuckle_Text_3:
-# 1325 "data/maps/Tamatown/scripts.pory"
+# 1330 "data/maps/Tamatown/scripts.pory"
 	.string "Shake!$"
 
 Tamatown_EventScript_Shuckle_Text_4:
-# 1326 "data/maps/Tamatown/scripts.pory"
+# 1331 "data/maps/Tamatown/scripts.pory"
 	.string "Why??$"
 
 Tamatown_EventScript_Shuckle_Text_5:
-# 1333 "data/maps/Tamatown/scripts.pory"
+# 1338 "data/maps/Tamatown/scripts.pory"
 	.string "(Shake shake shake shake shake)$"
 
 Tamatown_EventScript_Shuckle_Text_6:
-# 1344 "data/maps/Tamatown/scripts.pory"
+# 1349 "data/maps/Tamatown/scripts.pory"
 	.string "… … … … …\p"
 	.string "Aaaaand it's ready! Here, have some!$"
 
 Tamatown_EventScript_Shuckle_Text_7:
-# 1366 "data/maps/Tamatown/scripts.pory"
+# 1371 "data/maps/Tamatown/scripts.pory"
 	.string "Disappointment!… …$"
+
+Tamatown_EventScript_TrashcanPoster_Text_0:
+# 1386 "data/maps/Tamatown/scripts.pory"
+	.string "You got a neat {COLOR RED}Blue Poster{COLOR DARK_GRAY} for your\nroom!$"
