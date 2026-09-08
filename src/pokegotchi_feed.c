@@ -61,8 +61,9 @@ static EWRAM_DATA struct MenuResources *sMenuDataPtr = NULL;
 static EWRAM_DATA u8 *sBg1TilemapBuffer = NULL;
 static EWRAM_DATA MainCallback sFeedMenuExitCallback = NULL;
 static EWRAM_DATA u8 sPendingConsumedFoodKey = FEED_FOOD_KEY_NONE;
+static EWRAM_DATA u8 sPendingConsumedFoodSlot = FEED_CURSOR_START_SLOT;
 
-static void Menu_Init(MainCallback callback);
+static void Menu_Init(MainCallback callback, u8 initialSlot);
 static void Menu_RunSetup(void);
 static void Menu_MainCB(void);
 static void Menu_VBlankCB(void);
@@ -88,6 +89,8 @@ static u16 Menu_AddStatIncrease(u16 current, u8 increase);
 static bool8 Menu_ConsumeFoodByKey(u8 inventoryKey);
 static u8 Menu_GetFoodCount(u8 inventoryKey);
 static u8 Menu_GetFoodCountForVisualSlot(u8 visualSlot);
+static bool8 Menu_IsInfiniteFood(u8 inventoryKey);
+static bool8 Menu_IsFoodAvailable(u8 inventoryKey);
 static bool8 Menu_SelectedSlotHasFood(void);
 static bool8 Menu_LoadFoodSpriteSheet(const struct PokegotchiFeedFoodItem *foodItem);
 static bool8 Menu_LoadFoodSpritePalette(const struct PokegotchiFeedFoodItem *foodItem);
@@ -404,10 +407,10 @@ static const u8 sMenuWindowFontColors[][3] =
 
 void OpenPokegotchiFeedMenu(MainCallback exitCallback)
 {
-    Menu_Init(exitCallback);
+    Menu_Init(exitCallback, FEED_CURSOR_START_SLOT);
 }
 
-static void Menu_Init(MainCallback callback)
+static void Menu_Init(MainCallback callback, u8 initialSlot)
 {
     u32 i;
 
@@ -423,7 +426,9 @@ static void Menu_Init(MainCallback callback)
     sMenuDataPtr->savedCallback = callback;
     sMenuDataPtr->petSpriteId = SPRITE_NONE;
     sMenuDataPtr->cursorSpriteId = SPRITE_NONE;
-    sMenuDataPtr->selectedSlot = FEED_CURSOR_START_SLOT;
+    if (initialSlot >= FEED_FOOD_SLOT_COUNT)
+        initialSlot = FEED_CURSOR_START_SLOT;
+    sMenuDataPtr->selectedSlot = initialSlot;
     for (i = 0; i < ARRAY_COUNT(sMenuDataPtr->foodSpriteIds); i++)
         sMenuDataPtr->foodSpriteIds[i] = SPRITE_NONE;
 
@@ -663,11 +668,12 @@ static void Menu_PrintText(void)
 
     for (i = 0; i < ARRAY_COUNT(sVisualSlots); i++)
     {
+        const struct PokegotchiFeedFoodItem *foodItem = Menu_GetFoodItemForVisualSlot(i);
         u8 count = Menu_GetFoodCountForVisualSlot(i);
         s16 textX;
         s16 textY;
 
-        if (count == 0)
+        if (foodItem == NULL || Menu_IsInfiniteFood(foodItem->inventoryKey) || count == 0)
             continue;
 
         ConvertIntToDecimalStringN(quantityText, count, STR_CONV_MODE_LEFT_ALIGN, 3);
@@ -789,9 +795,21 @@ static u8 Menu_GetFoodCountForVisualSlot(u8 visualSlot)
     return Menu_GetFoodCount(foodItem->inventoryKey);
 }
 
+static bool8 Menu_IsInfiniteFood(u8 inventoryKey)
+{
+    return inventoryKey == FEED_FOOD_KEY_LEAF || inventoryKey == FEED_FOOD_KEY_PECHA;
+}
+
+static bool8 Menu_IsFoodAvailable(u8 inventoryKey)
+{
+    return Menu_IsInfiniteFood(inventoryKey) || Menu_GetFoodCount(inventoryKey) != 0;
+}
+
 static bool8 Menu_SelectedSlotHasFood(void)
 {
-    return Menu_GetFoodCountForVisualSlot(sMenuDataPtr->selectedSlot) != 0;
+    const struct PokegotchiFeedFoodItem *foodItem = Menu_GetFoodItemForVisualSlot(sMenuDataPtr->selectedSlot);
+
+    return foodItem != NULL && Menu_IsFoodAvailable(foodItem->inventoryKey);
 }
 
 static u16 Menu_AddStatIncrease(u16 current, u8 increase)
@@ -841,10 +859,13 @@ static bool8 Menu_ConsumeFoodByKey(u8 inventoryKey)
         return FALSE;
     }
 
-    if (*count == 0)
-        return FALSE;
+    if (!Menu_IsInfiniteFood(inventoryKey))
+    {
+        if (*count == 0)
+            return FALSE;
 
-    (*count)--;
+        (*count)--;
+    }
     if (foodEffect != NULL)
     {
         runtime->stats.food = Menu_AddStatIncrease(runtime->stats.food, foodEffect->food);
@@ -921,7 +942,7 @@ static void Menu_LoadFoodSprites(void)
         struct SpriteTemplate spriteTemplate;
         u8 spriteId;
 
-        if (foodItem->spriteTiles == NULL || Menu_GetFoodCount(foodItem->inventoryKey) == 0)
+        if (foodItem->spriteTiles == NULL || !Menu_IsFoodAvailable(foodItem->inventoryKey))
             continue;
 
         if (!Menu_LoadFoodSpriteSheet(foodItem) || !Menu_LoadFoodSpritePalette(foodItem))
@@ -1062,10 +1083,11 @@ static void Task_MenuMain(u8 taskId)
         const struct PokegotchiFeedFoodItem *foodItem = Menu_GetFoodItemForVisualSlot(sMenuDataPtr->selectedSlot);
 
         if (foodItem != NULL
-         && Menu_GetFoodCount(foodItem->inventoryKey) > 0
+         && Menu_IsFoodAvailable(foodItem->inventoryKey)
          && Menu_ConsumeFoodByKey(foodItem->inventoryKey))
         {
             sPendingConsumedFoodKey = foodItem->inventoryKey;
+            sPendingConsumedFoodSlot = sMenuDataPtr->selectedSlot;
             sFeedMenuExitCallback = sMenuDataPtr->savedCallback;
             sMenuDataPtr->savedCallback = CB2_OpenPokegotchiHouseEatingSceneFromFeed;
             PlaySE(SE_SELECT);
@@ -1114,5 +1136,5 @@ static void CB2_OpenPokegotchiHouseEatingSceneFromFeed(void)
 
 static void CB2_ReturnToConsumedFoodFeedMenu(void)
 {
-    OpenPokegotchiFeedMenu(sFeedMenuExitCallback);
+    Menu_Init(sFeedMenuExitCallback, sPendingConsumedFoodSlot);
 }
