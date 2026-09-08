@@ -51,7 +51,6 @@
 #define WAITER_TIMER_RIGHT_PADDING      4
 #define WAITER_COINS_PER_SERVE          2
 #define WAITER_COINS_RESULT_VAR         VAR_0x8000
-#define WAITER_END_DELAY_FRAMES         WAITER_MS_TO_FRAMES(1500)
 #define WAITER_FAILURE_THRESHOLD        3
 #define WAITER_MESSAGE_X                120
 #define WAITER_MESSAGE_Y                80
@@ -219,7 +218,6 @@ struct WaiterMinigameResources
     u16 countdownTimer;
     u16 arrivalTimer;
     u16 closedTimer;
-    u16 endDelayTimer;
     u16 successfulServes;
     u16 failedCustomers;
     u16 elapsedFrames;
@@ -228,6 +226,7 @@ struct WaiterMinigameResources
     bool8 inputEnabled;
     bool8 pendingArrival;
     bool8 arrivalsStopped;
+    bool8 resultFanfareStarted;
     bool8 exitStarted;
     bool8 windowsInitialized;
     struct WaiterCustomerResources customers[WAITER_CUSTOMER_COUNT];
@@ -761,7 +760,6 @@ static void WaiterMinigame_Init(MainCallback callback, enum PokegotchiWaiterMini
     sWaiterMinigame->countdownTimer = 0;
     sWaiterMinigame->arrivalTimer = 0;
     sWaiterMinigame->closedTimer = 0;
-    sWaiterMinigame->endDelayTimer = 0;
     sWaiterMinigame->successfulServes = 0;
     sWaiterMinigame->failedCustomers = 0;
     sWaiterMinigame->elapsedFrames = 0;
@@ -770,6 +768,7 @@ static void WaiterMinigame_Init(MainCallback callback, enum PokegotchiWaiterMini
     sWaiterMinigame->inputEnabled = FALSE;
     sWaiterMinigame->pendingArrival = FALSE;
     sWaiterMinigame->arrivalsStopped = FALSE;
+    sWaiterMinigame->resultFanfareStarted = FALSE;
     sWaiterMinigame->exitStarted = FALSE;
     sWaiterMinigame->windowsInitialized = FALSE;
     for (i = 0; i < WAITER_SPRITE_COUNT; i++)
@@ -1100,6 +1099,8 @@ static void WaiterMinigame_ShowMessage(u8 animNum)
 
     StartSpriteAnim(&gSprites[spriteId], animNum);
     WaiterMinigame_SetSpriteVisibility(spriteId, TRUE);
+    if (animNum <= WAITER_MESSAGE_ANIM_GO)
+        PlaySE(SE_BIKE_HOP);
 }
 
 static void WaiterMinigame_SetCursorTable(u8 tableId)
@@ -1239,6 +1240,7 @@ static void WaiterMinigame_BeginCustomerSuccess(u8 customerId)
     customer->phaseTimer = sWaiterResultDuration;
     customer->serveRequested = FALSE;
     sWaiterMinigame->successfulServes++;
+    PlaySE(SE_SELECT);
 }
 
 static void WaiterMinigame_BeginCustomerFailure(u8 customerId)
@@ -1253,6 +1255,7 @@ static void WaiterMinigame_BeginCustomerFailure(u8 customerId)
     customer->phaseTimer = sWaiterResultDuration;
     customer->serveRequested = FALSE;
     sWaiterMinigame->failedCustomers++;
+    PlaySE(SE_FAILURE);
 }
 
 static void WaiterMinigame_FinishCustomer(u8 customerId, u8 taskId)
@@ -1362,13 +1365,13 @@ static void WaiterMinigame_StartEntryCountdown(void)
     sWaiterMinigame->countdownTimer = WAITER_COUNTDOWN_STAGE_FRAMES;
     sWaiterMinigame->arrivalTimer = 0;
     sWaiterMinigame->closedTimer = 0;
-    sWaiterMinigame->endDelayTimer = 0;
     sWaiterMinigame->elapsedFrames = 0;
     sWaiterMinigame->elapsedSeconds = 0;
     sWaiterMinigame->firstArrivalDone = FALSE;
     sWaiterMinigame->inputEnabled = FALSE;
     sWaiterMinigame->pendingArrival = FALSE;
     sWaiterMinigame->arrivalsStopped = FALSE;
+    sWaiterMinigame->resultFanfareStarted = FALSE;
     sWaiterMinigame->successfulServes = 0;
     sWaiterMinigame->failedCustomers = 0;
     sWaiterMinigame->exitStarted = FALSE;
@@ -1592,18 +1595,23 @@ static void WaiterMinigame_UpdateEndSequence(void)
     if (!sWaiterMinigame->arrivalsStopped || WaiterMinigame_HasActiveCustomers())
         return;
 
-    if (sWaiterMinigame->endDelayTimer == 0)
+    if (!sWaiterMinigame->resultFanfareStarted)
     {
         if (sWaiterMinigame->failedCustomers >= WAITER_FAILURE_THRESHOLD)
+        {
             WaiterMinigame_ShowMessage(WAITER_MESSAGE_ANIM_LOSE);
+            PlayFanfare(MUS_TOO_BAD);
+        }
         else
+        {
             WaiterMinigame_ShowMessage(WAITER_MESSAGE_ANIM_WIN);
-        sWaiterMinigame->endDelayTimer = WAITER_END_DELAY_FRAMES;
+            PlayFanfare(MUS_OBTAIN_BADGE);
+        }
+        sWaiterMinigame->resultFanfareStarted = TRUE;
         return;
     }
 
-    sWaiterMinigame->endDelayTimer--;
-    if (sWaiterMinigame->endDelayTimer != 0)
+    if (!IsFanfareTaskInactive())
         return;
 
     coinsToAward = sWaiterMinigame->successfulServes * WAITER_COINS_PER_SERVE;
