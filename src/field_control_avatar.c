@@ -21,7 +21,6 @@
 #include "field_specials.h"
 #include "fldeff_misc.h"
 #include "follower_npc.h"
-#include "item_menu.h"
 #include "link.h"
 #include "match_call.h"
 #include "metatile_behavior.h"
@@ -32,6 +31,7 @@
 #include "secret_base.h"
 #include "sound.h"
 #include "start_menu.h"
+#include "task.h"
 #include "trainer_see.h"
 #include "trainer_hill.h"
 #include "vs_seeker.h"
@@ -232,12 +232,6 @@ int ProcessPlayerFieldInput(struct FieldInput *input)
     }
 
     if (input->tookStep && TryFindHiddenPokemon())
-        return TRUE;
-
-    if (input->pressedSelectButton && UseRegisteredKeyItemOnField() == TRUE)
-        return TRUE;
-
-    if (input->pressedRButton && TryStartDexNavSearch())
         return TRUE;
 
     if (input->input_field_1_2 && DEBUG_OVERWORLD_MENU && !DEBUG_OVERWORLD_IN_MENU)

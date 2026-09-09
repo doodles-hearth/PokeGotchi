@@ -1759,6 +1759,7 @@ static UNUSED void CB2_OpenPokegotchiWaiterMinigameFromHouse(void)
 static void CB2_ExitToTamatownFromHouse(void)
 {
     Pokegotchi_SyncAndSave();
+    Overworld_ResetMapMusic();
     SetWarpDestination(MAP_GROUP(MAP_TAMATOWN), MAP_NUM(MAP_TAMATOWN), WARP_ID_NONE, 28, 17);
     gFieldCallback = FieldCB_DefaultWarpExit;
     WarpIntoMap();
