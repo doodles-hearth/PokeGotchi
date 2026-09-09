@@ -226,7 +226,7 @@ int ProcessPlayerFieldInput(struct FieldInput *input)
     if (input->pressedStartButton)
     {
         FlagSet(FLAG_OPENED_START_MENU);
-        PlaySE(SE_WIN_OPEN);
+        PlaySE(SE_EXIT);
         ShowStartMenu();
         return TRUE;
     }
@@ -1355,7 +1355,7 @@ static void Task_OpenStartMenu(u8 taskId)
     if (ArePlayerFieldControlsLocked())
         return;
 
-    PlaySE(SE_WIN_OPEN);
+    PlaySE(SE_EXIT);
     ShowStartMenu();
     DestroyTask(taskId);
 }

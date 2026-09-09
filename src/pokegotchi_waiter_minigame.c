@@ -1240,7 +1240,7 @@ static void WaiterMinigame_BeginCustomerSuccess(u8 customerId)
     customer->phaseTimer = sWaiterResultDuration;
     customer->serveRequested = FALSE;
     sWaiterMinigame->successfulServes++;
-    PlaySE(SE_SELECT);
+    PlaySE(SE_EXP_MAX);
 }
 
 static void WaiterMinigame_BeginCustomerFailure(u8 customerId)
