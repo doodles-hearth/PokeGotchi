@@ -55,9 +55,9 @@ TEST("(Pokegotchi) EnsureInitialized seeds default stats and food inventory")
     runtime = PokegotchiSave_GetRuntime();
 
     EXPECT_EQ(stats->version, 1);
-    EXPECT_EQ(stats->food, 250);
-    EXPECT_EQ(stats->fun, 250);
-    EXPECT_EQ(stats->happy, 250);
+    EXPECT_EQ(stats->food, 210);
+    EXPECT_EQ(stats->fun, 210);
+    EXPECT_EQ(stats->happy, 210);
     EXPECT_EQ(stats->poop, 250);
     EXPECT_EQ(stats->poopsOnScreen, 0);
     EXPECT_EQ(stats->lastUpdated.days, sTime_10_00.days);
@@ -179,9 +179,9 @@ TEST("(Pokegotchi) One active minute reduces all four meters by two")
     Pokegotchi_Sync();
     stats = Pokegotchi_GetStats();
 
-    EXPECT_EQ(stats->food, 248);
-    EXPECT_EQ(stats->fun, 248);
-    EXPECT_EQ(stats->happy, 248);
+    EXPECT_EQ(stats->food, 208);
+    EXPECT_EQ(stats->fun, 208);
+    EXPECT_EQ(stats->happy, 208);
     EXPECT_EQ(stats->poop, 248);
 }
 
@@ -197,9 +197,9 @@ TEST("(Pokegotchi) Offline-only elapsed time uses the reduced scalar")
     Pokegotchi_Sync();
     stats = Pokegotchi_GetStats();
 
-    EXPECT_EQ(stats->food, 248);
-    EXPECT_EQ(stats->fun, 248);
-    EXPECT_EQ(stats->happy, 248);
+    EXPECT_EQ(stats->food, 208);
+    EXPECT_EQ(stats->fun, 208);
+    EXPECT_EQ(stats->happy, 208);
     EXPECT_EQ(stats->poop, 248);
 }
 
@@ -218,9 +218,9 @@ TEST("(Pokegotchi) Mixed offline and active time splits around session start")
     Pokegotchi_Sync();
     stats = Pokegotchi_GetStats();
 
-    EXPECT_EQ(stats->food, 228);
-    EXPECT_EQ(stats->fun, 228);
-    EXPECT_EQ(stats->happy, 228);
+    EXPECT_EQ(stats->food, 188);
+    EXPECT_EQ(stats->fun, 188);
+    EXPECT_EQ(stats->happy, 188);
     EXPECT_EQ(stats->poop, 228);
 }
 
@@ -297,9 +297,9 @@ TEST("(Pokegotchi) Clock rollback restamps without underflowing stats")
     Pokegotchi_Sync();
     stats = Pokegotchi_GetStats();
 
-    EXPECT_EQ(stats->food, 250);
-    EXPECT_EQ(stats->fun, 250);
-    EXPECT_EQ(stats->happy, 250);
+    EXPECT_EQ(stats->food, 210);
+    EXPECT_EQ(stats->fun, 210);
+    EXPECT_EQ(stats->happy, 210);
     EXPECT_EQ(stats->poop, 250);
     EXPECT_EQ(stats->lastUpdated.hours, 9);
     EXPECT_EQ(stats->lastUpdated.minutes, 0);
@@ -341,20 +341,20 @@ TEST("(Pokegotchi) Active sleep skips the first minute and reduces one point on 
     Pokegotchi_SetCurrentTimeForTest(&sTime_21_01);
     Pokegotchi_Sync();
     stats = Pokegotchi_GetStats();
-    EXPECT_EQ(stats->food, 250);
+    EXPECT_EQ(stats->food, 210);
     EXPECT_EQ(stats->poop, 250);
 
     Pokegotchi_SetCurrentTimeForTest(&sTime_21_02);
     Pokegotchi_Sync();
     stats = Pokegotchi_GetStats();
-    EXPECT_EQ(stats->food, 249);
-    EXPECT_EQ(stats->fun, 249);
-    EXPECT_EQ(stats->happy, 249);
+    EXPECT_EQ(stats->food, 209);
+    EXPECT_EQ(stats->fun, 209);
+    EXPECT_EQ(stats->happy, 209);
     EXPECT_EQ(stats->poop, 250);
 
     Pokegotchi_SetCurrentTimeForTest(&sTime_21_03);
     Pokegotchi_Sync();
-    EXPECT_EQ(Pokegotchi_GetStats()->food, 249);
+    EXPECT_EQ(Pokegotchi_GetStats()->food, 209);
 }
 
 TEST("(Pokegotchi) Offline sleep drops fractional decay on reopen")
@@ -365,19 +365,19 @@ TEST("(Pokegotchi) Offline sleep drops fractional decay on reopen")
 
     Pokegotchi_SetCurrentTimeForTest(&sTime_21_01);
     Pokegotchi_Sync();
-    EXPECT_EQ(Pokegotchi_GetStats()->food, 250);
+    EXPECT_EQ(Pokegotchi_GetStats()->food, 210);
 
     Pokegotchi_ResetStateForTest();
     Pokegotchi_SetCurrentTimeForTest(&sTime_21_02);
     Pokegotchi_Sync();
-    EXPECT_EQ(Pokegotchi_GetStats()->food, 250);
+    EXPECT_EQ(Pokegotchi_GetStats()->food, 210);
 
     ResetPokegotchiTestState();
     Pokegotchi_SetCurrentTimeForTest(&sTime_21_00);
     Pokegotchi_EnsureInitialized();
     Pokegotchi_SetCurrentTimeForTest(&sTime_21_03);
     Pokegotchi_Sync();
-    EXPECT_EQ(Pokegotchi_GetStats()->food, 249);
+    EXPECT_EQ(Pokegotchi_GetStats()->food, 209);
 }
 
 TEST("(Pokegotchi) Sleep freezes poop decay and generation")
@@ -394,7 +394,7 @@ TEST("(Pokegotchi) Sleep freezes poop decay and generation")
     Pokegotchi_Sync();
     stats = Pokegotchi_GetStats();
 
-    EXPECT_EQ(stats->food, 190);
+    EXPECT_EQ(stats->food, 150);
     EXPECT_EQ(stats->poop, 250);
     EXPECT_EQ(stats->poopsOnScreen, 0);
 }
@@ -414,9 +414,9 @@ TEST("(Pokegotchi) A woken pet uses regular active decay during sleep time")
     Pokegotchi_Sync();
     stats = Pokegotchi_GetStats();
 
-    EXPECT_EQ(stats->food, 248);
-    EXPECT_EQ(stats->fun, 248);
-    EXPECT_EQ(stats->happy, 248);
+    EXPECT_EQ(stats->food, 208);
+    EXPECT_EQ(stats->fun, 208);
+    EXPECT_EQ(stats->happy, 208);
     EXPECT_EQ(stats->poop, 248);
 }
 
@@ -467,15 +467,15 @@ TEST("(Pokegotchi) Active sleep phase is cleared in the morning")
 
     Pokegotchi_SetCurrentTimeForTest(&sTime_Day1_04_59);
     Pokegotchi_Sync();
-    EXPECT_EQ(Pokegotchi_GetStats()->food, 250);
+    EXPECT_EQ(Pokegotchi_GetStats()->food, 210);
 
     Pokegotchi_SetCurrentTimeForTest(&sTime_Day1_05_00);
     Pokegotchi_Sync();
-    EXPECT_EQ(Pokegotchi_GetStats()->food, 249);
+    EXPECT_EQ(Pokegotchi_GetStats()->food, 209);
 
     Pokegotchi_SetCurrentTimeForTest(&(struct Time){.days = 1, .hours = 5, .minutes = 1});
     Pokegotchi_Sync();
-    EXPECT_EQ(Pokegotchi_GetStats()->food, 247);
+    EXPECT_EQ(Pokegotchi_GetStats()->food, 207);
 }
 
 TEST("(Pokegotchi) Poop generation stops at the maximum of 4")

@@ -6,6 +6,7 @@
 #include "rtc.h"
 
 #define POKEGOTCHI_STATS_VERSION 1
+#define POKEGOTCHI_STARTING_STAT 210
 #define POKEGOTCHI_STARTING_FOOD_COUNT 10
 #define POKEGOTCHI_SESSION_WOKEN_DURING_SLEEP (1 << 0)
 #define POKEGOTCHI_SESSION_SLEEP_DECAY_PENDING (1 << 1)
@@ -72,9 +73,9 @@ void Pokegotchi_EnsureInitialized(void)
 
     GetCurrentTime(&stats->lastUpdated);
     stats->version = POKEGOTCHI_STATS_VERSION;
-    stats->food = POKEGOTCHI_STAT_MAX;
-    stats->fun = POKEGOTCHI_STAT_MAX;
-    stats->happy = POKEGOTCHI_STAT_MAX;
+    stats->food = POKEGOTCHI_STARTING_STAT;
+    stats->fun = POKEGOTCHI_STARTING_STAT;
+    stats->happy = POKEGOTCHI_STARTING_STAT;
     stats->poop = POKEGOTCHI_STAT_MAX;
     stats->poopsOnScreen = 0;
 
