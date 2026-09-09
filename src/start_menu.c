@@ -16,6 +16,7 @@
 #include "field_weather.h"
 #include "field_screen_effect.h"
 #include "frontier_pass.h"
+#include "follower_npc.h"
 #include "frontier_util.h"
 #include "gpu_regs.h"
 #include "international_string_util.h"
@@ -615,6 +616,8 @@ void Task_ShowStartMenu(u8 taskId)
 
 void ShowStartMenu(void)
 {
+    DestroyFollowerNPC();
+    FlagClear(POKEGOTCHI_FLAG_SKITTY_FOLLOWING);
     ReturnToPokegotchiHouse(NULL);
 }
 

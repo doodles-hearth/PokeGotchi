@@ -1106,10 +1106,10 @@ static void Menu_PlayPetEmotionSE(u8 emotion)
         PlaySE(SE_M_HEAL_BELL);
         break;
     case POKEGOTCHI_EMOTION_SAD:
-        PlaySE(SE_M_TAIL_WHIP);
+        PlaySE(SE_CARD);
         break;
     case POKEGOTCHI_EMOTION_ANGRY:
-        PlaySE(SE_M_SCREECH);
+        PlaySE(SE_M_SWAGGER2);
         break;
     case POKEGOTCHI_EMOTION_EATING:
         PlaySE(SE_M_BITE);
@@ -1838,7 +1838,7 @@ static void Task_MenuMain(u8 taskId)
             break;
         case TOWN_ICON:
             sMenuDataPtr->savedCallback = CB2_ExitToTamatownFromHouse;
-            PlaySE(SE_SELECT);
+            PlaySE(SE_EXIT);
             Menu_FadeAndBail();
             DestroyTask(taskId);
             return;

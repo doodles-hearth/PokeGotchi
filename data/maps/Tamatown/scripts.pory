@@ -33,6 +33,7 @@ script Tamatown_EventScript_House {
 
 	switch(var(VAR_RESULT)) {
 		case 0:
+			playse(SE_EXIT)
 			callnative(ReturnToPokegotchiHouse)
 		default: 
 			closemessage
